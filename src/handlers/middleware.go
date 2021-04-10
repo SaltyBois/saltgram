@@ -6,7 +6,6 @@ import (
 	"saltgram/data"
 )
 
-
 func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := data.User{}
@@ -23,7 +22,7 @@ func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 		err = user.Validate()
 		if err != nil {
 			u.l.Println("[ERROR] validating user: ", err.Error())
-			http.Error(w, "Error validating product: " + err.Error(), http.StatusBadRequest)
+			http.Error(w, "Error validating product: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 

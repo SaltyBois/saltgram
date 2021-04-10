@@ -8,8 +8,12 @@ import (
 )
 
 type User struct {
-	ID        uint64 `json:"id"`
-	Username  string `json:"username" validate:"required"`
+	ID       uint64 `json:"id"`
+	FullName string `json:"fullName" validate:"required"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+
+	Salt      string `json:"-"`
 	CreatedOn string `json:"-"`
 	UpdatedOn string `json:"-"`
 	DeletedOn string `json:"-"`

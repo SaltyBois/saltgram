@@ -10,12 +10,12 @@ func (u *Users) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := getUserID(r)
 	if err != nil {
-		http.Error(w, "Invalid User ID: " + err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid User ID: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	user, err := data.GetUserByID(id)
-	
+
 	switch err {
 	case nil:
 	case data.ErrUserNotFound:

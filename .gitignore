@@ -24,3 +24,7 @@ node_modules
 # IDE
 *.idea
 .vscode
+
+# Vetur
+jsconfig.json
+tsconfig.json

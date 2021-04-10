@@ -5,13 +5,12 @@ import (
 	"saltgram/data"
 )
 
-
 func (u *Users) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := getUserID(r)
 
 	if err != nil {
 		http.Error(w, "Invalid id", http.StatusBadRequest)
-		return 
+		return
 	}
 
 	u.l.Println("Handling PUT Users", id)

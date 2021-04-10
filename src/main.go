@@ -9,6 +9,7 @@ import (
 	"saltgram/handlers"
 	"time"
 
+	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -31,9 +32,15 @@ func main() {
 	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update)
 	putRouter.Use(usersHandler.MiddlewareValidateUser)
 
+	// NOTE(Jovan): CORS
+	headersOk := gohandlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := gohandlers.AllowedOrigins([]string{"*"})
+	methodsOk := gohandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	ch := gohandlers.CORS(headersOk, originsOk, methodsOk)
+
 	server := &http.Server{
 		Addr:         ":8081",
-		Handler:      serverMux,
+		Handler:      ch(serverMux),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,

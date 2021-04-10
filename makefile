@@ -3,12 +3,15 @@
 	export
 endif
 MAINDIR = src
-FRONTDIR = src/gramui
+FRONTDIR = src/frontend
 
 .PHONY: node_modules test tidy
 
 backend:
 	cd $(MAINDIR) && go run main.go
+
+frontend:
+	cd $(FRONTDIR) && npm run serve
 
 dev: node_modules
 	cd $(MAINDIR) && go run main.go &
