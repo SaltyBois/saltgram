@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"saltgram/handlers"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -15,8 +17,17 @@ func main() {
 	
 	usersHandler := handlers.NewUsers(l)
 
-	serverMux := http.NewServeMux()
-	serverMux.Handle("/users", usersHandler)
+	serverMux := mux.NewRouter()
+
+	getRouter := serverMux.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/users", usersHandler.GetUsers)
+
+	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.UpdateUser)
+
+	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/users", usersHandler.AddUser)
+
 
 	server := &http.Server{
 		Addr: ":8081",
