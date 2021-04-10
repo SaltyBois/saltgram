@@ -1,9 +1,7 @@
 package data
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/go-playground/validator"
@@ -19,21 +17,6 @@ type User struct {
 
 // NOTE(Jovan): Collection of users
 type Users []*User
-
-// NOTE(Jovan): Serializing to JSON
-// NewEncoder provides better perf than json.Unmarshal
-// https://golang.org/pkg/encoding/json/#NewEncoder
-func (u *Users) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(u)
-}
-
-// NOTE(Jovan): Deserializing from JSON
-func (u *User) FromJSON(r io.Reader) error {
-	e := json.NewDecoder(r)
-	return e.Decode(u)
-}
-
 
 func (u *User) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
@@ -61,6 +44,15 @@ func UpdateUser(id uint64, u *User) error {
 	userList[pos] = u
 
 	return nil
+}
+
+func GetUserByID(id uint64) (*User, error) {
+	user, _, err := findUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 var ErrUserNotFound = fmt.Errorf("User not found")

@@ -20,14 +20,15 @@ func main() {
 	serverMux := mux.NewRouter()
 
 	getRouter := serverMux.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/users", usersHandler.GetUsers)
+	getRouter.HandleFunc("/users", usersHandler.GetAll)
+	getRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.GetByID)
 
 	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/users", usersHandler.AddUser)
+	postRouter.HandleFunc("/users", usersHandler.Create)
 	postRouter.Use(usersHandler.MiddlewareValidateUser)
 
 	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.UpdateUser)
+	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update)
 	putRouter.Use(usersHandler.MiddlewareValidateUser)
 
 	server := &http.Server{
