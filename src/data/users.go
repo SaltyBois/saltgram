@@ -8,8 +8,8 @@ import (
 )
 
 type User struct {
-	ID       uint64 `json:"id"`
-	Username string `json:"username"`
+	ID        uint64 `json:"id"`
+	Username  string `json:"username"`
 	CreatedOn string `json:"-"`
 	UpdatedOn string `json:"-"`
 	DeletedOn string `json:"-"`
@@ -40,7 +40,7 @@ func GetUsers() Users {
 func AddUser(u *User) {
 	u.ID = getNextID()
 	userList = append(userList, u)
-} 
+}
 
 func UpdateUser(id uint64, u *User) error {
 	_, pos, err := findUser(id)
@@ -67,20 +67,20 @@ func findUser(id uint64) (*User, int, error) {
 }
 
 func getNextID() uint64 {
-	u := userList[len(userList) - 1]
+	u := userList[len(userList)-1]
 	return u.ID + 1
 }
 
 var userList = []*User{
 	&User{
-		ID: 1,
-		Username: "AgentSmith",
+		ID:        1,
+		Username:  "AgentSmith",
 		CreatedOn: time.Now().UTC().String(),
 		UpdatedOn: time.Now().UTC().String(),
 	},
 	&User{
-		ID: 2,
-		Username: "Neo",
+		ID:        2,
+		Username:  "Neo",
 		CreatedOn: time.Now().UTC().String(),
 		UpdatedOn: time.Now().UTC().String(),
 	},

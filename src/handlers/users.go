@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"saltgram/data"
@@ -13,12 +14,12 @@ type Users struct {
 	l *log.Logger
 }
 
-type KeyUser struct {}
+// NOTE(Jovan): Key used for contexts
+type KeyUser struct{}
 
 func NewUsers(l *log.Logger) *Users {
 	return &Users{l}
 }
-
 
 func (u *Users) GetUsers(w http.ResponseWriter, r *http.Request) {
 	u.l.Println("Handling GET Users")
@@ -33,7 +34,7 @@ func (u *Users) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 func (u *Users) AddUser(w http.ResponseWriter, r *http.Request) {
 	u.l.Println("Handling POST Users")
-	
+
 	user := r.Context().Value(KeyUser{}).(data.User)
 	data.AddUser(&user)
 }
@@ -49,23 +50,38 @@ func (u *Users) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u.l.Println("Handling PUT Users", id)
+	// NOTE(Jovan): Safe to cast because middleware makes sure nothing's wrong
+	user := r.Context().Value(KeyUser{}).(data.User)
 
-	user := &data.User{}
-
-	err = user.FromJSON(r.Body)
-	if err != nil {
-		http.Error(w, "Unable to unmarshal json", http.StatusBadRequest)
-		return
-	}
-
-	err = data.UpdateUser(id, user)
+	err = data.UpdateUser(id, &user)
 	if err == data.ErrUserNotFound {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
 	if err != nil {
-		http.Error(w, "Product not updated: " + err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Product not updated: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := data.User{}
+
+		// NOTE(Jovan): Validate JSON object
+		err := user.FromJSON(r.Body)
+		if err != nil {
+			u.l.Println("[ERROR] deserializing user: ", err.Error())
+			http.Error(w, "Erorr reading user", http.StatusBadRequest)
+			return
+		}
+
+		// NOTE(Jovan): If JSON object is valid, put the unmarshalled
+		// struct onto request
+		ctx := context.WithValue(r.Context(), KeyUser{}, user)
+		requestCopy := r.WithContext(ctx)
+
+		next.ServeHTTP(w, requestCopy)
+	})
 }
