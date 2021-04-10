@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	"github.com/go-playground/validator"
 )
 
 type User struct {
 	ID        uint64 `json:"id"`
-	Username  string `json:"username"`
+	Username  string `json:"username" validate:"required"`
 	CreatedOn string `json:"-"`
 	UpdatedOn string `json:"-"`
 	DeletedOn string `json:"-"`
@@ -30,6 +32,13 @@ func (u *Users) ToJSON(w io.Writer) error {
 func (u *User) FromJSON(r io.Reader) error {
 	e := json.NewDecoder(r)
 	return e.Decode(u)
+}
+
+
+func (u *User) Validate() error {
+	// TODO(Jovan): Extract into a global validator?
+	validate := validator.New()
+	return validate.Struct(u)
 }
 
 // TODO(Jovan): For testing currently, use a DB of sorts

@@ -73,7 +73,15 @@ func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 		err := user.FromJSON(r.Body)
 		if err != nil {
 			u.l.Println("[ERROR] deserializing user: ", err.Error())
-			http.Error(w, "Erorr reading user", http.StatusBadRequest)
+			http.Error(w, "Error reading user", http.StatusBadRequest)
+			return
+		}
+
+		// NOTE(Jovan): Validate product
+		err = user.Validate()
+		if err != nil {
+			u.l.Println("[ERROR] validating user: ", err.Error())
+			http.Error(w, "Error validating product: " + err.Error(), http.StatusBadRequest)
 			return
 		}
 
