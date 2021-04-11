@@ -74,7 +74,7 @@ export default {
                 email: this.email,
                 password: this.password1,
             }
-            this.axios.post("http://localhost:8081/users", user)
+            this.axios.post("/users", user)
                 .then(response => {
                     console.log(response);
                 })
@@ -84,7 +84,7 @@ export default {
         }
     },
     mounted() {
-        this.axios.get("http://localhost:8081/users")
+        this.axios.get("/users")
             .then(r => {
                 this.test = r.data;
             });

@@ -33,14 +33,16 @@ func main() {
 	putRouter.Use(usersHandler.MiddlewareValidateUser)
 
 	// NOTE(Jovan): CORS
-	headersOk := gohandlers.AllowedHeaders([]string{"X-Requested-With"})
+	headersOk := gohandlers.AllowedHeaders([]string{"*"})
 	originsOk := gohandlers.AllowedOrigins([]string{"*"})
-	methodsOk := gohandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-	ch := gohandlers.CORS(headersOk, originsOk, methodsOk)
+	methodsOk := gohandlers.AllowedMethods([]string{"*"})
+	corsHandler := gohandlers.CORS(headersOk, originsOk, methodsOk)
+
+	// h := cors.Default().Handler(serverMux) Works for some reason
 
 	server := &http.Server{
 		Addr:         ":8081",
-		Handler:      ch(serverMux),
+		Handler:      corsHandler(serverMux),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
