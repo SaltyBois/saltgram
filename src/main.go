@@ -17,6 +17,7 @@ func main() {
 	l := log.New(os.Stdout, "saltgram", log.LstdFlags)
 
 	usersHandler := handlers.NewUsers(l)
+	loginHandler := handlers.NewLogin(l)
 
 	serverMux := mux.NewRouter()
 
@@ -26,7 +27,12 @@ func main() {
 
 	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/users", usersHandler.Create)
-	postRouter.Use(usersHandler.MiddlewareValidateUser)
+	// TODO(Jovan): Fix later
+	postRouter.Use(usersHandler.MiddlewareValidateUser) 
+
+	loginRouter := serverMux.PathPrefix("/login").Subrouter()
+	loginRouter.HandleFunc("", loginHandler.Login).Methods(http.MethodPost)
+	loginRouter.Use(loginHandler.MiddlewareValidateToken)
 
 	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update)

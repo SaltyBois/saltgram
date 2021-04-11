@@ -6,6 +6,31 @@ import (
 	"saltgram/data"
 )
 
+func (re Login) MiddlewareValidateToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reCaptcha := data.Login{}
+
+		err := data.FromJSON(&reCaptcha, r.Body)
+		if err != nil {
+			re.l.Println("[ERROR] deserializing reCaptcha token: ", err.Error())
+			http.Error(w, "Error getting reCaptcha token", http.StatusBadRequest)
+			return
+		}
+
+		err = reCaptcha.Validate()
+		if err != nil {
+			re.l.Println("[ERROR] validating reCaptcha token: ", err.Error())
+			http.Error(w, "Error validating reCaptcha token", http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), KeyLogin{}, reCaptcha)
+		requestCopy := r.WithContext(ctx)
+
+		next.ServeHTTP(w, requestCopy)
+	})
+}
+
 func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := data.User{}
@@ -13,7 +38,7 @@ func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 		// NOTE(Jovan): Validate JSON object
 		err := data.FromJSON(&user, r.Body)
 		if err != nil {
-			u.l.Println("[ERROR] deserializing user: ", err.Error())
+			u.l.Println("[ERROR] deserializing user aaa: ", err.Error())
 			http.Error(w, "Error reading user", http.StatusBadRequest)
 			return
 		}

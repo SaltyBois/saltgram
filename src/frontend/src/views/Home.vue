@@ -7,7 +7,6 @@
       <div id="login-container">
         <h1 id="home-title">Saltgram</h1>
         <div id="login">
-          <p>{{user}}</p>
           <v-text-field 
           v-model="user.username"
           label="Username"
@@ -21,7 +20,14 @@
           :type="showPassword ? 'text' : 'password'"
           @click:append="showPassword = !showPassword"
           required/>
-          <v-btn class="accent">Log in</v-btn>
+           <vue-recaptcha
+              ref="recaptcha"
+              @verify="onCaptchaVerified"
+              @expired="onCaptchaExpired"
+              size="invisible"
+              :sitekey="sitekey">
+            </vue-recaptcha>
+          <v-btn class="accent" @click="login">Log in</v-btn>
         </div>
         <div id="sign-up">
           <p>Don't have an account? <router-link to="/register">Sign up</router-link></p>
@@ -37,15 +43,50 @@ export default {
   name: 'Home',
   data: function() {
     return {
+      captchaResponse: "",
+      reCaptchaStatus: "submitting",
       user: {
         username: "",
-        password: ""
+        password: "",
+        reCaptcha: {
+          token: "",
+          action: "",
+        },
       },
       rules: {
         required: value => !!value || "Required",
         min: value => value.length >= 8 || "Min 8 characters",
       },
       showPassword: false,
+    }
+  },
+  methods: {
+    login: function() {
+      this.$refs.recaptcha.execute();
+    },
+
+    onCaptchaVerified: function(token) {
+      this.reCaptchaStatus = "submitting";
+      this.$refs.recaptcha.reset();
+      this.user.reCaptcha.token = token;
+      this.user.reCaptcha.action = "login";
+
+      this.axios.post("/login", this.user)
+        .then(r => {
+          console.log(r);
+        })
+        .catch(r => {
+          console.log(r);
+        });
+    },
+
+    onCaptchaExpired: function() {
+      this.$refs.recaptcha.reset();
+    },
+  },
+  computed: {
+    sitekey: function() {
+      return process.env.VUE_APP_RECAPTCHA_SITE_KEY;
     }
   },
 }

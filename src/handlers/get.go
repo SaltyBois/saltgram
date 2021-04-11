@@ -30,7 +30,7 @@ func (u *Users) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	err = data.ToJSON(user, w)
 	if err != nil {
-		u.l.Println("[ERROR] serializing user", err)
+		u.l.Println("[ERROR] serializing user ", err)
 		http.Error(w, "Error serializing user", http.StatusInternalServerError)
 		return
 	}

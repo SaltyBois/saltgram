@@ -2,7 +2,6 @@
     <div id="register-main">
         <div id="registration-container">
             <h1 id="title">Saltgram</h1>
-            <p>{{test}}</p>
             <div id="registration">
                 <v-text-field 
                 v-model="email"
@@ -48,7 +47,6 @@ export default {
     name: "Register",
     data: function() {
         return {
-            test: [],
             fullName: "",
             username: "",
             email: "",
@@ -82,12 +80,6 @@ export default {
                     console.log(response);
                 })
         }
-    },
-    mounted() {
-        this.axios.get("/users")
-            .then(r => {
-                this.test = r.data;
-            });
     },
 }
 </script>
