@@ -47,7 +47,7 @@ func main() {
 	// h := cors.Default().Handler(serverMux) Works for some reason
 
 	server := &http.Server{
-		Addr:         ":8081",
+		Addr:         os.Getenv("PORT_SALT"),
 		Handler:      corsHandler(serverMux),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,

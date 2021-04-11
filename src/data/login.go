@@ -29,7 +29,7 @@ func (r *Login) Validate() error {
 func VerifyCaptcha(r *Login) (float32, error) {
 	siteKey := os.Getenv("RECAPTCHA_SITE_KEY")
 	assessmentName := "login_assessment"
-	parentProject := "projects/SaltGram"
+	parentProject := os.Getenv("RECAPTCHA_PROJECT")
 
 	ctx := context.Background()
 	client, err := recaptcha.NewClient(ctx)
@@ -59,7 +59,7 @@ func VerifyCaptcha(r *Login) (float32, error) {
 		return -1, err
 	}
 
-	if response.TokenProperties.Valid == false {
+	if !response.TokenProperties.Valid {
 		return -1, fmt.Errorf("token was invalid because of following reasons: %v", response.TokenProperties.InvalidReason)
 	} else {
 		if response.Event.ExpectedAction == r.ReCaptcha.Action {

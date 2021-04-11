@@ -77,13 +77,13 @@ func getNextID() uint64 {
 }
 
 var userList = []*User{
-	&User{
+	{
 		ID:        1,
 		Username:  "AgentSmith",
 		CreatedOn: time.Now().UTC().String(),
 		UpdatedOn: time.Now().UTC().String(),
 	},
-	&User{
+	{
 		ID:        2,
 		Username:  "Neo",
 		CreatedOn: time.Now().UTC().String(),
