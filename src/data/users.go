@@ -8,10 +8,11 @@ import (
 )
 
 type User struct {
-	ID       uint64 `json:"id"`
-	FullName string `json:"fullName" validate:"required"`
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	ID        uint64    `json:"id"`
+	FullName  string    `json:"fullName" validate:"required"`
+	Username  string    `json:"username" validate:"required"`
+	Password  string    `json:"password" validate:"required"`
+	ReCaptcha ReCaptcha `json:"reCaptcha" validate:"required"`
 
 	Salt      string `json:"-"`
 	CreatedOn string `json:"-"`

@@ -6,7 +6,7 @@
       </div>
       <div id="login-container">
         <h1 id="home-title">Saltgram</h1>
-        <div id="login">
+        <v-form id="login" v-model="isFormValid">
           <v-text-field 
           v-model="user.username"
           label="Username"
@@ -27,8 +27,8 @@
               size="invisible"
               :sitekey="sitekey">
             </vue-recaptcha>
-          <v-btn class="accent" @click="login">Log in</v-btn>
-        </div>
+          <v-btn :disabled="!isFormValid" class="accent" @click="login">Log in</v-btn>
+        </v-form>
         <div id="sign-up">
           <p>Don't have an account? <router-link to="/register">Sign up</router-link></p>
         </div>
@@ -43,6 +43,7 @@ export default {
   name: 'Home',
   data: function() {
     return {
+      isFormValid: false,
       captchaResponse: "",
       reCaptchaStatus: "submitting",
       user: {

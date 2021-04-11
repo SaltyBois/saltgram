@@ -26,9 +26,8 @@ func main() {
 	getRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.GetByID)
 
 	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/users", usersHandler.Create)
-	// TODO(Jovan): Fix later
-	postRouter.Use(usersHandler.MiddlewareValidateUser) 
+	postRouter.HandleFunc("/users", usersHandler.Register)
+	postRouter.Use(usersHandler.MiddlewareValidateUser)
 
 	loginRouter := serverMux.PathPrefix("/login").Subrouter()
 	loginRouter.HandleFunc("", loginHandler.Login).Methods(http.MethodPost)
@@ -61,9 +60,8 @@ func main() {
 		}
 	}()
 
-	signalChan := make(chan os.Signal)
-	signal.Notify(signalChan, os.Interrupt)
-	signal.Notify(signalChan, os.Kill)
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, os.Kill)
 
 	sig := <-signalChan
 	l.Println("Recieved terminate, graceful shutdown with sigtype:", sig)

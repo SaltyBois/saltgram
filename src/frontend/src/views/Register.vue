@@ -2,7 +2,7 @@
     <div id="register-main">
         <div id="registration-container">
             <h1 id="title">Saltgram</h1>
-            <div id="registration">
+            <v-form id="registration" v-model="isFormValid">
                 <v-text-field 
                 v-model="email"
                 label="Email"
@@ -22,7 +22,7 @@
                 v-model="password1"
                 label="Password"
                 hint="At least 8 characters"
-                :rules="[rules.required, rules.min]"
+                :rules="[rules.required, rules.min, rules.passMatch]"
                 :append-icon="showPassword1 ? 'fa-eye' : 'fa-eye-slash'"
                 :type="showPassword1 ? 'text' : 'password'"
                 @click:append="showPassword1 = !showPassword1"
@@ -31,13 +31,20 @@
                 v-model="password2"
                 label="Confirm password"
                 hint="At least 8 characters"
-                :rules="[rules.required, rules.min, rules.passMatch]"
+                :rules="[rules.required, rules.min, passMatch]"
                 :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
                 :type="showPassword2 ? 'text' : 'password'"
                 @click:append="showPassword2 = !showPassword2"
                 required/>
-                <v-btn class="accent" @click="registerUser">Sign up</v-btn>
-            </div>
+                <vue-recaptcha
+                ref="recaptcha"
+                @verify="onCaptchaVerified"
+                @expired="onCaptchaExpired"
+                size="invisible"
+                :sitekey="sitekey">
+                </vue-recaptcha>
+                <v-btn :disabled="!isFormValid" class="accent" @click="registerUser">Sign up</v-btn>
+            </v-form>
         </div>
     </div>
 </template>
@@ -47,6 +54,8 @@ export default {
     name: "Register",
     data: function() {
         return {
+            isFormValid: false,
+            reCaptchaStatus: "",
             fullName: "",
             username: "",
             email: "",
@@ -58,19 +67,27 @@ export default {
                 required: v => !!v || "Required",
                 min: v => v.length >= 8 || "Min 8 characters",
                 email: v => !v || /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid',
-                passMatch: () => this.password1 == this.password2 || "Passwords must match",
             }
         }
     },
 
     methods: {
-        registerUser: function() {
+        register: function() {
+            this.$refs.recaptcha.execute();
+        },
+
+        onCaptchaVerified: function(token) {
             // TODO(Jovan): Validate
+            this.reCaptchaStatus = "submitting";
             let user = {
                 username: this.username,
                 fullName: this.fullName,
                 email: this.email,
                 password: this.password1,
+                reCaptcha: {
+                    token: token,
+                    action: "register",
+                }
             }
             this.axios.post("/users", user)
                 .then(response => {
@@ -79,7 +96,19 @@ export default {
                 .catch(response => {
                     console.log(response);
                 })
-        }
+        },
+        onCaptchaExpired: function() {
+            this.$refs.recaptcha.reset();
+        },
+    },
+    computed: {
+        sitekey: function() {
+            return process.env.VUE_APP_RECAPTCHA_SITE_KEY;
+        },
+
+        passMatch: function() {
+            return this.password1 == this.password2 || "Passwords must match"
+        },
     },
 }
 </script>

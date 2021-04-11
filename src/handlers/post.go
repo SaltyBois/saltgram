@@ -9,7 +9,7 @@ import (
 func (re *Login) Login(w http.ResponseWriter, r *http.Request) {
 	re.l.Println("Handling POST reCaptcha")
 	reCaptcha := r.Context().Value(KeyLogin{}).(data.Login)
-	score, err := data.VerifyCaptcha(&reCaptcha)
+	score, err := reCaptcha.ReCaptcha.Verify()
 	if err != nil {
 		re.l.Println("[ERROR] verifying reCaptcha")
 		http.Error(w, "Failed verifying reCaptcha: "+err.Error(), http.StatusBadRequest)
@@ -28,11 +28,7 @@ func (re *Login) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
-	u.l.Println("Logging in...")
-}
-
-func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
+func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	u.l.Println("Handling POST Users")
 
 	user := r.Context().Value(KeyUser{}).(data.User)
