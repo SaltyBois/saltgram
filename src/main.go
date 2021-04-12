@@ -37,6 +37,12 @@ func main() {
 	loginRouter.HandleFunc("", loginHandler.Login).Methods(http.MethodPost)
 	loginRouter.Use(loginHandler.MiddlewareValidateToken)
 
+	authHandler := handlers.NewAuth(l)
+	authRouter := serverMux.PathPrefix("/auth").Subrouter()
+	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
+	authRouter.HandleFunc("/refresh", authHandler.Refresh).Methods(http.MethodGet)
+	// TODO(Jovan): Midleware?
+
 	emailHandler := handlers.NewEmail(l)
 	emailRouter := serverMux.PathPrefix("/activate").Subrouter()
 	emailRouter.HandleFunc("/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodGet)

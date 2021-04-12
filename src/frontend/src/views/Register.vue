@@ -89,7 +89,7 @@ export default {
                     action: "register",
                 }
             }
-            this.axios.post("/users", user)
+            this.axios.post("api/users", user)
                 .then(response => {
                     console.log(response);
                 })

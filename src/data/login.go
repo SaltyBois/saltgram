@@ -15,7 +15,7 @@ type Login struct {
 // NOTE(Jovan): Refresh token
 type Refresh struct {
 	Username string `json:"username"`
-	Token string `json:"token"`
+	Token    string `json:"token"`
 }
 
 func (l *Login) Validate() error {

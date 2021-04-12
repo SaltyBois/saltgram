@@ -1,14 +1,65 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	"saltgram/data"
-	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
+
+func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {
+	user := data.Login{}
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		a.l.Printf("[ERROR] deserializing user: %v", err)
+		http.Error(w, "Failed to deserialize user", http.StatusBadRequest)
+		return
+	}
+
+	// TODO(Jovan): Pull out into const
+	// timeout, _ := strconv.Atoi(os.Getenv("TOKEN_TIMEOUT_MINUTES"))
+
+	// NOTE(Jovan): HS256 is considered safe enough
+	claims := AccessClaims{
+		Username: user.Username,
+		Password: user.Password,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().UTC().Add(time.Second * 5).Unix(),
+			Issuer:    "SaltGram",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	jws, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	if err != nil {
+		a.l.Printf("[ERROR] failed signing JWT: %v", err)
+		http.Error(w, "Failed signing JWT: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	refreshToken, err := data.GetRefreshToken(user.Username)
+	if err != nil {
+		a.l.Printf("[ERROR] failed getting refresh token: %v", err)
+		http.Error(w, "Failed to get refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := http.Cookie{
+		Name:     "refresh",
+		Value:    refreshToken,
+		Expires:  time.Now().UTC().AddDate(0, 6, 0),
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &cookie)
+
+	w.Header().Add("Content-Type", "text/plain")
+	w.Write([]byte(jws))
+}
 
 func (l *Login) Login(w http.ResponseWriter, r *http.Request) {
 	l.l.Println("Handling POST reCaptcha")
@@ -38,46 +89,15 @@ func (l *Login) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
 	}
-	// TODO(Jovan): Pull out into const
-	timeout, _ := strconv.Atoi(os.Getenv("TOKEN_TIMEOUT_MINUTES"))
 
-	// NOTE(Jovan): HS256 is considered safe enough
-	claims := AccessClaims{
-		Username: login.Username,
-		Password: hashedPass,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().UTC().Add(time.Minute * time.Duration(timeout)).Unix(),
-			Issuer:    "SaltGram",
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	jws, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	w.Header().Add("Content-Type", "application/json")
+	u := data.Login{Username: login.Username, Password: hashedPass}
+	err = data.ToJSON(u, w)
 	if err != nil {
-		l.l.Printf("[ERROR] failed signing JWT: %v", err)
-		http.Error(w, "Failed signing JWT: "+err.Error(), http.StatusInternalServerError)
+		l.l.Printf("[ERROR] serializing login: %v", err)
+		http.Error(w, "Failed to serialize login", http.StatusInternalServerError)
 		return
 	}
-
-	refreshToken, err := data.GetRefreshToken(login.Username)
-	if err != nil {
-		l.l.Printf("[ERROR] failed getting refresh token: %v", err)
-		http.Error(w, "Failed to get refresh token", http.StatusInternalServerError)
-		return
-	}
-
-	cookie := http.Cookie{
-		Name: "refresh",
-		Value: refreshToken,
-		Expires: time.Now().UTC().AddDate(0, 6, 0),
-		HttpOnly: true,
-	}
-
-	http.SetCookie(w, &cookie)
-
-	w.Header().Add("Content-Type", "text/plain")
-	w.Write([]byte(jws))
-
 }
 
 func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +110,7 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 		StandardClaims: jwt.StandardClaims{
 			// TODO(Jovan): Make programmatic?
 			ExpiresAt: time.Now().UTC().AddDate(0, 6, 0).Unix(),
-			Issuer: "SaltGram",
+			Issuer:    "SaltGram",
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
@@ -98,7 +118,7 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		u.l.Println("[ERROR] signing refresh token")
-		http.Error(w, "Failed signing refresh token: " + err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed signing refresh token: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	data.AddUser(&user)
