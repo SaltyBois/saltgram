@@ -72,7 +72,7 @@ export default {
     },
 
     methods: {
-        register: function() {
+        registerUser: function() {
             this.$refs.recaptcha.execute();
         },
 

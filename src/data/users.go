@@ -10,6 +10,7 @@ import (
 type User struct {
 	ID        uint64    `json:"id"`
 	FullName  string    `json:"fullName" validate:"required"`
+	Email     string    `json:"email" validate:"required"`
 	Username  string    `json:"username" validate:"required"`
 	Password  string    `json:"password" validate:"required"`
 	ReCaptcha ReCaptcha `json:"reCaptcha" validate:"required"`

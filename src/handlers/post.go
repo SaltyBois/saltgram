@@ -33,4 +33,5 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 
 	user := r.Context().Value(KeyUser{}).(data.User)
 	data.AddUser(&user)
+	data.SendActivation(user.Email)
 }

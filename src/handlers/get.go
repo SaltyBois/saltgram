@@ -5,6 +5,14 @@ import (
 	"saltgram/data"
 )
 
+func (e *Emails) Activate(w http.ResponseWriter, r *http.Request) {
+
+	// vars := mux.Vars(r)
+	// token := vars["token"]
+
+	// data.ActivateEmail
+}
+
 func (u *Users) GetByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
