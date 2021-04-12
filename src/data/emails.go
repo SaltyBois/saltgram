@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,20 +20,38 @@ const (
 
 type Activation struct {
 	Token      string `json:"token" validate:"required"`
-	ValidUntil string `json:"validUntil"`
+	Email      string `json:"email" validate:"required"`
+	ValidUntil string `json:"validUntil" validate:"required"`
 }
 
-func (e *Activation) Activate() error {
-	if err := e.IsValid(); err != nil {
+func ActivateEmail(token string) error {
+	a, err := findActivation(token)
+	if err != nil {
 		return err
 	}
-	removeActivation(e.Token)
+
+	if err := a.IsValid(); err != nil {
+		return err
+	}
+	removeActivation(a.Token)
+	sendConfirmation(a.Email)
 	return nil
+}
+
+func sendConfirmation(email string) error {
+	emailAuth := smtp.PlainAuth("", EMAIL_SENDER, PASSWORD, HOST_URL)
+	message := []byte(
+		"To: " + email + "\r\n" +
+			"Subject: " + "Salty Boys: Account Activated" + "\r\n" +
+			"Dear user,\nYour account has been activated!\n" +
+			"\n\nSincerely Yours,\nThe Salty Bois")
+	em := []string{email}
+	err := smtp.SendMail(ADDRESS, emailAuth, EMAIL_SENDER, em, message)
+	return err
 }
 
 var ErrorActivationExpired = fmt.Errorf("verification email has expired")
 var ErrorActivationInvalid = fmt.Errorf("verification email is invalid")
-
 
 func (e *Activation) IsValid() error {
 	layout := "2006-01-02 15:04:05 -0700 MST"
@@ -56,16 +75,17 @@ func (e *Activation) IsValid() error {
 func SendActivation(email string) error {
 	ver := Activation{
 		Token:      getUuid(),
-		ValidUntil: time.Now().UTC().String(),
+		ValidUntil: time.Now().UTC().AddDate(0, 0, 1).String(),
+		Email:      email,
 	}
 	emails = append(emails, &ver)
 
 	emailAuth := smtp.PlainAuth("", EMAIL_SENDER, PASSWORD, HOST_URL)
 	message := []byte(
 		"To: " + email + "\r\n" +
-			"Subject: " + "Salty Boys: Account Activation" + "\r\n" +
+			"Subject: " + "Salty Bois: Account Activation" + "\r\n" +
 			"Dear user,\nClick this link to activate your account: \n" + getActivationURL(ver.Token) +
-			"\n\n Sincerely Yours,\nMe & The Salty Boyz")
+			"\n\nSincerely Yours,\nThe Salty Bois")
 
 	em := []string{email}
 
@@ -77,7 +97,23 @@ var emails = []*Activation{
 	{
 		Token:      getUuid(),
 		ValidUntil: time.Now().AddDate(0, 0, 1).UTC().String(),
+		Email:      "admin@email.com",
 	},
+}
+
+func GetAllActivations() []*Activation {
+	return emails
+}
+
+var ErrorActivationNotFound = fmt.Errorf("activation not found")
+
+func findActivation(token string) (*Activation, error) {
+	for _, a := range emails {
+		if a.Token == token {
+			return a, nil
+		}
+	}
+	return nil, ErrorActivationNotFound
 }
 
 type Activations []*Activation
@@ -94,7 +130,8 @@ func removeActivation(token string) {
 // TODO(Jovan): Temp for "seeding"
 func getUuid() string {
 	uuid, _ := uuid.NewRandom()
-	return uuid.String()
+	uuidstring := strings.ReplaceAll(uuid.String(), "-", "")
+	return uuidstring
 }
 
 func getActivationURL(token string) string {

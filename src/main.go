@@ -16,26 +16,28 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram", log.LstdFlags)
 
-	usersHandler := handlers.NewUsers(l)
-	loginHandler := handlers.NewLogin(l)
-
 	serverMux := mux.NewRouter()
 
+	usersHandler := handlers.NewUsers(l)
 	getRouter := serverMux.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/users", usersHandler.GetAll)
 	getRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.GetByID)
-
 	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/users", usersHandler.Register)
 	postRouter.Use(usersHandler.MiddlewareValidateUser)
+	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update)
+	putRouter.Use(usersHandler.MiddlewareValidateUser)
 
+	loginHandler := handlers.NewLogin(l)
 	loginRouter := serverMux.PathPrefix("/login").Subrouter()
 	loginRouter.HandleFunc("", loginHandler.Login).Methods(http.MethodPost)
 	loginRouter.Use(loginHandler.MiddlewareValidateToken)
 
-	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update)
-	putRouter.Use(usersHandler.MiddlewareValidateUser)
+	emailHandler := handlers.NewEmail(l)
+	emailRouter := serverMux.PathPrefix("/activate").Subrouter()
+	emailRouter.HandleFunc("/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodGet)
+	emailRouter.HandleFunc("", emailHandler.GetAll).Methods(http.MethodGet)
 
 	// NOTE(Jovan): CORS
 	headersOk := gohandlers.AllowedHeaders([]string{"*"})

@@ -3,14 +3,30 @@ package handlers
 import (
 	"net/http"
 	"saltgram/data"
+
+	"github.com/gorilla/mux"
 )
 
 func (e *Emails) Activate(w http.ResponseWriter, r *http.Request) {
 
-	// vars := mux.Vars(r)
-	// token := vars["token"]
+	vars := mux.Vars(r)
+	token := vars["token"]
 
-	// data.ActivateEmail
+	err := data.ActivateEmail(token)
+	if err != nil {
+		e.l.Printf("[ERROR] activating email: %v", err)
+		http.Error(w, "Failed activating email: " + err.Error(), http.StatusInternalServerError)
+		return
+	}
+	data.ToJSON("Email activated!", w)
+}
+
+func (e *Emails) GetAll(w http.ResponseWriter, r *http.Request) {
+	err := data.ToJSON(data.GetAllActivations(), w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 func (u *Users) GetByID(w http.ResponseWriter, r *http.Request) {
