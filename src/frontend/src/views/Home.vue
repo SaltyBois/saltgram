@@ -72,13 +72,13 @@ export default {
       this.user.reCaptcha.token = token;
       this.user.reCaptcha.action = "login";
 
-      this.axios.post("/api/login", this.user)
+      this.axios.post("http://localhost:8081/login", this.user)
         .then(r => {
           console.log(r);
-          this.axios.post("/api/auth/jwt", r.data)
+          this.axios.post("http://localhost:8081/auth/jwt", r.data)
             .then(r => {
               localStorage.setItem("jws", r.data);
-              this.$router.push("/api/user");
+              this.$router.push("/user");
             })
             .catch(r => {
               console.log(r);

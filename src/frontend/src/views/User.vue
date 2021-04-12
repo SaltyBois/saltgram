@@ -19,7 +19,7 @@ export default {
                 this.$router.push("/");
             }
 
-            this.axios.get("/api/users", {headers:{"Authorization": "Bearer " + jws}})
+            this.axios.get("http://localhost:8081/users", {headers:{"Authorization": "Bearer " + jws}})
                 .then(r => {
                     console.log(r);
                     this.user = r.data;
@@ -28,7 +28,7 @@ export default {
                     console.log(r);
                     // NOTE(Jovan): Try to refresh
                     // TODO(Jovan): Maybe send existing jwt, just change exp date
-                    this.axios.get("/api/auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
+                    this.axios.get("http://localhost:8081/auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
                         .then(r => {
                             console.log(r);
                             localStorage.setItem("jws", r.data)

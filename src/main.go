@@ -10,8 +10,8 @@ import (
 	"saltgram/handlers"
 	"time"
 
-	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -49,16 +49,17 @@ func main() {
 	emailRouter.HandleFunc("", emailHandler.GetAll).Methods(http.MethodGet)
 
 	// NOTE(Jovan): CORS
-	headersOk := gohandlers.AllowedHeaders([]string{"*"})
-	originsOk := gohandlers.AllowedOrigins([]string{"*"})
-	methodsOk := gohandlers.AllowedMethods([]string{"*"})
-	corsHandler := gohandlers.CORS(headersOk, originsOk, methodsOk)
-
-	// h := cors.Default().Handler(serverMux) Works for some reason
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:8080"},
+		AllowedHeaders: []string{"*"},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},
+		AllowCredentials: true,
+		Debug: true,
+	})
 
 	server := &http.Server{
 		Addr:         os.Getenv("PORT_SALT"),
-		Handler:      corsHandler(serverMux),
+		Handler:      c.Handler(serverMux),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,

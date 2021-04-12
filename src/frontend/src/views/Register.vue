@@ -89,12 +89,13 @@ export default {
                     action: "register",
                 }
             }
-            this.axios.post("api/users", user)
+            this.axios.post("http://localhost:8081/users", user)
                 .then(response => {
                     console.log(response);
                 })
                 .catch(response => {
                     console.log(response);
+                    this.$router.push("/")
                 })
         },
         onCaptchaExpired: function() {
