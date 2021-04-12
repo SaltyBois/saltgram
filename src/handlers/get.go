@@ -38,8 +38,8 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 
 	token, err := jwt.ParseWithClaims(
 		jws,
-		&UserClaims{},
-		func(t *jwt.Token)(interface{}, error) {
+		&AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 		},
 	)
@@ -50,17 +50,11 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, ok := token.Claims.(*UserClaims)
+	claims, ok := token.Claims.(*AccessClaims)
 
 	if !ok {
 		u.l.Println("[ERROR] unable to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
-
-	if err := claims.CheckDate(); err != nil {
-		u.l.Println("[ERROR] jwt expired")
-		http.Error(w, "JWT expired", http.StatusUnauthorized)
 		return
 	}
 

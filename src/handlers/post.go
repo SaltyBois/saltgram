@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"saltgram/data"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -37,20 +38,42 @@ func (l *Login) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
 	}
+	// TODO(Jovan): Pull out into const
+	timeout, _ := strconv.Atoi(os.Getenv("TOKEN_TIMEOUT_MINUTES"))
 
 	// NOTE(Jovan): HS256 is considered safe enough
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": login.Username,
-		"password": hashedPass,
-		"nbf":      time.Now().UTC().AddDate(0, 0, 1).String(), // TODO(Jovan): Change to appropriate time duration
-	})
+	claims := AccessClaims{
+		Username: login.Username,
+		Password: hashedPass,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().UTC().Add(time.Minute * time.Duration(timeout)).Unix(),
+			Issuer:    "SaltGram",
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	jws, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
-	if err != nil{
+	if err != nil {
 		l.l.Printf("[ERROR] failed signing JWT: %v", err)
-		http.Error(w, "Failed signing JWT: " + err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed signing JWT: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	refreshToken, err := data.GetRefreshToken(login.Username)
+	if err != nil {
+		l.l.Printf("[ERROR] failed getting refresh token: %v", err)
+		http.Error(w, "Failed to get refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := http.Cookie{
+		Name: "refresh",
+		Value: refreshToken,
+		Expires: time.Now().UTC().AddDate(0, 6, 0),
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &cookie)
 
 	w.Header().Add("Content-Type", "text/plain")
 	w.Write([]byte(jws))
@@ -61,6 +84,24 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	u.l.Println("Handling POST Users")
 
 	user := r.Context().Value(KeyUser{}).(data.User)
+
+	refreshClaims := RefreshClaims{
+		Username: user.Username,
+		StandardClaims: jwt.StandardClaims{
+			// TODO(Jovan): Make programmatic?
+			ExpiresAt: time.Now().UTC().AddDate(0, 6, 0).Unix(),
+			Issuer: "SaltGram",
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	jws, err := token.SignedString([]byte(os.Getenv("REF_SECRET_KEY")))
+
+	if err != nil {
+		u.l.Println("[ERROR] signing refresh token")
+		http.Error(w, "Failed signing refresh token: " + err.Error(), http.StatusInternalServerError)
+		return
+	}
 	data.AddUser(&user)
+	data.AddRefreshToken(user.Username, jws)
 	data.SendActivation(user.Email)
 }

@@ -15,7 +15,7 @@ type User struct {
 	FullName       string    `json:"fullName" validate:"required"`
 	Email          string    `json:"email" validate:"required"`
 	Username       string    `json:"username" validate:"required"`
-	HashedPassword string    `json:"hashedPassword" validate:"required"`
+	HashedPassword string    `json:"password" validate:"required"`
 	ReCaptcha      ReCaptcha `json:"reCaptcha" validate:"required"`
 
 	Salt      string `json:"-"`

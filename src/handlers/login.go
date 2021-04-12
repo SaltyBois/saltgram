@@ -3,45 +3,43 @@ package handlers
 import (
 	"fmt"
 	"log"
-	"os"
-	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type Login struct {
 	l *log.Logger
 }
 
-type UserClaims struct {
+type AccessClaims struct {
+	Username       string             `json:"username"`
+	Password       string             `json:"password"`
+	StandardClaims jwt.StandardClaims `json:"standardClaims"`
+}
+
+type RefreshClaims struct {
 	Username string `json:"username"`
-	Password string `json:"password"`
-	NBF      string `json:"nbf"`
+	StandardClaims jwt.StandardClaims `json:"standardClaims"`
 }
 
 type KeyLogin struct{}
 
 var ErrorEmptyClaims = fmt.Errorf("empty credentials")
 
-func (uc *UserClaims) Valid() error {
-	if len(uc.Username) <= 0 || len(uc.Password) <= 0 || len(uc.NBF) <= 0 {
+func (uc AccessClaims) Valid() error {
+	if len(uc.Username) <= 0 || len(uc.Password) <= 0 {
 		return ErrorEmptyClaims
 	}
-	
-	return nil
+
+	return uc.StandardClaims.Valid()
 }
 
-var ErrorJWTExpired = fmt.Errorf("jwt expired")
-
-func (uc *UserClaims) CheckDate() error {
-	layout := os.Getenv("TIME_LAYOUT")
-	t, err := time.Parse(layout, uc.NBF)
-	if err != nil {
-		return err
+func (rc RefreshClaims) Valid() error {
+	if len(rc.Username) <= 0 {
+		return ErrorEmptyClaims
 	}
 
-	if t.UTC().Before(time.Now()) {
-		return ErrorJWTExpired
-	}
-	return nil
+	return rc.StandardClaims.Valid()
 }
 
 func NewLogin(l *log.Logger) *Login {
