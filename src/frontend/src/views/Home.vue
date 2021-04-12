@@ -75,6 +75,8 @@ export default {
       this.axios.post("/login", this.user)
         .then(r => {
           console.log(r);
+          localStorage.setItem("jws", r.data)
+          this.$router.push("/user")
         })
         .catch(r => {
           console.log(r);

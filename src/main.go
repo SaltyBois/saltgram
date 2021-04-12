@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"saltgram/data"
 	"saltgram/handlers"
 	"time"
 
@@ -16,12 +17,14 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram", log.LstdFlags)
 
+	data.Seed()
+
 	serverMux := mux.NewRouter()
 
 	usersHandler := handlers.NewUsers(l)
 	getRouter := serverMux.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/users", usersHandler.GetAll)
-	getRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.GetByID)
+	getRouter.HandleFunc("/users", usersHandler.GetByJWS)
+	// getRouter.HandleFunc("/users/{jws}", usersHandler.GetByJWS)
 	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/users", usersHandler.Register)
 	postRouter.Use(usersHandler.MiddlewareValidateUser)
