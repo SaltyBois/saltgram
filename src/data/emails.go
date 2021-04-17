@@ -26,9 +26,9 @@ type EmailRequest struct {
 
 func NewEmailRequest(email string) *EmailRequest {
 	return &EmailRequest{
-		Token: getUuid(),
+		Token:      getUuid(),
 		ValidUntil: time.Now().UTC().AddDate(0, 0, 1).String(),
-		Email: email,
+		Email:      email,
 	}
 }
 
@@ -42,7 +42,11 @@ func ActivateEmail(token string) error {
 	if err := a.IsValidFor(activationEmails); err != nil {
 		return err
 	}
-	fmt.Println("Activated email: ",  a.Email)
+	fmt.Println("Activated email: ", a.Email)
+	err = verifyEmail(a.Email)
+	if err != nil {
+		return err
+	}
 	activationEmails.Remove(a.Token)
 	return sendConfirmation(a.Email)
 }
@@ -102,7 +106,7 @@ func SendPasswordReset(email string) error {
 	fmt.Printf("Adding request: %v\n", request.Token)
 	resetEmails.Add(request)
 	subject := "Salty Bois: Password Reset"
-	content := fmt.Sprintf("Dear user,\nClick this link to reset your password:\n%s\n\n" +
+	content := fmt.Sprintf("Dear user,\nClick this link to reset your password:\n%s\n\n"+
 		"If you did not request this, ignore this email!", generatePasswordChangeURL(request.Token))
 	return sendEmail(email, subject, content)
 }
@@ -127,7 +131,7 @@ var resetEmails = Requests{
 }
 var activationEmails = Requests{
 	{
-		Token:      "48d135c6d7194cf08fb3ce4a31f06618",//getUuid(),
+		Token:      "48d135c6d7194cf08fb3ce4a31f06618", //getUuid(),
 		ValidUntil: time.Now().AddDate(0, 0, 1).UTC().String(),
 		Email:      "admin@email.com",
 	},

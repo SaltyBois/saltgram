@@ -18,6 +18,7 @@ type User struct {
 	HashedPassword string    `json:"password" validate:"required"`
 	ReCaptcha      ReCaptcha `json:"reCaptcha" validate:"required"`
 
+	Activated bool   `json:"-"`
 	Salt      string `json:"-"`
 	CreatedOn string `json:"-"`
 	UpdatedOn string `json:"-"`
@@ -59,6 +60,24 @@ func (u *User) GenerateSaltAndHashedPassword() error {
 		return err
 	}
 	u.HashedPassword = string(hash)
+	return nil
+}
+
+func IsEmailVerified(username string) bool {
+	user, _, err := findUserByUsername(username)
+	if err != nil {
+		return false
+	}
+	return user.Activated
+}
+
+func verifyEmail(email string) error {
+	user, _, err := findUserByEmail(email)
+	if err != nil {
+		return err
+	}
+	user.Activated = true
+	UpdateUser(user.ID, user)
 	return nil
 }
 

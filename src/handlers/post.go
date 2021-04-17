@@ -137,6 +137,11 @@ func (l *Login) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !data.IsEmailVerified(login.Username) {
+		http.Error(w, "Email not activated", http.StatusForbidden)
+		return
+	}
+
 	// NOTE(Jovan): Returning reCaptcha score for testing purposes
 	// err = data.ToJSON(fmt.Sprintf("reCAPTCHA score: %f", score), w)
 	// if err != nil {

@@ -27,6 +27,13 @@ const routes = [
  {
   path: '/email/change/:token',
   name: 'PasswordReset',
+  beforeEnter: (to, from, next) => {
+    let token = to.params["token"]
+    axios.put("http://localhost:8081/email/change/" + token)
+      .finally(function() {
+        next({name: "Home"});
+      });
+  },
   component: () => import(/* webpackChunkName: "passwordReset" */ '../views/PasswordReset.vue')
  },
  {
@@ -37,7 +44,14 @@ const routes = [
  {
    path: '/email/activate/:token',
    name: 'ActivateEmail',
-   component: () => import(/* webpackChunkName: "activate" */ '../views/ActivateEmail')
+   beforeEnter: (to, from, next) => {
+    let token = to.params["token"]
+    axios.put("http://localhost:8081/email/activate/" + token)
+      .finally(function(){
+        next({ name: "Home"});
+      })
+   },
+  //  component: () => import(/* webpackChunkName: "activate" */ '../views/ActivateEmail')
  }
 ]
 
@@ -48,35 +62,8 @@ const router = new VueRouter({
 })
 
 // TODO(Jovan): Authentication
-router.beforeEach((to, from, next) => {
+// router.beforeEach((to, from, next) => {
 
-  if(to.name === "PasswordReset") {
-    let token = to.params["token"]
-    axios.get("http://localhost:8081/email/change/" + token)
-      .then(r => {
-        console.log(r);
-        next();
-      })
-      .catch(r => {
-        console.log(r);
-        next({name: "Home"});
-      });
-  // } else if(to.name === "Activate") {
-  //   let token = to.params["token"]
-  //   axios.get("http://localhost:8081/email/activate/" + token)
-  //     .then(r => {
-  //       console.log("ACTIVATED!");
-  //       console.log(r);
-  //       next({name: "Home"});
-  //     })
-  //     .catch(r => {
-  //       console.log("NOT ACTIVATED!");
-  //       console.log(r);
-  //       next({name: "Home"});
-  //     });
-  } else {
-    next()
-  }
-})
+// });
 
 export default router
