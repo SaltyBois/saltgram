@@ -97,6 +97,34 @@ func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(jwsNew))
 }
 
+func (e *Emails) ConfirmReset(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	token := vars["token"]
+
+	email, err := data.ConfirmPasswordReset(token)
+	if err != nil {
+		e.l.Printf("[ERROR] confirming password reset: %v\n", err)
+		http.Error(w, "Failed to confirm password reset", http.StatusBadRequest)
+		return
+	}
+
+	cookie := http.Cookie{
+		Name:     "email",
+		Value:    email,
+		Expires:  time.Now().UTC().AddDate(0, 6, 0),
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	http.SetCookie(w, &cookie)
+	// w.WriteHeader(http.StatusOK)
+	// w.Write([]byte("200 - OK"))
+}
+
+// TODO(Jovan): REMOVE!
+func (e *Emails) GetAllResets(w http.ResponseWriter, r *http.Request) {
+	data.ToJSON(data.GetAllResets(), w)
+}
+
 func (e *Emails) Activate(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
@@ -108,7 +136,7 @@ func (e *Emails) Activate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed activating email: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	data.ToJSON("Email activated!", w)
+	w.Write([]byte("Email activated"))
 }
 
 func (e *Emails) GetAll(w http.ResponseWriter, r *http.Request) {

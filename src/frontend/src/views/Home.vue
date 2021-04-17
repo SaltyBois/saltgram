@@ -31,6 +31,7 @@
         </v-form>
         <div id="sign-up">
           <p>Don't have an account? <router-link to="/register">Sign up</router-link></p>
+          <p><router-link to="/forgotpassword">Forgot password</router-link></p>
         </div>
       </div>
     </div>

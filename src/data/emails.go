@@ -18,42 +18,59 @@ const (
 	ADDRESS      = HOST_URL + ":" + HOST_PORT
 )
 
-type Activation struct {
+type EmailRequest struct {
 	Token      string `json:"token" validate:"required"`
 	Email      string `json:"email" validate:"required"`
 	ValidUntil string `json:"validUntil" validate:"required"`
 }
 
+func NewEmailRequest(email string) *EmailRequest {
+	return &EmailRequest{
+		Token: getUuid(),
+		ValidUntil: time.Now().UTC().AddDate(0, 0, 1).String(),
+		Email: email,
+	}
+}
+
 func ActivateEmail(token string) error {
-	a, err := findActivation(token)
+	a, err := activationEmails.Find(token)
 	if err != nil {
+		fmt.Println("Failed to activate for token: ", token)
 		return err
 	}
 
-	if err := a.IsValid(); err != nil {
+	if err := a.IsValidFor(activationEmails); err != nil {
 		return err
 	}
-	removeActivation(a.Token)
-	sendConfirmation(a.Email)
-	return nil
+	fmt.Println("Activated email: ",  a.Email)
+	activationEmails.Remove(a.Token)
+	return sendConfirmation(a.Email)
+}
+
+func ConfirmPasswordReset(token string) (string, error) {
+	r, err := resetEmails.Find(token)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("Confirming request: %v\n%v\n", r.Token, token)
+
+	if err := r.IsValidFor(resetEmails); err != nil {
+		return "", err
+	}
+	resetEmails.Remove(r.Token)
+	return r.Email, nil
 }
 
 func sendConfirmation(email string) error {
-	emailAuth := smtp.PlainAuth("", EMAIL_SENDER, PASSWORD, HOST_URL)
-	message := []byte(
-		"To: " + email + "\r\n" +
-			"Subject: " + "Salty Boys: Account Activated" + "\r\n" +
-			"Dear user,\nYour account has been activated!\n" +
-			"\n\nSincerely Yours,\nThe Salty Bois")
-	em := []string{email}
-	err := smtp.SendMail(ADDRESS, emailAuth, EMAIL_SENDER, em, message)
-	return err
+	subject := "Salty Boys: Account Activated"
+	content := "Dear user,\nYour account has been activated!\n"
+	return sendEmail(email, subject, content)
 }
 
 var ErrorActivationExpired = fmt.Errorf("verification email has expired")
 var ErrorActivationInvalid = fmt.Errorf("verification email is invalid")
 
-func (e *Activation) IsValid() error {
+func (e *EmailRequest) IsValidFor(requests Requests) error {
 	layout := os.Getenv("TIME_LAYOUT")
 	t, err := time.Parse(layout, e.ValidUntil)
 	if err != nil {
@@ -64,7 +81,7 @@ func (e *Activation) IsValid() error {
 		return ErrorActivationExpired
 	}
 
-	for _, ve := range emails {
+	for _, ve := range requests {
 		if e.Token == ve.Token {
 			return nil
 		}
@@ -73,56 +90,79 @@ func (e *Activation) IsValid() error {
 }
 
 func SendActivation(email string) error {
-	ver := Activation{
-		Token:      getUuid(),
-		ValidUntil: time.Now().UTC().AddDate(0, 0, 1).String(),
-		Email:      email,
-	}
-	emails = append(emails, &ver)
-
-	emailAuth := smtp.PlainAuth("", EMAIL_SENDER, PASSWORD, HOST_URL)
-	message := []byte(
-		"To: " + email + "\r\n" +
-			"Subject: " + "Salty Bois: Account Activation" + "\r\n" +
-			"Dear user,\nClick this link to activate your account: \n" + getActivationURL(ver.Token) +
-			"\n\nSincerely Yours,\nThe Salty Bois")
-
-	em := []string{email}
-
-	err := smtp.SendMail(ADDRESS, emailAuth, EMAIL_SENDER, em, message)
-	return err
+	request := NewEmailRequest(email)
+	activationEmails.Add(request)
+	subject := "Salty Bois: Account Activation"
+	content := fmt.Sprintf("Dear user,\nClick this link to activate your account: \n%s", generateActivationURL(request.Token))
+	return sendEmail(email, subject, content)
 }
 
-var emails = []*Activation{
+func SendPasswordReset(email string) error {
+	request := NewEmailRequest(email)
+	fmt.Printf("Adding request: %v\n", request.Token)
+	resetEmails.Add(request)
+	subject := "Salty Bois: Password Reset"
+	content := fmt.Sprintf("Dear user,\nClick this link to reset your password:\n%s\n\n" +
+		"If you did not request this, ignore this email!", generatePasswordChangeURL(request.Token))
+	return sendEmail(email, subject, content)
+}
+
+func sendEmail(email, subject, content string) error {
+	emailAuth := smtp.PlainAuth("", EMAIL_SENDER, PASSWORD, HOST_URL)
+	signature := "\n\nSincerely Yours,\nThe Salty Bois"
+	messageBytes := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n%s\n\n%s", email, subject, content, signature))
+	em := []string{email}
+	return smtp.SendMail(ADDRESS, emailAuth, EMAIL_SENDER, em, messageBytes)
+}
+
+type Requests []*EmailRequest
+
+var resetEmails = Requests{
+	// NOTE(Jovan): pls don't hack me :(
+	// {
+	// 	Token: "632309ff4c154735991b58589964b7ed",
+	// 	ValidUntil: time.Now().AddDate(1, 0, 0).UTC().String(),
+	// 	Email: "ivos.jovan@protonmail.ch",
+	// },
+}
+var activationEmails = Requests{
 	{
-		Token:      getUuid(),
+		Token:      "48d135c6d7194cf08fb3ce4a31f06618",//getUuid(),
 		ValidUntil: time.Now().AddDate(0, 0, 1).UTC().String(),
 		Email:      "admin@email.com",
 	},
 }
 
-func GetAllActivations() []*Activation {
-	return emails
+// TODO(Jovan): Remove!
+func GetAllActivations() []*EmailRequest {
+	return activationEmails
 }
 
-var ErrorActivationNotFound = fmt.Errorf("activation not found")
+// TODO(Jovan): Remove!
+func GetAllResets() []*EmailRequest {
+	return resetEmails
+}
 
-func findActivation(token string) (*Activation, error) {
-	for _, a := range emails {
-		if a.Token == token {
-			return a, nil
+var ErrorEmailRequestNotFound = fmt.Errorf("email request not found")
+
+func (r *Requests) Add(req *EmailRequest) {
+	*r = append(*r, req)
+}
+
+func (r Requests) Find(token string) (*EmailRequest, error) {
+	for _, req := range r {
+		if req.Token == token {
+			return req, nil
 		}
 	}
-	return nil, ErrorActivationNotFound
+	return nil, ErrorEmailRequestNotFound
 }
 
-type Activations []*Activation
-
-func removeActivation(token string) {
-	for i, a := range emails {
-		if a.Token == token {
-			emails[len(emails)-1], emails[i] = emails[i], emails[len(emails)-1]
-			emails = emails[:len(emails)-1]
+func (r *Requests) Remove(token string) {
+	for i, req := range *r {
+		if req.Token == token {
+			(*r)[len(*r)-1], (*r)[i] = (*r)[i], (*r)[len(*r)-1]
+			*r = (*r)[:len(activationEmails)-1]
 		}
 	}
 }
@@ -134,6 +174,10 @@ func getUuid() string {
 	return uuidstring
 }
 
-func getActivationURL(token string) string {
-	return fmt.Sprintf("http://localhost%s/activate/%s", os.Getenv("PORT_SALT"), token)
+func generateActivationURL(token string) string {
+	return fmt.Sprintf("http://localhost%s/email/activate/%s", os.Getenv("PORT_FRONT_SALT"), token)
+}
+
+func generatePasswordChangeURL(token string) string {
+	return fmt.Sprintf("http://localhost%s/email/change/%s", os.Getenv("PORT_FRONT_SALT"), token)
 }

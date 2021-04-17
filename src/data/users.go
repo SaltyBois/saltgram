@@ -62,6 +62,27 @@ func (u *User) GenerateSaltAndHashedPassword() error {
 	return nil
 }
 
+func ChangePassword(email, oldPlainPassword, newPlainPassword string) error {
+	user, _, err := findUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	err = user.VerifyPassword(oldPlainPassword)
+	if err != nil {
+		return err
+	}
+	oldHashed := user.HashedPassword
+	user.HashedPassword = newPlainPassword
+	err = user.GenerateSaltAndHashedPassword()
+	if err != nil {
+		user.HashedPassword = oldHashed
+		return err
+	}
+	UpdateUser(user.ID, user)
+	return nil
+}
+
 func VerifyPassword(username, plainPassword string) (string, error) {
 	user, _, err := findUserByUsername(username)
 	if err != nil {
@@ -137,6 +158,15 @@ func GetUserByUsername(username string) (*User, error) {
 
 var ErrUserNotFound = fmt.Errorf("User not found")
 
+func findUserByEmail(email string) (*User, int, error) {
+	for i, u := range userList {
+		if u.Email == email {
+			return u, i, nil
+		}
+	}
+	return nil, -1, ErrUserNotFound
+}
+
 func findUserByUsername(username string) (*User, int, error) {
 	for i, u := range userList {
 		if u.Username == username {
@@ -152,7 +182,6 @@ func findUserByID(id uint64) (*User, int, error) {
 			return u, i, nil
 		}
 	}
-
 	return nil, -1, ErrUserNotFound
 }
 

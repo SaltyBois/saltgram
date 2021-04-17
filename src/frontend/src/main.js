@@ -11,6 +11,8 @@ Vue.config.productionTip = false
 Vue.use(VueAxios, axios)
 Vue.component("vue-recaptcha", VueRecaptcha)
 
+axios.defaults.withCredentials = true;
+
 new Vue({
   router,
   vuetify,

@@ -44,17 +44,20 @@ func main() {
 	// TODO(Jovan): Midleware?
 
 	emailHandler := handlers.NewEmail(l)
-	emailRouter := serverMux.PathPrefix("/activate").Subrouter()
-	emailRouter.HandleFunc("/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodGet)
-	emailRouter.HandleFunc("", emailHandler.GetAll).Methods(http.MethodGet)
+	emailRouter := serverMux.PathPrefix("/email").Subrouter()
+	emailRouter.HandleFunc("/activate/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodGet)
+	emailRouter.HandleFunc("/activate", emailHandler.GetAll).Methods(http.MethodGet)
+	emailRouter.HandleFunc("/change/{token:[A-Za-z0-9]+}", emailHandler.ConfirmReset).Methods(http.MethodGet)
+	emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
+	emailRouter.HandleFunc("/forgot", emailHandler.RequestReset).Methods(http.MethodPost)
 
 	// NOTE(Jovan): CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:8080"},
-		AllowedHeaders: []string{"*"},
-		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},
+		AllowedOrigins:   []string{"http://localhost:8080"},
+		AllowedHeaders:   []string{"*"},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},
 		AllowCredentials: true,
-		Debug: true,
+		Debug:            true,
 	})
 
 	server := &http.Server{
