@@ -8,19 +8,19 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
-        image: postgres:12
-        env:
-          POSTGRES_USER: saltsec
-          POSTGRES_PASSWORD: saltsec
-          POSTGRES_DB: saltsecdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+      # postgres:
+      #   image: postgres:12
+      #   env:
+      #     POSTGRES_USER: saltsec
+      #     POSTGRES_PASSWORD: saltsec
+      #     POSTGRES_DB: saltsecdb
+      #   ports:
+      #     - 5432:5432
+      #   options: >-
+      #     --health-cmd pg_isready
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
     steps:
     - uses: actions/checkout@v2
 
@@ -31,45 +31,11 @@ jobs:
 
     - name: Build
       run: make build
-      env: 
-        DB_DEV: true
-        HOST_DB_SALT: localhost
-        PORT_DB_SALT: 5432
-        USER_DB_SALT: saltsec
-        PASSWORD_DB_SALT: saltsec
-        NAME_DB_SALT: saltsecdb
-
-  test:
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:12
-        env:
-          POSTGRES_USER: saltsec
-          POSTGRES_PASSWORD: saltsec
-          POSTGRES_DB: saltsecdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-
-    - uses: actions/checkout@v2
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16
-
-    - name: Test
-      run: make test
-      env: 
-        DB_DEV: true
-        HOST_DB_SALT: localhost
-        PORT_DB_SALT: 5432
-        USER_DB_SALT: saltsec
-        PASSWORD_DB_SALT: saltsec
-        NAME_DB_SALT: saltsecdb
+      env:
+        PORT_SALT: :8081
+        # DB_DEV: true
+        # HOST_DB_SALT: localhost
+        # PORT_DB_SALT: 5432
+        # USER_DB_SALT: saltsec
+        # PASSWORD_DB_SALT: saltsec
+        # NAME_DB_SALT: saltsecdb
