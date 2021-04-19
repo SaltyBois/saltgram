@@ -113,6 +113,11 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
 	jws := getUserJWS(r)
+	if len(jws) <= 0 {
+		u.l.Println("[ERROR] jws not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
 
 	token, err := jwt.ParseWithClaims(
 		jws,

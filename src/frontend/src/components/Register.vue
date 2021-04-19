@@ -1,8 +1,8 @@
 <template>
-    <div id="register-main">
-        <div id="registration-container">
+    <div id="register-container">
+        <div id="register-and-logo">
             <h1 id="title">Saltgram</h1>
-            <v-form id="registration" v-model="isFormValid">
+            <v-form id="register" v-model="isFormValid">
                 <v-text-field 
                 v-model="email"
                 label="Email"
@@ -116,24 +116,26 @@ export default {
 
 <style scoped>
     #title {
+        font-size: 2.5rem;
         font-family: "Lucida Handwriting", cursive;
     }
 
-    #register-main {
-        display: grid;
-        place-items: center;
-        height: 100vh;
-    }
-
-    #registration-container {
+    #register-container {
         display: flex;
         flex-direction: column;
+        justify-content: flex-start;
         text-align: center;
     }
 
-    #registration {
+    #register-and-logo {
+        border: 1px solid #eee;
+        padding: 1rem 2rem;
+        background: #fff;
+    }
+
+    #register {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        align-content: center;
     }
 </style>

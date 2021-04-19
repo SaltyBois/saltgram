@@ -41,6 +41,7 @@ func main() {
 	authRouter := serverMux.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 	authRouter.HandleFunc("/refresh", authHandler.Refresh).Methods(http.MethodGet)
+	authRouter.HandleFunc("", authHandler.Logout).Methods(http.MethodDelete)
 	// TODO(Jovan): Midleware?
 
 	emailHandler := handlers.NewEmail(l)

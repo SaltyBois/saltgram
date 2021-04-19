@@ -1,8 +1,14 @@
 <template>
     <div id="login-container">
-      <div id="login-and-logo">
+      <div v-if="processing" id="login-and-logo">
+        <v-progress-circular
+        indeterminate
+        color="primary"/>
+      </div>
+      <div v-else id="login-and-logo">
         <h1 id="home-title">Saltgram</h1>
         <v-form id="login" v-model="isFormValid">
+          <span class="err">{{error}}</span>
           <v-text-field 
           v-model="user.username"
           label="Username"
@@ -27,11 +33,6 @@
           <p id="forgot-password"><router-link to="/forgotpassword">Forgot password?</router-link></p>
         </v-form>
       </div>
-          <p id="sign-up">Don't have an account?
-            <router-link to="/register">
-              <span>Sign up</span>
-            </router-link>
-            </p>
     </div>
 </template>
 
@@ -40,6 +41,8 @@ export default {
   name: 'Home',
   data: function() {
     return {
+      error: "",
+      processing: false,
       isFormValid: false,
       captchaResponse: "",
       reCaptchaStatus: "submitting",
@@ -64,6 +67,8 @@ export default {
     },
 
     onCaptchaVerified: function(token) {
+      this.error = "";
+      this.processing = true;
       this.reCaptchaStatus = "submitting";
       this.$refs.recaptcha.reset();
       this.user.reCaptcha.token = token;
@@ -83,6 +88,10 @@ export default {
         })
         .catch(r => {
           console.log(r);
+          this.error = "Invalid username and/or password"
+        })
+        .finally(() => {
+          this.processing = false;
         });
     },
 
@@ -99,6 +108,12 @@ export default {
 </script>
 
 <style scoped>
+
+  .err {
+    border-color: #fff impor !important;
+    color: #f00;
+  }
+
   a {
     text-decoration: none;
   }
@@ -126,20 +141,6 @@ export default {
     padding-top: 1rem;
     margin-bottom: 0px;
     border-top: 1px solid #eee;
-  }
-
-  #sign-up {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    margin-top: 1rem;
-    padding: 1rem 0rem;
-    border: 1px solid #eee;
-    background: #fff;
-  }
-
-  #sign-up a {
-    font-weight: 500;
   }
 
   #home-title {
