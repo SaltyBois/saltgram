@@ -7,7 +7,7 @@ export default {
     methods: {
         activateEmail: function() {
             let token = this.$route.params.token
-            this.axios.get("http://localhost:8081/email/activate/" + token)
+            this.axios.put("http://localhost:8081/email/activate/" + token)
                 .then(() => {
                     this.$router.push("/");
                 })

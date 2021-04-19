@@ -1,6 +1,22 @@
 <template>
     <div id="user-main">
-        {{user}}
+        <div id="user-header">
+            <div id="user-icon-logout">
+                <i id="user-icon" class="fa fa-user"></i>
+                <v-btn @click="logout" class="accent">Logout</v-btn>
+            </div>
+            <div id="user-info">
+                <h2 id="username">{{user.username}}</h2>
+                <p>{{user.fullName}}</p>
+                <p>{{user.email}}</p>
+            </div>
+        </div>
+        <div id="user-stories">
+            Stories
+        </div>
+        <div id="user-media">
+            Media
+        </div>
     </div>
 </template>
 
@@ -13,6 +29,11 @@ export default {
     },
 
     methods: {
+        logout: function() {
+            localStorage.removeItem("jws");
+            this.$router.go();
+        },
+
         sendJWS: function() {
             let jws = localStorage.getItem("jws");
             if (!jws) {
@@ -46,3 +67,58 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+    #user-main {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-content: center;
+        /* text-align: center; */
+        background: #fafafa;
+        height: 100vh;
+    }
+
+    #user-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    #user-icon-logout {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    #user-icon {
+        text-align: center;
+        font-size: 8rem;
+        margin: 1rem 2rem;
+    }
+
+    #username {
+        font-weight: 400;
+        font-size: 2rem;
+        font-family: sans-serif;
+    }
+
+    #user-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        margin: 1rem 2rem;
+        /* text-align:left; */
+        /* padding: 1rem 2rem;
+        background: #fff;
+        border: 1px solid #eee; */
+    }
+
+    #user-stories {
+        text-align: center;
+    }
+
+    #user-media {
+        text-align: center;
+    }
+</style>

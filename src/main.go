@@ -41,13 +41,14 @@ func main() {
 	authRouter := serverMux.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 	authRouter.HandleFunc("/refresh", authHandler.Refresh).Methods(http.MethodGet)
+	authRouter.HandleFunc("", authHandler.Logout).Methods(http.MethodDelete)
 	// TODO(Jovan): Midleware?
 
 	emailHandler := handlers.NewEmail(l)
 	emailRouter := serverMux.PathPrefix("/email").Subrouter()
-	emailRouter.HandleFunc("/activate/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodGet)
+	emailRouter.HandleFunc("/activate/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodPut)
 	emailRouter.HandleFunc("/activate", emailHandler.GetAll).Methods(http.MethodGet)
-	emailRouter.HandleFunc("/change/{token:[A-Za-z0-9]+}", emailHandler.ConfirmReset).Methods(http.MethodGet)
+	emailRouter.HandleFunc("/change/{token:[A-Za-z0-9]+}", emailHandler.ConfirmReset).Methods(http.MethodPut)
 	emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
 	emailRouter.HandleFunc("/forgot", emailHandler.RequestReset).Methods(http.MethodPost)
 
