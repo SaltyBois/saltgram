@@ -2,7 +2,7 @@
   <div id="home-main">
     <div id="main-container">
       <div>
-        <v-img id="logo" src="https://image.flaticon.com/icons/png/512/114/114928.png" contain/>
+        <img id="logo" src="https://image.flaticon.com/icons/png/512/114/114928.png"/>
       </div>
       <div id="login-register">
           <sg-login v-if="login" />
@@ -48,15 +48,24 @@ export default {
 
   #main-container {
     display: flex;
+    flex-shrink: 0;
+    flex-grow: 0;
     flex-direction: row;
+    justify-content: center;
+    align-content: center;
   }
 
   #logo {
-    height: 40%;
+    display: grid;
+    place-items: center;
+    flex-basis: 30%;
+    width: 30rem;
+    height: 30rem;
   }
 
   #login-register {
     display: flex;
+    flex-basis: 70%;
     flex-direction: column;
   }
 

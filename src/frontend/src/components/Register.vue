@@ -31,8 +31,8 @@
                     <v-text-field
                     v-model="password1"
                     label="Password"
-                    hint="At least 8 characters"
-                    :rules="[rules.required, rules.min, rules.passMatch]"
+                    hint="Min 8 characters, upper/lowercase, number and symbol"
+                    :rules="[rules.required, rules.min, passMatch, passStr]"
                     :append-icon="showPassword1 ? 'fa-eye' : 'fa-eye-slash'"
                     :type="showPassword1 ? 'text' : 'password'"
                     @click:append="showPassword1 = !showPassword1"
@@ -40,12 +40,16 @@
                     <v-text-field
                     v-model="password2"
                     label="Confirm password"
-                    hint="At least 8 characters"
-                    :rules="[rules.required, rules.min, passMatch]"
+                    hint="Min 8 characters, upper/lowercase, number and symbol"
+                    :rules="[rules.required, rules.min, passMatch, passStr]"
                     :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
                     :type="showPassword2 ? 'text' : 'password'"
                     @click:append="showPassword2 = !showPassword2"
                     required/>
+                    <!-- <small id="password-tip">
+                        Use a combination of upper and lowercase letters, numbers and symbols.
+                    </small> -->
+                    <password-meter :password="password1" @score="onScore"/>
                     <vue-recaptcha
                     ref="recaptcha"
                     @verify="onCaptchaVerified"
@@ -61,10 +65,15 @@
 </template>
 
 <script>
+import passwordMeter from 'vue-simple-password-meter';
 export default {
     name: "Register",
+    components: {
+        passwordMeter
+    },
     data: function() {
         return {
+            passScore: 0,
             emailSent: false,
             processing: false,
             isFormValid: false,
@@ -85,6 +94,11 @@ export default {
     },
 
     methods: {
+        onScore: function({score, strength}) {
+            console.log("Password score: " + strength);
+            this.passScore = score;
+        },
+
         registerUser: function() {
             this.$refs.recaptcha.execute();
         },
@@ -123,6 +137,12 @@ export default {
         },
     },
     computed: {
+
+        passStr: function() {
+            console.log("pass score: " + this.passScore);
+            return this.passScore > 3 || "Use a stronger password!";
+        },
+
         sitekey: function() {
             return process.env.VUE_APP_RECAPTCHA_SITE_KEY;
         },
@@ -151,6 +171,7 @@ export default {
     }
 
     #register-and-logo {
+        min-width: 25rem;
         border: 1px solid #eee;
         padding: 1rem 2rem;
         background: #fff;
@@ -161,4 +182,5 @@ export default {
         flex-direction: column;
         align-content: center;
     }
+
 </style>
