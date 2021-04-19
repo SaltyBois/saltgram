@@ -5,18 +5,18 @@
         <v-img id="logo" src="https://image.flaticon.com/icons/png/512/114/114928.png" contain/>
       </div>
       <div id="login-register">
-        <sg-login v-if="login" @change="switchView" />
-        <sg-register v-else  @change="switchView" />
-        <div id="switch-login">
-          <p id="switch-up">
-              <span v-if="login">Don't have an account?</span>
-              <span v-else>Have an account?</span>
-              <a href="#" @click="login = !login">
-                <span v-if="login">Sign up</span>
-                <span v-else>Log in</span>
-              </a>
-          </p>
-        </div>
+          <sg-login v-if="login" />
+          <sg-register v-else />
+          <div id="switch-login">
+            <p id="switch-up">
+                <span v-if="login">Don't have an account?</span>
+                <span v-else>Have an account?</span>
+                <a href="#" @click="changeView($event)">
+                  <span v-if="login">Sign up</span>
+                  <span v-else>Log in</span>
+                </a>
+            </p>
+          </div>
       </div>
     </div>
   </div>
@@ -30,8 +30,8 @@ export default {
     }
   },
   methods: {
-    changeView: function(value) {
-      console.log(value);
+    changeView: function(e) {
+      e.preventDefault();
       this.login = !this.login;
     },
   },
@@ -71,6 +71,7 @@ export default {
   }
 
   #switch-up a {
+    text-decoration: none;
     font-weight: 500;
   }
 </style>

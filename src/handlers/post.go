@@ -170,7 +170,6 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	u.l.Println("Handling POST Users")
 
 	user := r.Context().Value(KeyUser{}).(data.User)
-
 	refreshClaims := RefreshClaims{
 		Username: user.Username,
 		StandardClaims: jwt.StandardClaims{
@@ -189,10 +188,13 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	data.AddUser(&user)
 	data.AddRefreshToken(user.Username, jws)
-	err = data.SendActivation(user.Email)
-	if err != nil {
-		u.l.Printf("[ERROR] sending activateion: %v\n", err)
-		http.Error(w, "Failed to send activation for user", http.StatusInternalServerError)
-		return
-	}
+	go data.SendActivation(user.Email)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Activation email sent"))
+	// if err != nil {
+	// 	u.l.Printf("[ERROR] sending activation: %v\n", err)
+	// 	http.Error(w, "Failed to send activation for user", http.StatusInternalServerError)
+	// 	return
+	// }
+
 }
