@@ -3,13 +3,15 @@ import App from './App.vue'
 import router from './router'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-import VueRecaptcha from 'vue-recaptcha';
+import VueRecaptcha from 'vue-recaptcha'
+import Login from './components/Login.vue'
 import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false
 
 Vue.use(VueAxios, axios)
 Vue.component("vue-recaptcha", VueRecaptcha)
+Vue.component("sg-login", Login)
 
 axios.defaults.withCredentials = true;
 
