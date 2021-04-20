@@ -29,6 +29,7 @@ func getUserID(r *http.Request) (uint64, error) {
 }
 
 var ErrorJWSNotFound = fmt.Errorf("jws not found")
+
 func getUserJWS(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	if len(authHeader) <= 7 {

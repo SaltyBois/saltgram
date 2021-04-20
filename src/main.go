@@ -33,21 +33,20 @@ func main() {
 	// getRouter.HandleFunc("/users/{jws}", usersHandler.GetByJWS)
 	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/users", usersHandler.Register)
-	postRouter.Use(usersHandler.MiddlewareValidateUser)
+	postRouter.Use(usersHandler.MiddlewareValidateUser(authEnforcer))
 	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update)
-	putRouter.Use(usersHandler.MiddlewareValidateUser)
+	putRouter.Use(usersHandler.MiddlewareValidateUser(authEnforcer))
 
 	loginHandler := handlers.NewLogin(l)
 	loginRouter := serverMux.PathPrefix("/login").Subrouter()
 	loginRouter.HandleFunc("", loginHandler.Login).Methods(http.MethodPost)
-	loginRouter.Use(loginHandler.MiddlewareValidateToken(authEnforcer))
+	loginRouter.Use(loginHandler.MiddlewareValidateToken)
 
 	authHandler := handlers.NewAuth(l)
 	authRouter := serverMux.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 	authRouter.HandleFunc("/refresh", authHandler.Refresh).Methods(http.MethodGet)
-	authRouter.HandleFunc("", authHandler.Logout).Methods(http.MethodDelete)
 	// TODO(Jovan): Midleware?
 
 	emailHandler := handlers.NewEmail(l)
