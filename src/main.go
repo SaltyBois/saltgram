@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"saltgram/data"
-	"saltgram/handlers"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -67,6 +66,8 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
+		// TODO: which one to use?
+		TLSConfig: *tls.Config{},
 	}
 
 	go func() {
