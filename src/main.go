@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -66,12 +67,11 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		// TODO: which one to use?
-		TLSConfig: *tls.Config{},
+		TLSConfig:    tlsConfig(),
 	}
 
 	go func() {
-		err := server.ListenAndServe()
+		err := server.ListenAndServeTLS("", "")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -86,4 +86,26 @@ func main() {
 	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	server.Shutdown(tc)
+}
+
+func tlsConfig() *tls.Config {
+	crt, err := ioutil.ReadFile("./localhost.crt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	key, err := ioutil.ReadFile("localhost.key")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cert, err := tls.X509KeyPair(crt, key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ServerName:   "localhost",
+	}
 }
