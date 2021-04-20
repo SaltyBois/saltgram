@@ -10,12 +10,18 @@ import (
 	"saltgram/handlers"
 	"time"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
 func main() {
 	l := log.New(os.Stdout, "saltgram", log.LstdFlags)
+
+	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
+	if err != nil {
+		l.Printf("[ERROR] creating auth enforcer: %v\n", err)
+	}
 
 	data.Seed()
 
@@ -35,7 +41,7 @@ func main() {
 	loginHandler := handlers.NewLogin(l)
 	loginRouter := serverMux.PathPrefix("/login").Subrouter()
 	loginRouter.HandleFunc("", loginHandler.Login).Methods(http.MethodPost)
-	loginRouter.Use(loginHandler.MiddlewareValidateToken)
+	loginRouter.Use(loginHandler.MiddlewareValidateToken(authEnforcer))
 
 	authHandler := handlers.NewAuth(l)
 	authRouter := serverMux.PathPrefix("/auth").Subrouter()

@@ -10,12 +10,13 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
-    beforeEnter: (to, from, next) => {
-      if(localStorage["jws"]) 
-        next("/user");
-      else
-        next();
-    },
+    // NOTE(Jovan): Not safe, relogin
+    // beforeEnter: (to, from, next) => {
+    //   if(localStorage["jws"]) 
+    //     next("/user");
+    //   else
+    //     next();
+    // },
   },
  {
    path: '/user',

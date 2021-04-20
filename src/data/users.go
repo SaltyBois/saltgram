@@ -17,6 +17,7 @@ type User struct {
 	Username       string    `json:"username" validate:"required"`
 	HashedPassword string    `json:"password" validate:"required"`
 	ReCaptcha      ReCaptcha `json:"reCaptcha" validate:"required"`
+	Role           string    `json:"role"`
 
 	Activated bool   `json:"-"`
 	Salt      string `json:"-"`
@@ -61,6 +62,15 @@ func (u *User) GenerateSaltAndHashedPassword() error {
 	}
 	u.HashedPassword = string(hash)
 	return nil
+}
+
+func GetRole(username string) (string, error) {
+	user, _, err := findUserByUsername(username)
+	if err != nil {
+		return "", err
+	}
+
+	return user.Role, nil
 }
 
 func IsEmailVerified(username string) bool {
@@ -218,8 +228,9 @@ func Seed() {
 		Username:       "AgentSmith",
 		Email:          "smith@email.com",
 		HashedPassword: "smith123",
-		
-		Activated:      true,
+		Role:           "user",
+
+		Activated: true,
 		CreatedOn: time.Now().UTC().String(),
 		UpdatedOn: time.Now().UTC().String(),
 	}
