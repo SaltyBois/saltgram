@@ -25,22 +25,22 @@ export default {
     data: function() {
         return {
             user: {},
-            jws: "",
         }
     },
 
     methods: {
         logout: function() {
-            this.jws = "";
+            this.$store.state.jws = "";
             this.$router.go();
         },
 
         sendJWS: function() {
-            if (!this.jws) {
+            let jws = this.$store.state.jws
+            if (!jws) {
                 this.$router.push("/");
             }
 
-            this.axios.get("http://localhost:8081/users", {headers:{"Authorization": "Bearer " + this.jws}})
+            this.axios.get("http://localhost:8081/users", {headers:{"Authorization": "Bearer " + jws}})
                 .then(r => {
                     console.log(r);
                     this.user = r.data;
@@ -49,10 +49,10 @@ export default {
                     console.log(r);
                     // NOTE(Jovan): Try to refresh
                     // TODO(Jovan): Maybe send existing jwt, just change exp date
-                    this.axios.get("http://localhost:8081/auth/refresh", {headers: {"Authorization": "Bearer " + this.jws}})
+                    this.axios.get("http://localhost:8081/auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
                         .then(r => {
                             console.log(r);
-                            this.jws = r.data;
+                            this.$store.state.jws = r.data;
                             this.$router.go()
                         })
                         .catch(r => {

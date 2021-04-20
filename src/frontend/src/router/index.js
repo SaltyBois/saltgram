@@ -10,9 +10,8 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
-    // NOTE(Jovan): Not safe, relogin
     // beforeEnter: (to, from, next) => {
-    //   if(localStorage["jws"]) 
+    //   if(this.$store.state.jws) 
     //     next("/user");
     //   else
     //     next();
