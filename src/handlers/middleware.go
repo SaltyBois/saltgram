@@ -8,6 +8,8 @@ import (
 
 func (re Login) MiddlewareValidateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO(Jovan): Move
+		w.Header().Add("Strict-Transport-Security", "max-age=86400")
 		reCaptcha := data.Login{}
 
 		err := data.FromJSON(&reCaptcha, r.Body)
@@ -33,6 +35,8 @@ func (re Login) MiddlewareValidateToken(next http.Handler) http.Handler {
 
 func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO(Jovan): Move
+		w.Header().Add("Strict-Transport-Security", "max-age=86400")
 		user := data.User{}
 
 		// NOTE(Jovan): Validate JSON object

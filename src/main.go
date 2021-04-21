@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -56,17 +54,12 @@ func main() {
 
 	// NOTE(Jovan): CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8080"},
+		AllowedOrigins:   []string{"https://localhost:8080"},
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},
 		AllowCredentials: true,
 		Debug:            true,
 	})
-
-	tlsConfig, err := getTLSConfig()
-	if err != nil {
-		l.Fatalf("[ERROR] loading TLS config: %v\n", err)
-	}
 
 	server := &http.Server{
 		Addr:         os.Getenv("PORT_SALT"),
@@ -74,11 +67,11 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		TLSConfig:    tlsConfig,
 	}
 
 	go func() {
-		err := server.ListenAndServeTLS("", "")
+		// err := server.ListenAndServeTLS("", "")
+		err := server.ListenAndServe()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -93,26 +86,4 @@ func main() {
 	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	server.Shutdown(tc)
-}
-
-func getTLSConfig() (*tls.Config, error) {
-	crt, err := ioutil.ReadFile("../certs/localhost.crt")
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := ioutil.ReadFile("../certs/localhost.key")
-	if err != nil {
-		return nil, err
-	}
-
-	cert, err := tls.X509KeyPair(crt, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		ServerName:   "localhost",
-	}, nil
 }

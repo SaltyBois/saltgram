@@ -179,9 +179,9 @@ func getUuid() string {
 }
 
 func generateActivationURL(token string) string {
-	return fmt.Sprintf("http://localhost%s/email/activate/%s", os.Getenv("PORT_FRONT_SALT"), token)
+	return fmt.Sprintf("https://localhost%s/email/activate/%s", os.Getenv("PORT_FRONT_SALT"), token)
 }
 
 func generatePasswordChangeURL(token string) string {
-	return fmt.Sprintf("http://localhost%s/email/change/%s", os.Getenv("PORT_FRONT_SALT"), token)
+	return fmt.Sprintf("https://localhost%s/email/change/%s", os.Getenv("PORT_FRONT_SALT"), token)
 }
