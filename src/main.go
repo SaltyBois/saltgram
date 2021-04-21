@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"saltgram/data"
+	"saltgram/handlers"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -61,13 +63,18 @@ func main() {
 		Debug:            true,
 	})
 
+	tlsConfig, err := getTLSConfig()
+	if err != nil {
+		l.Fatalf("[ERROR] loading TLS config: %v\n", err)
+	}
+
 	server := &http.Server{
 		Addr:         os.Getenv("PORT_SALT"),
 		Handler:      c.Handler(serverMux),
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		TLSConfig:    tlsConfig(),
+		TLSConfig:    tlsConfig,
 	}
 
 	go func() {
@@ -88,24 +95,24 @@ func main() {
 	server.Shutdown(tc)
 }
 
-func tlsConfig() *tls.Config {
-	crt, err := ioutil.ReadFile("./localhost.crt")
+func getTLSConfig() (*tls.Config, error) {
+	crt, err := ioutil.ReadFile("../certs/localhost.crt")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	key, err := ioutil.ReadFile("localhost.key")
+	key, err := ioutil.ReadFile("../certs/localhost.key")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	cert, err := tls.X509KeyPair(crt, key)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		ServerName:   "localhost",
-	}
+	}, nil
 }

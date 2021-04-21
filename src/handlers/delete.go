@@ -6,7 +6,7 @@ import (
 )
 
 // TODO(Jovan): Add delete methods
-func (a *Auth) Logout (w http.ResponseWriter, r *http.Request) {
+func (a *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 	a.l.Println("Handling Logout")
 	cookie, err := r.Cookie("refresh")
 	if err != nil {

@@ -218,8 +218,8 @@ func Seed() {
 		Username:       "AgentSmith",
 		Email:          "smith@email.com",
 		HashedPassword: "smith123",
-		
-		Activated:      true,
+
+		Activated: true,
 		CreatedOn: time.Now().UTC().String(),
 		UpdatedOn: time.Now().UTC().String(),
 	}
