@@ -45,6 +45,7 @@ func main() {
 
 	db := data.DBConn{}
 	db.ConnectToDb()
+	db.MigradeData()
 
 	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
 	if err != nil {
