@@ -61,7 +61,12 @@ func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//
-	jws := getUserJWS(r)
+	jws, err := getUserJWS(r)
+	if err != nil {
+		a.l.Println("[ERROR] JWS not found")
+		http.Error(w, "Missing JWS", http.StatusBadRequest)
+		return
+	}
 
 	// NOTE(Jovan): Not validating 'cause it is invalid
 	jwtOld, _ := jwt.ParseWithClaims(
@@ -112,9 +117,9 @@ func (e *Emails) GetAll(w http.ResponseWriter, r *http.Request) {
 func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 
-	jws := getUserJWS(r)
-	if len(jws) <= 0 {
-		u.l.Println("[ERROR] jws not found")
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("[ERROR] JWS not found")
 		http.Error(w, "JWS not found", http.StatusBadRequest)
 		return
 	}

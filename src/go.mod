@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go v0.81.0 // indirect
+	github.com/casbin/casbin/v2 v2.28.2 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible // indirect

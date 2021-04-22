@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -27,11 +28,13 @@ func getUserID(r *http.Request) (uint64, error) {
 	return id, err
 }
 
-func getUserJWS(r *http.Request) string {
-	authHeader := r.Header.Get("Authorization")
-	// NOTE(Jovan): Trimming first 7 characters from "Bearer <jws>"
-	return authHeader[7:]
+var ErrorJWSNotFound = fmt.Errorf("jws not found")
 
-	// vars := mux.Vars(r)
-	// return vars["jws"]
+func getUserJWS(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if len(authHeader) <= 7 {
+		return "", ErrorJWSNotFound
+	}
+	// NOTE(Jovan): Trimming first 7 characters from "Bearer <jws>"
+	return authHeader[7:], nil
 }

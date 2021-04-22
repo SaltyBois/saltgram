@@ -79,7 +79,7 @@ export default {
           console.log(r);
           this.axios.post("http://localhost:8081/auth/jwt", r.data)
             .then(r => {
-              localStorage.setItem("jws", r.data);
+              this.$store.state.jws = r.data;
               this.$router.push("/user");
             })
             .catch(r => {

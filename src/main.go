@@ -10,12 +10,18 @@ import (
 	"saltgram/handlers"
 	"time"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
 
 func main() {
 	l := log.New(os.Stdout, "saltgram", log.LstdFlags)
+
+	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
+	if err != nil {
+		l.Printf("[ERROR] creating auth enforcer: %v\n", err)
+	}
 
 	data.Seed()
 
@@ -27,10 +33,10 @@ func main() {
 	// getRouter.HandleFunc("/users/{jws}", usersHandler.GetByJWS)
 	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/users", usersHandler.Register)
-	postRouter.Use(usersHandler.MiddlewareValidateUser)
+	postRouter.Use(usersHandler.MiddlewareValidateUser(authEnforcer))
 	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
 	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update)
-	putRouter.Use(usersHandler.MiddlewareValidateUser)
+	putRouter.Use(usersHandler.MiddlewareValidateUser(authEnforcer))
 
 	loginHandler := handlers.NewLogin(l)
 	loginRouter := serverMux.PathPrefix("/login").Subrouter()
@@ -41,7 +47,6 @@ func main() {
 	authRouter := serverMux.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 	authRouter.HandleFunc("/refresh", authHandler.Refresh).Methods(http.MethodGet)
-	authRouter.HandleFunc("", authHandler.Logout).Methods(http.MethodDelete)
 	// TODO(Jovan): Midleware?
 
 	emailHandler := handlers.NewEmail(l)

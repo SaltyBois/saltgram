@@ -24,18 +24,18 @@
 export default {
     data: function() {
         return {
-            user: {}
+            user: {},
         }
     },
 
     methods: {
         logout: function() {
-            localStorage.removeItem("jws");
+            this.$store.state.jws = "";
             this.$router.go();
         },
 
         sendJWS: function() {
-            let jws = localStorage.getItem("jws");
+            let jws = this.$store.state.jws
             if (!jws) {
                 this.$router.push("/");
             }
@@ -52,7 +52,7 @@ export default {
                     this.axios.get("http://localhost:8081/auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
                         .then(r => {
                             console.log(r);
-                            localStorage.setItem("jws", r.data)
+                            this.$store.state.jws = r.data;
                             this.$router.go()
                         })
                         .catch(r => {

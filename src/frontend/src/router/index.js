@@ -10,12 +10,12 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
-    beforeEnter: (to, from, next) => {
-      if(localStorage["jws"]) 
-        next("/user");
-      else
-        next();
-    },
+    // beforeEnter: (to, from, next) => {
+    //   if(this.$store.state.jws) 
+    //     next("/user");
+    //   else
+    //     next();
+    // },
   },
  {
    path: '/user',
