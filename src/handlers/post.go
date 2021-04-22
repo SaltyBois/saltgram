@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -69,57 +68,6 @@ func (e *Emails) RequestReset(w http.ResponseWriter, r *http.Request) {
 		e.l.Printf("[ERROR] sending email request: %v\n", err)
 	}
 	// NOTE(Jovan): Always return 200 OK as per OWASP guidelines
-}
-
-func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {
-	user := data.Login{}
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		a.l.Printf("[ERROR] deserializing user: %v", err)
-		http.Error(w, "Failed to deserialize user", http.StatusBadRequest)
-		return
-	}
-
-	// TODO(Jovan): Pull out into const
-	// timeout, _ := strconv.Atoi(os.Getenv("TOKEN_TIMEOUT_MINUTES"))
-
-	// NOTE(Jovan): HS256 is considered safe enough
-	claims := AccessClaims{
-		Username: user.Username,
-		Password: user.Password,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().UTC().Add(time.Second * 5).Unix(),
-			Issuer:    "SaltGram",
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	jws, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
-	if err != nil {
-		a.l.Printf("[ERROR] failed signing JWT: %v", err)
-		http.Error(w, "Failed signing JWT: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	refreshToken, err := data.GetRefreshToken(user.Username)
-	if err != nil {
-		a.l.Printf("[ERROR] failed getting refresh token: %v", err)
-		http.Error(w, "Failed to get refresh token", http.StatusInternalServerError)
-		return
-	}
-
-	cookie := http.Cookie{
-		Name:     "refresh",
-		Value:    refreshToken,
-		Expires:  time.Now().UTC().AddDate(0, 6, 0),
-		HttpOnly: true,
-	}
-
-	http.SetCookie(w, &cookie)
-
-	w.Header().Add("Content-Type", "text/plain")
-	w.Write([]byte(jws))
 }
 
 func (l *Login) Login(w http.ResponseWriter, r *http.Request) {

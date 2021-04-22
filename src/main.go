@@ -10,7 +10,6 @@ import (
 	"saltgram/handlers"
 	"time"
 
-	"github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -18,10 +17,10 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram", log.LstdFlags)
 
-	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
-	if err != nil {
-		l.Printf("[ERROR] creating auth enforcer: %v\n", err)
-	}
+	// authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
+	// if err != nil {
+	// 	l.Printf("[ERROR] creating auth enforcer: %v\n", err)
+	// }
 
 	data.Seed()
 
