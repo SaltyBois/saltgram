@@ -63,7 +63,7 @@ func (a *Auth) Refresh(db *data.DBConn) func(http.ResponseWriter, *http.Request)
 			Username: claims.Username,
 			Token:    refreshToken,
 		}
-		if err := rt.Validate(db); err != nil {
+		if err := rt.Verify(db); err != nil {
 			a.l.Println("[ERROR] refresh token no longer valid")
 			http.Error(w, "refresh token no longer valid", http.StatusBadRequest)
 			return

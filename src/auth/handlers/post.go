@@ -10,6 +10,21 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+
+
+func (a *Auth) AddRefreshToken(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		token := r.Context().Value(KeyRefreshToken{}).(data.Refresh)
+		err := data.AddRefreshToken(db, token.Username, token.Token)
+		if err != nil {
+			a.l.Printf("[ERROR] adding refresh token: %v\n", err)
+			http.Error(w, "Error adding refresh token", http.StatusBadRequest)
+			return
+		}
+	}
+}
+
 func (a *Auth) GetJWT(db *data.DBConn) func(http.ResponseWriter, *http.Request){
 	return func (w http.ResponseWriter, r *http.Request) {
 		user := data.Login{}

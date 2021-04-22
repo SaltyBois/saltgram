@@ -3,11 +3,8 @@ package handlers
 import (
 	"io/ioutil"
 	"net/http"
-	"os"
 	"saltgram/data"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 )
 
@@ -112,37 +109,4 @@ func (l *Login) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to serialize login", http.StatusInternalServerError)
 		return
 	}
-}
-
-func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
-	u.l.Println("Handling POST Users")
-
-	user := r.Context().Value(KeyUser{}).(data.User)
-	refreshClaims := RefreshClaims{
-		Username: user.Username,
-		StandardClaims: jwt.StandardClaims{
-			// TODO(Jovan): Make programmatic?
-			ExpiresAt: time.Now().UTC().AddDate(0, 6, 0).Unix(),
-			Issuer:    "SaltGram",
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	jws, err := token.SignedString([]byte(os.Getenv("REF_SECRET_KEY")))
-
-	if err != nil {
-		u.l.Println("[ERROR] signing refresh token")
-		http.Error(w, "Failed signing refresh token: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	data.AddUser(&user)
-	data.AddRefreshToken(user.Username, jws)
-	go data.SendActivation(user.Email)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Activation email sent"))
-	// if err != nil {
-	// 	u.l.Printf("[ERROR] sending activation: %v\n", err)
-	// 	http.Error(w, "Failed to send activation for user", http.StatusInternalServerError)
-	// 	return
-	// }
-
 }

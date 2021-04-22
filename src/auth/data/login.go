@@ -14,14 +14,19 @@ type Login struct {
 
 // NOTE(Jovan): Refresh token
 type Refresh struct {
-	Username string `json:"username" gorm:"primaryKey"`
-	Token    string `json:"token"`
+	Username string `json:"username" gorm:"primaryKey" validate:"required"`
+	Token    string `json:"token" validate:"required"`
 }
 
 func (l *Login) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
 	validate := validator.New()
 	return validate.Struct(l)
+}
+
+func (r *Refresh) Validate() error {
+	validate := validator.New()
+	return validate.Struct(r)
 }
 
 func AddRefreshToken(db *DBConn, username, token string) error {
@@ -45,7 +50,7 @@ func GetRefreshTokens(db *DBConn) []*Refresh {
 	return tokens
 }
 
-func (r *Refresh) Validate(db *DBConn) error {
+func (r *Refresh) Verify(db *DBConn) error {
 	// NOTE(Jovan): https://gorm.io/docs/security.html
 	rt := Refresh{}
 	return db.DB.Where("TOKEN == ?", r.Token).First(&rt).Error
