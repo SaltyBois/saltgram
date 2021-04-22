@@ -11,9 +11,9 @@ import (
 )
 
 type User struct {
-	ID             uint64    `json:"id"`
+	// ID             uint64    `json:"id"`
+	Email          string    `json:"email" gorm:"primaryKey" validate:"required"`
 	FullName       string    `json:"fullName" validate:"required"`
-	Email          string    `json:"email" validate:"required"`
 	Username       string    `json:"username" validate:"required"`
 	HashedPassword string    `json:"password" validate:"required"`
 	ReCaptcha      ReCaptcha `json:"reCaptcha" validate:"required"`
@@ -25,9 +25,6 @@ type User struct {
 	UpdatedOn string `json:"-"`
 	DeletedOn string `json:"-"`
 }
-
-// NOTE(Jovan): Collection of users
-type Users []*User
 
 func (u *User) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
@@ -64,8 +61,8 @@ func (u *User) GenerateSaltAndHashedPassword() error {
 	return nil
 }
 
-func GetRole(username string) (string, error) {
-	user, _, err := findUserByUsername(username)
+func GetRole(db *DBConn, username string) (string, error) {
+	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return "", err
 	}
@@ -73,26 +70,26 @@ func GetRole(username string) (string, error) {
 	return user.Role, nil
 }
 
-func IsEmailVerified(username string) bool {
-	user, _, err := findUserByUsername(username)
+func IsEmailVerified(db *DBConn, username string) bool {
+	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return false
 	}
 	return user.Activated
 }
 
-func verifyEmail(email string) error {
-	user, _, err := findUserByEmail(email)
+func verifyEmail(db *DBConn, email string) error {
+	user, err := db.GetUserByEmail(email)
 	if err != nil {
 		return err
 	}
 	user.Activated = true
-	UpdateUser(user.ID, user)
+	db.UpdateUser(user)
 	return nil
 }
 
-func ChangePassword(email, oldPlainPassword, newPlainPassword string) error {
-	user, _, err := findUserByEmail(email)
+func ChangePassword(db *DBConn, email, oldPlainPassword, newPlainPassword string) error {
+	user, err := db.GetUserByEmail(email)
 	if err != nil {
 		return err
 	}
@@ -108,12 +105,12 @@ func ChangePassword(email, oldPlainPassword, newPlainPassword string) error {
 		user.HashedPassword = oldHashed
 		return err
 	}
-	UpdateUser(user.ID, user)
+	db.UpdateUser(user)
 	return nil
 }
 
-func VerifyPassword(username, plainPassword string) (string, error) {
-	user, _, err := findUserByUsername(username)
+func VerifyPassword(db *DBConn, username, plainPassword string) (string, error) {
+	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return "", err
 	}
@@ -140,90 +137,46 @@ func (u *User) VerifyPassword(plainPassword string) error {
 	return nil
 }
 
-// TODO(Jovan): For testing currently, use a DB of sorts
-func GetUsers() Users {
-	return userList
+func (db *DBConn) GetUsers() []*User {
+	users := []*User{}
+	db.DB.Find(&users)
+	return users
 }
 
-func AddUser(u *User) error {
-	u.ID = getNextID()
+func (db *DBConn) AddUser(u *User) error {
 	err := u.GenerateSaltAndHashedPassword()
 	if err != nil {
 		return err
 	}
-	userList = append(userList, u)
-	return nil
+	return db.DB.Create(u).Error
 }
 
-func UpdateUser(id uint64, u *User) error {
-	_, pos, err := findUserByID(id)
+func (db *DBConn) UpdateUser(u *User) error {
+	user := User{}
+
+	// NOTE(Jovan): Check if exists
+	err := db.DB.First(&user).Error
 	if err != nil {
 		return err
 	}
 
-	u.ID = id
-	userList[pos] = u
-
-	return nil
+	return db.DB.Save(u).Error
 }
 
-func GetUserByID(id uint64) (*User, error) {
-	user, _, err := findUserByID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+func (db *DBConn) GetUserByEmail(email string) (*User, error) {
+	user := User{}
+	err := db.DB.First(&user).Error
+	return &user, err
 }
 
-func GetUserByUsername(username string) (*User, error) {
-	user, _, err := findUserByUsername(username)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
+func (db *DBConn) GetUserByUsername(username string) (*User, error) {
+	user := User{}
+	err := db.DB.Where("username = ?", username).First(&user).Error
+	return &user, err
 }
-
-var ErrUserNotFound = fmt.Errorf("User not found")
-
-func findUserByEmail(email string) (*User, int, error) {
-	for i, u := range userList {
-		if u.Email == email {
-			return u, i, nil
-		}
-	}
-	return nil, -1, ErrUserNotFound
-}
-
-func findUserByUsername(username string) (*User, int, error) {
-	for i, u := range userList {
-		if u.Username == username {
-			return u, i, nil
-		}
-	}
-	return nil, -1, ErrUserNotFound
-}
-
-func findUserByID(id uint64) (*User, int, error) {
-	for i, u := range userList {
-		if u.ID == id {
-			return u, i, nil
-		}
-	}
-	return nil, -1, ErrUserNotFound
-}
-
-func getNextID() uint64 {
-	u := userList[len(userList)-1]
-	return u.ID + 1
-}
-
-var userList = []*User{}
 
 func Seed() {
 	smith := User{
-		ID:             1,
 		FullName:       "Mr Smith",
 		Username:       "AgentSmith",
 		Email:          "smith@email.com",
@@ -236,6 +189,4 @@ func Seed() {
 	}
 
 	smith.GenerateSaltAndHashedPassword()
-
-	userList = append(userList, &smith)
 }

@@ -55,7 +55,7 @@ func main() {
 	authHandler := handlers.NewAuth(l)
 	jwtRouter := serverMux.PathPrefix("/jwt").Subrouter()
 	jwtRouter.HandleFunc("", authHandler.GetJWT(&db)).Methods(http.MethodPost)
-	jwtRouter.HandleFunc("/refresh", authHandler.Refresh(&db)).Methods(http.MethodGet)
+	jwtRouter.HandleFunc("", authHandler.Refresh(&db)).Methods(http.MethodGet)
 
 	refreshRouter := serverMux.PathPrefix("/refresh").Subrouter()
 	refreshRouter.HandleFunc("", authHandler.AddRefreshToken(&db)).Methods(http.MethodPost)
