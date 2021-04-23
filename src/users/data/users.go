@@ -78,7 +78,7 @@ func IsEmailVerified(db *DBConn, username string) bool {
 	return user.Activated
 }
 
-func verifyEmail(db *DBConn, email string) error {
+func VerifyEmail(db *DBConn, email string) error {
 	user, err := db.GetUserByEmail(email)
 	if err != nil {
 		return err

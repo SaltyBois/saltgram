@@ -60,6 +60,13 @@ func main() {
 	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update(&db))
 	putRouter.Use(usersHandler.MiddlewareValidateUser)
 
+	passRouter := serverMux.PathPrefix("/changepw").Subrouter()
+	passRouter.HandleFunc("", usersHandler.ChangePassword(&db)).Methods(http.MethodPost)
+	passRouter.Use(usersHandler.MiddlewareValidateChangeRequest)
+
+	emailRouter := serverMux.PathPrefix("/verifyemail").Subrouter()
+	emailRouter.HandleFunc("", usersHandler.VerifyEmail(&db)).Methods(http.MethodPost)
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"https://localhost:8080"},
 		AllowedHeaders:   []string{"*"},

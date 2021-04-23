@@ -6,6 +6,31 @@ import (
 	"saltgram/users/data"
 )
 
+func (u Users) MiddlewareValidateChangeRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+		changeRequest := ChangeRequest{}
+
+		err := data.FromJSON(&changeRequest, r.Body)
+		if err != nil {
+			u.l.Printf("[ERROR] deserializing password change request: %v\n", err)
+			http.Error(w, "Bad password change request", http.StatusBadRequest)
+			return
+		}
+
+		err = changeRequest.Validate()
+		if err != nil {
+			u.l.Printf("[ERROR] validating password change request: %v\n", err)
+			http.Error(w, "Invalid password change request", http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), KeyUser{}, changeRequest)
+		requestCopy := r.WithContext(ctx)
+
+		next.ServeHTTP(w, requestCopy)
+	})
+}
+
 func (u Users) MiddlewareValidateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := data.User{}

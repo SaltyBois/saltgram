@@ -32,23 +32,23 @@ func NewEmailRequest(email string) *EmailRequest {
 	}
 }
 
-func ActivateEmail(token string) error {
+func ActivateEmail(token string) (string, error) {
 	a, err := activationEmails.Find(token)
 	if err != nil {
 		fmt.Println("Failed to activate for token: ", token)
-		return err
+		return "", err
 	}
 
 	if err := a.IsValidFor(activationEmails); err != nil {
-		return err
+		return "", err
 	}
 	fmt.Println("Activated email: ", a.Email)
-	err = verifyEmail(a.Email)
-	if err != nil {
-		return err
-	}
+	// err = verifyEmail(a.Email)
+	// if err != nil {
+	// 	return err
+	// }
 	activationEmails.Remove(a.Token)
-	return sendConfirmation(a.Email)
+	return a.Email, sendConfirmation(a.Email)
 }
 
 func ConfirmPasswordReset(token string) (string, error) {

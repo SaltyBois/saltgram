@@ -3,13 +3,67 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"saltgram/users/data"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-playground/validator"
 )
+
+type ChangeRequest struct {
+	Email string `json:"email" validate: "required"`
+	OldPlainPassword string `json:"oldPlainPassword" validate:"required`
+	NewPlainPassword string `json:"newPlainPassword" validate:"required"`
+}
+
+func (cr *ChangeRequest) Validate() error {
+	valid := validator.New()
+	return valid.Struct(cr)
+}
+
+type KeyChangeRequest struct{}
+
+func (u *Users) VerifyEmail(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u.l.Print("Activating email")
+
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			u.l.Printf("[ERROR] getting email: %v\n", err)
+			http.Error(w, "No email", http.StatusBadRequest)
+			return
+		}
+		email := string(body)
+
+		err = data.VerifyEmail(db, email)
+		if err != nil {
+			u.l.Printf("[ERROR] verifying email: %v\n", err)
+			http.Error(w, "Failed to verify email", http.StatusBadRequest)
+			return
+		}
+
+		w.Write([]byte("Verified email"))
+	}
+}
+
+func (u *Users) ChangePassword(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u.l.Println("Changing password")
+
+		changeRequest := r.Context().Value(KeyChangeRequest{}).(ChangeRequest)
+
+		err := data.ChangePassword(db, changeRequest.Email, changeRequest.OldPlainPassword, changeRequest.NewPlainPassword)
+		if err != nil {
+			u.l.Printf("[ERROR] attepmting to change password: %v\n")
+			http.Error(w, "Failed to change password", http.StatusBadRequest)
+			return
+		}
+		w.Write([]byte("Password changed"))
+	}
+}
 
 func (u *Users) Register(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +111,13 @@ func (u *Users) Register(db *data.DBConn) func(http.ResponseWriter, *http.Reques
 		}
 		// TODO(Jovan): Check response???
 
-		go data.SendActivation(user.Email)
+		// go data.SendActivation(user.Email)
+		go func() {
+			_, err = http.Post("https://localhost:8084/activate", "text/html", bytes.NewBuffer([]byte(user.Email)))
+			if err != nil {
+				u.l.Printf("[ERROR] sending change password request: %v\n", err)
+			}
+		}()
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Activation email sent"))
