@@ -73,10 +73,17 @@ func (e *Emails) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = http.Post("https://localhost:8083/password", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("https://localhost:8083/password", "application/json", bytes.NewBuffer(jsonData))
+
 	if err != nil {
 		e.l.Printf("[ERROR] POST change password request: %v\n", err)
 		http.Error(w, "Error in POST change password request", http.StatusInternalServerError)
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK{
+		e.l.Println("[ERROR] failed to change password")
+		http.Error(w, "Failed to change password", http.StatusBadRequest)
 		return
 	}
 

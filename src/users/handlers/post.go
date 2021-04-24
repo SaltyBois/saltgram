@@ -103,19 +103,30 @@ func (u *Users) Register(db *data.DBConn) func(http.ResponseWriter, *http.Reques
 			return
 		}
 
-		_, err = http.Post("https://localhost:8082/refresh", "application/json", bytes.NewBuffer(jsonData))
+		resp, err := http.Post("https://localhost:8082/refresh", "application/json", bytes.NewBuffer(jsonData))
+
 		if err != nil {
 			u.l.Printf("[ERROR] POST refresh token: %v\n", err)
 			http.Error(w, "Error in POST refresh token", http.StatusInternalServerError)
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			u.l.Println("[ERROR] refreshing token")
+			http.Error(w, "Failed to POST refresh token", http.StatusBadRequest)
 			return
 		}
 		// TODO(Jovan): Check response???
 
 		// go data.SendActivation(user.Email)
 		go func() {
-			_, err = http.Post("https://localhost:8084/activate", "text/html", bytes.NewBuffer([]byte(user.Email)))
+			resp, err := http.Post("https://localhost:8084/activate", "text/html", bytes.NewBuffer([]byte(user.Email)))
 			if err != nil {
 				u.l.Printf("[ERROR] sending change password request: %v\n", err)
+			}
+
+			if resp.StatusCode != http.StatusOK {
+				u.l.Println("[ERROR] sending change password request")
 			}
 		}()
 
