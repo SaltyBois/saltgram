@@ -17,6 +17,7 @@ require (
 	github.com/jackc/pgx/v4 v4.11.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lib/pq v1.6.0 // indirect
+	github.com/roberthodgen/spa-server v0.0.0-20171007154335-bb87b4ff3253 // indirect
 	github.com/rs/cors v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
