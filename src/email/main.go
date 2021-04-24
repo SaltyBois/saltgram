@@ -40,6 +40,7 @@ func getTLSConfig() (*tls.Config, error) {
 
 func main() {
 	l := log.New(os.Stdout, "saltgram-email", log.LstdFlags)
+	l.Printf("Starting Email microservice on port: %s\n", os.Getenv("SALT_EMAIL_PORT"))
 
 	emailHandler := handlers.NewEmail(l)
 
@@ -53,7 +54,7 @@ func main() {
 	changeRouter.HandleFunc("/{token:[A-Za-z0-9]+}", emailHandler.ConfirmReset).Methods(http.MethodPut)
 	changeRouter.HandleFunc("", emailHandler.ChangePassword).Methods(http.MethodPost)
 	changeRouter.HandleFunc("/forgot", emailHandler.RequestReset).Methods(http.MethodPost)
-	
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_API_PORT"))},
 		AllowedHeaders:   []string{"*"},
@@ -68,12 +69,12 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr: fmt.Sprintf(":%s", os.Getenv("SALT_EMAIL_PORT")),
-		ReadTimeout: 1 * time.Second,
+		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_EMAIL_PORT")),
+		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		IdleTimeout: 120 * time.Second,
-		Handler: c.Handler(serverMux),
-		TLSConfig: tlsConfig,
+		IdleTimeout:  120 * time.Second,
+		Handler:      c.Handler(serverMux),
+		TLSConfig:    tlsConfig,
 	}
 
 	go func() {

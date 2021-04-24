@@ -54,7 +54,7 @@ func (a *Auth) RefreshMiddleware(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), KeyRefreshToken{}, token)
 		requestCopy := r.WithContext(ctx)
-		next.ServeHTTP(w, requestCopy)	
+		next.ServeHTTP(w, requestCopy)
 	})
 }
 

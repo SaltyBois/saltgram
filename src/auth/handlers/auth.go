@@ -23,7 +23,7 @@ type RefreshClaims struct {
 	StandardClaims jwt.StandardClaims `json:"standardClaims"`
 }
 
-type KeyRefreshToken struct {}
+type KeyRefreshToken struct{}
 
 var ErrorEmptyClaims = fmt.Errorf("empty credentials")
 

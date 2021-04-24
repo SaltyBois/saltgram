@@ -41,6 +41,7 @@ func getTLSConfig() (*tls.Config, error) {
 
 func main() {
 	l := log.New(os.Stdout, "saltgram-users", log.LstdFlags)
+	l.Printf("Starting Users microservice on port: %s\n", os.Getenv("SALT_USERS_PORT"))
 
 	db := data.DBConn{}
 	db.ConnectToDb()
@@ -83,12 +84,12 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr: fmt.Sprintf(":%s", os.Getenv("SALT_USERS_PORT")),
-		ReadTimeout: 1 * time.Second,
+		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_USERS_PORT")),
+		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		IdleTimeout: 120 * time.Second,
-		Handler: c.Handler(serverMux),
-		TLSConfig: tlsConfig,
+		IdleTimeout:  120 * time.Second,
+		Handler:      c.Handler(serverMux),
+		TLSConfig:    tlsConfig,
 	}
 
 	go func() {

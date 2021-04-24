@@ -83,12 +83,12 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr: fmt.Sprintf(":%s", os.Getenv("SALT_AUTH_PORT")),
-		ReadTimeout: 1 * time.Second,
+		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_AUTH_PORT")),
+		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		IdleTimeout: 120 * time.Second,
-		Handler: c.Handler(serverMux),
-		TLSConfig: tlsConfig,
+		IdleTimeout:  120 * time.Second,
+		Handler:      c.Handler(serverMux),
+		TLSConfig:    tlsConfig,
 	}
 
 	go func() {

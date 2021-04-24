@@ -17,5 +17,3 @@ func MultipleMiddleware(h http.HandlerFunc, m ...Middleware) http.HandlerFunc {
 	}
 	return wrapped
 }
-
-

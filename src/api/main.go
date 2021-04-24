@@ -39,6 +39,7 @@ func getTLSConfig() (*tls.Config, error) {
 
 func main() {
 	l := log.New(os.Stdout, "saltgram-api-gateway", log.LstdFlags)
+	l.Printf("Starting API Gateway on port: %s\n", os.Getenv("SALT_API_PORT"))
 
 	serverMux := mux.NewRouter()
 
@@ -56,12 +57,12 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr: fmt.Sprintf(":%s", os.Getenv("SALT_API_PORT")),
-		ReadTimeout: 1 * time.Second,
+		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_API_PORT")),
+		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		IdleTimeout: 120 * time.Second,
-		Handler: c.Handler(serverMux),
-		TLSConfig: tlsConfig,
+		IdleTimeout:  120 * time.Second,
+		Handler:      c.Handler(serverMux),
+		TLSConfig:    tlsConfig,
 	}
 
 	go func() {

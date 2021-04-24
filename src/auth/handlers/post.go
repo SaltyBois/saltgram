@@ -114,8 +114,8 @@ func (a *Auth) AddRefreshToken(db *data.DBConn) func(http.ResponseWriter, *http.
 	}
 }
 
-func (a *Auth) GetJWT(db *data.DBConn) func(http.ResponseWriter, *http.Request){
-	return func (w http.ResponseWriter, r *http.Request) {
+func (a *Auth) GetJWT(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		user := data.Login{}
 		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil {

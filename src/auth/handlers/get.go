@@ -14,12 +14,12 @@ import (
 func (a *Auth) CheckPermissions(e *casbin.Enforcer) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO(Jovan): Get from user srvc
-		
+
 	}
 }
 
 func (a *Auth) Refresh(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
-	return func (w http.ResponseWriter, r *http.Request){
+	return func(w http.ResponseWriter, r *http.Request) {
 		a.l.Println("Handling REFRESH")
 		cookie, err := r.Cookie("refresh")
 		if err != nil {

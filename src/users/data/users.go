@@ -16,7 +16,7 @@ type User struct {
 	FullName       string    `json:"fullName" validate:"required"`
 	Username       string    `json:"username" validate:"required"`
 	HashedPassword string    `json:"password" validate:"required"`
-	ReCaptcha      ReCaptcha `json:"reCaptcha" validate:"required"`
+	ReCaptcha      ReCaptcha `json:"reCaptcha" gorm:"embedded" validate:"required"`
 	Role           string    `json:"role"`
 
 	Activated bool   `json:"-"`

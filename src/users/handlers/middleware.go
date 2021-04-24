@@ -7,7 +7,7 @@ import (
 )
 
 func (u Users) MiddlewareValidateChangeRequest(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPut {
 			next.ServeHTTP(w, r)
 			return

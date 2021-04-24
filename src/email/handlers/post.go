@@ -10,7 +10,6 @@ import (
 	"github.com/go-playground/validator"
 )
 
-
 type ChangeRequest struct {
 	OldPassword string `json:"oldPassword" validate:"required"`
 	NewPassword string `json:"newPassword" validate:"required"`
@@ -81,7 +80,7 @@ func (e *Emails) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if resp.StatusCode != http.StatusOK{
+	if resp.StatusCode != http.StatusOK {
 		e.l.Println("[ERROR] failed to change password")
 		http.Error(w, "Failed to change password", http.StatusBadRequest)
 		return

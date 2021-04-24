@@ -14,7 +14,7 @@ import (
 )
 
 type ChangeRequest struct {
-	Email string `json:"email" validate: "required"`
+	Email            string `json:"email" validate: "required"`
 	OldPlainPassword string `json:"oldPlainPassword" validate:"required`
 	NewPlainPassword string `json:"newPlainPassword" validate:"required"`
 }
