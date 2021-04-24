@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"saltgram/data"
-	"saltgram/handlers"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -48,13 +47,13 @@ func main() {
 	// authRouter.HandleFunc("/refresh", authHandler.Refresh).Methods(http.MethodGet)
 	// TODO(Jovan): Midleware?
 
-	emailHandler := handlers.NewEmail(l)
-	emailRouter := serverMux.PathPrefix("/email").Subrouter()
-	emailRouter.HandleFunc("/activate/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodPut)
-	emailRouter.HandleFunc("/activate", emailHandler.GetAll).Methods(http.MethodGet)
-	emailRouter.HandleFunc("/change/{token:[A-Za-z0-9]+}", emailHandler.ConfirmReset).Methods(http.MethodPut)
-	emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
-	emailRouter.HandleFunc("/forgot", emailHandler.RequestReset).Methods(http.MethodPost)
+	// emailHandler := handlers.NewEmail(l)
+	// emailRouter := serverMux.PathPrefix("/email").Subrouter()
+	// emailRouter.HandleFunc("/activate/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodPut)
+	// emailRouter.HandleFunc("/activate", emailHandler.GetAll).Methods(http.MethodGet)
+	// emailRouter.HandleFunc("/change/{token:[A-Za-z0-9]+}", emailHandler.ConfirmReset).Methods(http.MethodPut)
+	// emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
+	// emailRouter.HandleFunc("/forgot", emailHandler.RequestReset).Methods(http.MethodPost)
 
 	// NOTE(Jovan): CORS
 	c := cors.New(cors.Options{

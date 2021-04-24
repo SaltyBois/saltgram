@@ -47,7 +47,12 @@ func main() {
 
 	activationRouter := serverMux.PathPrefix("/activate").Subrouter()
 	activationRouter.HandleFunc("", emailHandler.SendActivation).Methods(http.MethodPost)
-	activationRouter.HandleFunc("", emailHandler.Activate).Methods(http.MethodPut)
+	activationRouter.HandleFunc("/{token:[A-Za-z0-9]+}", emailHandler.Activate).Methods(http.MethodPut)
+
+	changeRouter := serverMux.PathPrefix("/change").Subrouter()
+	changeRouter.HandleFunc("/{token:[A-Za-z0-9]+}", emailHandler.ConfirmReset).Methods(http.MethodPut)
+	changeRouter.HandleFunc("", emailHandler.ChangePassword).Methods(http.MethodPost)
+	changeRouter.HandleFunc("/forgot", emailHandler.RequestReset).Methods(http.MethodPost)
 	
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_API_PORT"))},
