@@ -64,8 +64,13 @@ func main() {
 	permRouter := serverMux.PathPrefix("/perm").Subrouter()
 	permRouter.HandleFunc("", authHandler.CheckPermissions(authEnforcer)).Methods(http.MethodGet)
 
+	loginHandler := handlers.NewLogin(l)
+	loginRouter := serverMux.PathPrefix("/login").Subrouter()
+	loginRouter.HandleFunc("", loginHandler.Login).Methods(http.MethodPost)
+	loginRouter.Use(loginHandler.MiddlewareValidateToken)
+
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://localhost:8080"},
+		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_API_PORT"))},
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodOptions},
 		AllowCredentials: true,

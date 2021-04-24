@@ -109,7 +109,7 @@ func ChangePassword(db *DBConn, email, oldPlainPassword, newPlainPassword string
 	return nil
 }
 
-func VerifyPassword(db *DBConn, username, plainPassword string) (string, error) {
+func IsPasswordValid(db *DBConn, username, plainPassword string) (string, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return "", err

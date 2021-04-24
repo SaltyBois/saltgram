@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"saltgram/email/handlers"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -39,18 +38,12 @@ func getTLSConfig() (*tls.Config, error) {
 }
 
 func main() {
-	l := log.New(os.Stdout, "saltgram-email", log.LstdFlags)
-
-	emailHandler := handlers.NewEmail(l)
+	l := log.New(os.Stdout, "saltgram-api-gateway", log.LstdFlags)
 
 	serverMux := mux.NewRouter()
 
-	activationRouter := serverMux.PathPrefix("/activate").Subrouter()
-	activationRouter.HandleFunc("", emailHandler.SendActivation).Methods(http.MethodPost)
-	activationRouter.HandleFunc("", emailHandler.Activate).Methods(http.MethodPut)
-	
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_API_PORT"))},
+		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},
 		AllowCredentials: true,
@@ -63,7 +56,7 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr: fmt.Sprintf(":%s", os.Getenv("SALT_EMAIL_PORT")),
+		Addr: fmt.Sprintf(":%s", os.Getenv("SALT_API_PORT")),
 		ReadTimeout: 1 * time.Second,
 		WriteTimeout: 1 * time.Second,
 		IdleTimeout: 120 * time.Second,

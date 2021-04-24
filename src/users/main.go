@@ -60,15 +60,17 @@ func main() {
 	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update(&db))
 	putRouter.Use(usersHandler.MiddlewareValidateUser)
 
-	passRouter := serverMux.PathPrefix("/changepw").Subrouter()
+	passRouter := serverMux.PathPrefix("/password").Subrouter()
 	passRouter.HandleFunc("", usersHandler.ChangePassword(&db)).Methods(http.MethodPost)
+	passRouter.HandleFunc("", usersHandler.IsPasswordValid(&db)).Methods(http.MethodPut)
 	passRouter.Use(usersHandler.MiddlewareValidateChangeRequest)
 
 	emailRouter := serverMux.PathPrefix("/verifyemail").Subrouter()
 	emailRouter.HandleFunc("", usersHandler.VerifyEmail(&db)).Methods(http.MethodPost)
+	emailRouter.HandleFunc("/{un:[A-Za-z0-9]+}", usersHandler.IsEmailVerified(&db)).Methods(http.MethodGet)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://localhost:8080"},
+		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_API_PORT"))},
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodOptions},
 		AllowCredentials: true,

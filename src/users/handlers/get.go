@@ -6,7 +6,20 @@ import (
 	"saltgram/users/data"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 )
+
+func (u *Users) IsEmailVerified(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		username := vars["un"]
+		if !data.IsEmailVerified(db, username) {
+			http.Error(w, "Email not verified", http.StatusNotFound)
+			return
+		}
+		w.Write([]byte("Verified"))
+	}
+}
 
 func (u *Users) GetByJWS(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
