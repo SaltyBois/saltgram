@@ -44,7 +44,7 @@ const routes = [
    name: 'ActivateEmail',
    beforeEnter: (to, from, next) => {
     let token = to.params["token"]
-    axios.put("http://localhost:8081/email/activate/" + token)
+    axios.put("email/activate/" + token)
       .finally(function(){
         next({ name: "Home"});
       })

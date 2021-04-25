@@ -57,7 +57,6 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-
 	res, err := a.authClient.Login(context.Background(), &prauth.LoginRequest{
 		Username: login.Username,
 		Password: login.Password,

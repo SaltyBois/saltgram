@@ -5,7 +5,14 @@ service Users {
     rpc CheckEmail(CheckEmailRequest) returns (CheckEmailResponse);
     rpc CheckPassword(CheckPasswordRequest) returns (CheckPasswordResponse);
     rpc Register(RegisterRequest) returns (RegisterResponse);
+    rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
 }
+
+message VerifyEmailRequest {
+    string email = 1;
+}
+
+message VerifyEmailResponse {}
 
 message RegisterResponse {}
 

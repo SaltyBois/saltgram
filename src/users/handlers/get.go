@@ -2,79 +2,75 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 	"saltgram/users/data"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/mux"
 )
 
-func (u *Users) IsEmailVerified(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		username := vars["un"]
-		if !data.IsEmailVerified(db, username) {
-			http.Error(w, "Email not verified", http.StatusNotFound)
-			return
-		}
-		w.Write([]byte("Verified"))
-	}
-}
+// func (u *Users) IsEmailVerified(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		vars := mux.Vars(r)
+// 		username := vars["un"]
+// 		if !data.IsEmailVerified(db, username) {
+// 			http.Error(w, "Email not verified", http.StatusNotFound)
+// 			return
+// 		}
+// 		w.Write([]byte("Verified"))
+// 	}
+// }
 
-func (u *Users) GetByJWS(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
+// func (u *Users) GetByJWS(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		w.Header().Add("Content-Type", "application/json")
 
-		jws, err := getUserJWS(r)
-		if err != nil {
-			u.l.Println("[ERROR] JWS not found")
-			http.Error(w, "JWS not found", http.StatusBadRequest)
-			return
-		}
+// 		jws, err := getUserJWS(r)
+// 		if err != nil {
+// 			u.l.Println("[ERROR] JWS not found")
+// 			http.Error(w, "JWS not found", http.StatusBadRequest)
+// 			return
+// 		}
 
-		token, err := jwt.ParseWithClaims(
-			jws,
-			&AccessClaims{},
-			func(t *jwt.Token) (interface{}, error) {
-				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-			},
-		)
+// 		token, err := jwt.ParseWithClaims(
+// 			jws,
+// 			&AccessClaims{},
+// 			func(t *jwt.Token) (interface{}, error) {
+// 				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+// 			},
+// 		)
 
-		if err != nil {
-			u.l.Printf("[ERROR] parsing claims: %v", err)
-			http.Error(w, "Error parsing claims", http.StatusBadRequest)
-			return
-		}
+// 		if err != nil {
+// 			u.l.Printf("[ERROR] parsing claims: %v", err)
+// 			http.Error(w, "Error parsing claims", http.StatusBadRequest)
+// 			return
+// 		}
 
-		claims, ok := token.Claims.(*AccessClaims)
+// 		claims, ok := token.Claims.(*AccessClaims)
 
-		if !ok {
-			u.l.Println("[ERROR] unable to parse claims")
-			http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-			return
-		}
+// 		if !ok {
+// 			u.l.Println("[ERROR] unable to parse claims")
+// 			http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+// 			return
+// 		}
 
-		user, err := db.GetUserByUsername(claims.Username)
-		if err != nil {
-			u.l.Println("[ERROR] fetching user", err)
-			http.Error(w, "User not found", http.StatusNotFound)
-			return
-		}
+// 		user, err := db.GetUserByUsername(claims.Username)
+// 		if err != nil {
+// 			u.l.Println("[ERROR] fetching user", err)
+// 			http.Error(w, "User not found", http.StatusNotFound)
+// 			return
+// 		}
 
-		if user.HashedPassword != claims.Password {
-			u.l.Println("[ERROR] passwords do not match")
-			http.Error(w, "JWT password doesn't match user's password", http.StatusUnauthorized)
-			return
-		}
+// 		if user.HashedPassword != claims.Password {
+// 			u.l.Println("[ERROR] passwords do not match")
+// 			http.Error(w, "JWT password doesn't match user's password", http.StatusUnauthorized)
+// 			return
+// 		}
 
-		err = data.ToJSON(user, w)
-		if err != nil {
-			u.l.Println("[ERROR] serializing user ", err)
-			http.Error(w, "Error serializing user", http.StatusInternalServerError)
-			return
-		}
-	}
-}
+// 		err = data.ToJSON(user, w)
+// 		if err != nil {
+// 			u.l.Println("[ERROR] serializing user ", err)
+// 			http.Error(w, "Error serializing user", http.StatusInternalServerError)
+// 			return
+// 		}
+// 	}
+// }
 
 func (u *Users) GetAll(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {

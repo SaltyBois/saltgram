@@ -2,11 +2,14 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
+	"saltgram/protos/auth/prauth"
+	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
 	"saltgram/users/grpc/servers"
@@ -16,13 +19,13 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-func getTLSConfig() (*tls.Config, error) {
-	crt, err := ioutil.ReadFile("../../certs/localhost.crt")
+func loadTLSCert(crtPath, keyPath string) (*tls.Certificate, error) {
+	crt, err := ioutil.ReadFile(crtPath)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := ioutil.ReadFile("../../certs/localhost.key")
+	key, err := ioutil.ReadFile(keyPath)
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +35,27 @@ func getTLSConfig() (*tls.Config, error) {
 		return nil, err
 	}
 
+	return &cert, nil
+}
+
+func getTLSConfig() (*tls.Config, error) {
+	cert, err := loadTLSCert("../../certs/localhost.crt", "../../certs/localhost.key")
+	if err != nil {
+		return nil, err
+	}
+
+	caCert, err := ioutil.ReadFile("../../certs/RootCA.pem")
+	if err != nil {
+		return nil, err
+	}
+
+	caPool := x509.NewCertPool()
+	caPool.AppendCertsFromPEM(caCert)
+
 	return &tls.Config{
-		Certificates: []tls.Certificate{cert},
+		Certificates: []tls.Certificate{*cert},
 		ServerName:   "localhost",
+		RootCAs:      caPool,
 	}, nil
 }
 
@@ -50,8 +71,18 @@ func main() {
 		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
 	}
 
-	gUsersServer := servers.NewUsers(l, &db)
 	creds := credentials.NewTLS(tlsConfig)
+	aconn, err := grpc.Dial(fmt.Sprintf("localhost:%s", os.Getenv("SALT_AUTH_PORT")), grpc.WithTransportCredentials(creds))
+	if err != nil {
+		l.Fatalf("[ERROR] dialing auth: %v\n", err)
+	}
+	ac := prauth.NewAuthClient(aconn)
+	econn, err := grpc.Dial(fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")), grpc.WithTransportCredentials(creds))
+	if err != nil {
+		l.Fatalf("[ERROR] dialing email: %v\n", err)
+	}
+	ec := premail.NewEmailClient(econn)
+	gUsersServer := servers.NewUsers(l, &db, ac, ec)
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	prusers.RegisterUsersServer(grpcServer, gUsersServer)
 	reflection.Register(grpcServer)

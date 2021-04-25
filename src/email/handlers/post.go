@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"saltgram/email/data"
 
@@ -20,24 +19,24 @@ func (rr *ChangeRequest) Validate() error {
 	return validate.Struct(rr)
 }
 
-func (e *Emails) SendActivation(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		e.l.Printf("[ERROR] getting email: %v\n", err)
-		http.Error(w, "No email", http.StatusBadRequest)
-		return
-	}
-	email := string(body)
+// func (e *Emails) SendActivation(w http.ResponseWriter, r *http.Request) {
+// 	body, err := ioutil.ReadAll(r.Body)
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] getting email: %v\n", err)
+// 		http.Error(w, "No email", http.StatusBadRequest)
+// 		return
+// 	}
+// 	email := string(body)
 
-	err = data.SendActivation(email)
-	if err != nil {
-		e.l.Printf("[ERROR] sending email activation: %v\n", err)
-		http.Error(w, "Failed to send email activation", http.StatusInternalServerError)
-		return
-	}
+// 	err = data.SendActivation(email)
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] sending email activation: %v\n", err)
+// 		http.Error(w, "Failed to send email activation", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	w.Write([]byte("Activation sent"))
-}
+// 	w.Write([]byte("Activation sent"))
+// }
 
 func (e *Emails) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cr := ChangeRequest{}
@@ -90,17 +89,17 @@ func (e *Emails) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("200 - OK"))
 }
 
-func (e *Emails) RequestReset(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		e.l.Printf("[ERROR] getting email: %v\n", err)
-		http.Error(w, "No email", http.StatusBadRequest)
-		return
-	}
-	email := string(body)
-	err = data.SendPasswordReset(email)
-	if err != nil {
-		e.l.Printf("[ERROR] sending email request: %v\n", err)
-	}
-	// NOTE(Jovan): Always return 200 OK as per OWASP guidelines
-}
+// func (e *Emails) RequestReset(w http.ResponseWriter, r *http.Request) {
+// 	body, err := ioutil.ReadAll(r.Body)
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] getting email: %v\n", err)
+// 		http.Error(w, "No email", http.StatusBadRequest)
+// 		return
+// 	}
+// 	email := string(body)
+// 	err = data.SendPasswordReset(email)
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] sending email request: %v\n", err)
+// 	}
+// 	// NOTE(Jovan): Always return 200 OK as per OWASP guidelines
+// }

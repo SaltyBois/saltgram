@@ -48,7 +48,6 @@ func (a *Auth) AddRefresh(ctx context.Context, r *prauth.AddRefreshRequest) (*pr
 var ErrorBadRequest = fmt.Errorf("bad request")
 
 func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.LoginResponse, error) {
-	a.l.Print("Doing stuff")
 	res, err := a.usersClient.CheckEmail(context.Background(), &prusers.CheckEmailRequest{Username: r.Username})
 	if err != nil {
 		a.l.Printf("[ERROR] checking email: %v\n", err)
@@ -74,7 +73,7 @@ func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.Login
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
-	pres, err := a.usersClient.CheckPassword(context.Background(), &prusers.CheckPasswordRequest{Password: r.Password})
+	pres, err := a.usersClient.CheckPassword(context.Background(), &prusers.CheckPasswordRequest{Username: r.Username, Password: r.Password})
 	if err != nil {
 		a.l.Println("[ERROR] bad request")
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")

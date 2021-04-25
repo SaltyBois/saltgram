@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"saltgram/api/handlers"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"time"
 
@@ -100,6 +101,15 @@ func main() {
 	usersHandler := handlers.NewUsers(l, usersClient)
 	usersRouter := serverMux.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
+
+	emailConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
+	if err != nil {
+		l.Fatalf("[ERROR] dialing email connection")
+	}
+	emailClient := premail.NewEmailClient(emailConnection)
+	emailHandler := handlers.NewEmail(l, emailClient)
+	emailRouter := serverMux.PathPrefix("/email").Subrouter()
+	emailRouter.HandleFunc("/activate/{token}", emailHandler.Activate).Methods(http.MethodPut)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

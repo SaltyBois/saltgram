@@ -1,12 +1,11 @@
 package servers
 
 import (
-	"bytes"
 	"context"
 	"log"
-	"net/http"
 	"os"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
 	"time"
@@ -21,14 +20,28 @@ type Users struct {
 	l  *log.Logger
 	db *data.DBConn
 	ac prauth.AuthClient
+	ec premail.EmailClient
 }
 
-func NewUsers(l *log.Logger, db *data.DBConn, ac prauth.AuthClient) *Users {
+func NewUsers(l *log.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient) *Users {
 	return &Users{
 		l:  l,
 		db: db,
 		ac: ac,
+		ec: ec,
 	}
+}
+
+func (u *Users) VerifyEmail(ctx context.Context, r *prusers.VerifyEmailRequest) (*prusers.VerifyEmailResponse, error) {
+	u.l.Print("Verifying email")
+
+	err := data.VerifyEmail(u.db, r.Email)
+	if err != nil {
+		u.l.Printf("[ERROR] verifying email: %v\n", err)
+		return &prusers.VerifyEmailResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prusers.VerifyEmailResponse{}, nil
 }
 
 func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prusers.RegisterResponse, error) {
@@ -64,9 +77,6 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 	}
 
 	// NOTE(Jovan): Saving refresh token
-	// data.AddRefreshToken(user.Username, jws)
-
-	// resp, err := http.Post("https://localhost:8082/refresh", "application/json", bytes.NewBuffer(jsonData))
 	_, err = u.ac.AddRefresh(context.Background(), &prauth.AddRefreshRequest{
 		Username: r.Username,
 		Token:    jws,
@@ -78,13 +88,9 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 	}
 
 	go func() {
-		resp, err := http.Post("https://localhost:8084/activate", "text/html", bytes.NewBuffer([]byte(user.Email)))
+		_, err := u.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: r.Email})
 		if err != nil {
-			u.l.Printf("[ERROR] sending change password request: %v\n", err)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			u.l.Println("[ERROR] sending change password request")
+			u.l.Printf("[ERROR] sending activation request: %v\n", err)
 		}
 	}()
 

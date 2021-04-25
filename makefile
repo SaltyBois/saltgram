@@ -8,6 +8,7 @@ WEBSERVERDIR = src/webserver
 APIDIR = src/api
 AUTHDIR = src/auth
 USERSDIR = src/users
+EMAILDIR = src/email
 
 .PHONY: node_modules test tidy protos api auth users
 
@@ -15,7 +16,7 @@ protos:
 	cd $(MAINDIR) && protoc -I protos/ protos/*/*.proto --go_out=protos/ --go-grpc_out=protos/
 
 backend:
-	make -j 3 api auth users
+	make -j 4 api auth users email
 
 api:
 	cd $(APIDIR) && go run main.go
@@ -25,6 +26,9 @@ auth:
 
 users:
 	cd $(USERSDIR) && go run main.go
+
+email:
+	cd $(EMAILDIR) && go run main.go
 
 frontend: front_build
 	# cd $(FRONTDIR) && npm run serve

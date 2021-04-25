@@ -1,15 +1,10 @@
 package handlers
 
 import (
-	"bytes"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"saltgram/users/data"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 )
 
@@ -65,77 +60,77 @@ func (u *Users) ChangePassword(db *data.DBConn) func(http.ResponseWriter, *http.
 	}
 }
 
-func (u *Users) Register(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		u.l.Println("Handling POST Users")
+// func (u *Users) Register(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		u.l.Println("Handling POST Users")
 
-		user := r.Context().Value(KeyUser{}).(data.User)
-		refreshClaims := RefreshClaims{
-			Username: user.Username,
-			StandardClaims: jwt.StandardClaims{
-				// TODO(Jovan): Make programmatic?
-				ExpiresAt: time.Now().UTC().AddDate(0, 6, 0).Unix(),
-				Issuer:    "SaltGram",
-			},
-		}
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-		jws, err := token.SignedString([]byte(os.Getenv("REF_SECRET_KEY")))
+// 		user := r.Context().Value(KeyUser{}).(data.User)
+// 		refreshClaims := RefreshClaims{
+// 			Username: user.Username,
+// 			StandardClaims: jwt.StandardClaims{
+// 				// TODO(Jovan): Make programmatic?
+// 				ExpiresAt: time.Now().UTC().AddDate(0, 6, 0).Unix(),
+// 				Issuer:    "SaltGram",
+// 			},
+// 		}
+// 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+// 		jws, err := token.SignedString([]byte(os.Getenv("REF_SECRET_KEY")))
 
-		if err != nil {
-			u.l.Println("[ERROR] signing refresh token")
-			http.Error(w, "Failed signing refresh token: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = db.AddUser(&user)
-		if err != nil {
-			u.l.Printf("[ERROR] adding user: %v\n", err)
-			http.Error(w, "Failed to register user", http.StatusBadRequest)
-			return
-		}
+// 		if err != nil {
+// 			u.l.Println("[ERROR] signing refresh token")
+// 			http.Error(w, "Failed signing refresh token: "+err.Error(), http.StatusInternalServerError)
+// 			return
+// 		}
+// 		err = db.AddUser(&user)
+// 		if err != nil {
+// 			u.l.Printf("[ERROR] adding user: %v\n", err)
+// 			http.Error(w, "Failed to register user", http.StatusBadRequest)
+// 			return
+// 		}
 
-		// NOTE(Jovan): Saving refresh token
-		// data.AddRefreshToken(user.Username, jws)
-		values := map[string]string{"username": user.Username, "token": jws}
-		jsonData, err := json.Marshal(values)
-		if err != nil {
-			u.l.Printf("[ERROR] marshalling refresh token request: %v\n", err)
-			http.Error(w, "Error marshalling refresh token request", http.StatusInternalServerError)
-			return
-		}
+// 		// NOTE(Jovan): Saving refresh token
+// 		// data.AddRefreshToken(user.Username, jws)
+// 		values := map[string]string{"username": user.Username, "token": jws}
+// 		jsonData, err := json.Marshal(values)
+// 		if err != nil {
+// 			u.l.Printf("[ERROR] marshalling refresh token request: %v\n", err)
+// 			http.Error(w, "Error marshalling refresh token request", http.StatusInternalServerError)
+// 			return
+// 		}
 
-		resp, err := http.Post("https://localhost:8082/refresh", "application/json", bytes.NewBuffer(jsonData))
+// 		resp, err := http.Post("https://localhost:8082/refresh", "application/json", bytes.NewBuffer(jsonData))
 
-		if err != nil {
-			u.l.Printf("[ERROR] POST refresh token: %v\n", err)
-			http.Error(w, "Error in POST refresh token", http.StatusInternalServerError)
-			return
-		}
+// 		if err != nil {
+// 			u.l.Printf("[ERROR] POST refresh token: %v\n", err)
+// 			http.Error(w, "Error in POST refresh token", http.StatusInternalServerError)
+// 			return
+// 		}
 
-		if resp.StatusCode != http.StatusOK {
-			u.l.Println("[ERROR] refreshing token")
-			http.Error(w, "Failed to POST refresh token", http.StatusBadRequest)
-			return
-		}
-		// TODO(Jovan): Check response???
+// 		if resp.StatusCode != http.StatusOK {
+// 			u.l.Println("[ERROR] refreshing token")
+// 			http.Error(w, "Failed to POST refresh token", http.StatusBadRequest)
+// 			return
+// 		}
+// 		// TODO(Jovan): Check response???
 
-		// go data.SendActivation(user.Email)
-		go func() {
-			resp, err := http.Post("https://localhost:8084/activate", "text/html", bytes.NewBuffer([]byte(user.Email)))
-			if err != nil {
-				u.l.Printf("[ERROR] sending change password request: %v\n", err)
-			}
+// 		// go data.SendActivation(user.Email)
+// 		go func() {
+// 			resp, err := http.Post("https://localhost:8084/activate", "text/html", bytes.NewBuffer([]byte(user.Email)))
+// 			if err != nil {
+// 				u.l.Printf("[ERROR] sending change password request: %v\n", err)
+// 			}
 
-			if resp.StatusCode != http.StatusOK {
-				u.l.Println("[ERROR] sending change password request")
-			}
-		}()
+// 			if resp.StatusCode != http.StatusOK {
+// 				u.l.Println("[ERROR] sending change password request")
+// 			}
+// 		}()
 
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Activation email sent"))
-		// if err != nil {
-		// 	u.l.Printf("[ERROR] sending activation: %v\n", err)
-		// 	http.Error(w, "Failed to send activation for user", http.StatusInternalServerError)
-		// 	return
-		// }
-	}
-}
+// 		w.WriteHeader(http.StatusOK)
+// 		w.Write([]byte("Activation email sent"))
+// 		// if err != nil {
+// 		// 	u.l.Printf("[ERROR] sending activation: %v\n", err)
+// 		// 	http.Error(w, "Failed to send activation for user", http.StatusInternalServerError)
+// 		// 	return
+// 		// }
+// 	}
+// }
