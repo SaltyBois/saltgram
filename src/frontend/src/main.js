@@ -19,6 +19,7 @@ Vue.component("sg-login", Login);
 Vue.component("sg-register", Register);
 
 axios.defaults.withCredentials = true;
+axios.defaults.baseURL = process.env.VUE_APP_API_ENDPOINT;
 
 const store = new Vuex.Store({
   state: {

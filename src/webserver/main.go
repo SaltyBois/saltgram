@@ -36,7 +36,7 @@ func getTLSConfig() (*tls.Config, error) {
 	}, nil
 }
 
-func hstsMiddleware(h http.Handler) func (http.ResponseWriter, *http.Request) {
+func hstsMiddleware(h http.Handler) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Strict-Transport-Security", "max-age=86400")
 		h.ServeHTTP(w, r)
@@ -54,12 +54,12 @@ func main() {
 	}
 
 	server := http.Server{
-		Addr: fmt.Sprintf(":%s", os.Getenv("SALT_WEB_PORT")),
-		IdleTimeout: 120 * time.Second,
-		ReadTimeout: 1 * time.Second,
+		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_WEB_PORT")),
+		IdleTimeout:  120 * time.Second,
+		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		TLSConfig: tlsConfig,
-		Handler: serverMux,
+		TLSConfig:    tlsConfig,
+		Handler:      serverMux,
 	}
 
 	go func() {
@@ -68,7 +68,6 @@ func main() {
 			log.Fatalf("[ERROR] while serving: %v\n", err)
 		}
 	}()
-
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, os.Kill)

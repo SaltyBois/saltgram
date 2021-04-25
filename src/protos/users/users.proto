@@ -1,0 +1,40 @@
+syntax = "proto3";
+option go_package = "./users/prusers";
+
+service Users {
+    rpc CheckEmail(CheckEmailRequest) returns (CheckEmailResponse);
+    rpc CheckPassword(CheckPasswordRequest) returns (CheckPasswordResponse);
+    rpc Register(RegisterRequest) returns (RegisterResponse);
+}
+
+message RegisterResponse {}
+
+message UserReCaptcha {
+    string action = 1;
+    string token = 2;
+}
+
+message RegisterRequest {
+    string username = 1;
+    string fullName = 2;
+    string email = 3;
+    string password = 4;
+    UserReCaptcha reCaptcha = 5;
+}
+
+message CheckPasswordRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message CheckPasswordResponse {
+    string hashedPass = 2;
+}
+
+message CheckEmailRequest {
+    string username = 1;
+}
+
+message CheckEmailResponse {
+    bool verified = 1;
+}

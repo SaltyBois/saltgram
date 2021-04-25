@@ -5,12 +5,26 @@ endif
 MAINDIR = src
 FRONTDIR = src/frontend
 WEBSERVERDIR = src/webserver
+APIDIR = src/api
+AUTHDIR = src/auth
+USERSDIR = src/users
 
-.PHONY: node_modules test tidy
+.PHONY: node_modules test tidy protos api auth users
+
+protos:
+	cd $(MAINDIR) && protoc -I protos/ protos/*/*.proto --go_out=protos/ --go-grpc_out=protos/
 
 backend:
-	# cd $(MAINDIR) && go run main.go
-	cd $(MAINDIR) && go run webserver
+	make -j 3 api auth users
+
+api:
+	cd $(APIDIR) && go run main.go
+
+auth:
+	cd $(AUTHDIR) && go run main.go
+
+users:
+	cd $(USERSDIR) && go run main.go
 
 frontend: front_build
 	# cd $(FRONTDIR) && npm run serve

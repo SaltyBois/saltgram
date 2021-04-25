@@ -4,14 +4,15 @@ import (
 	"context"
 	"net/http"
 	"saltgram/auth/data"
+	saltdata "saltgram/data"
 )
 
 // func (l Login) MiddlewareValidateToken(e *casbin.Enforcer) func(next http.Handler) http.Handler {
 func (l Login) MiddlewareValidateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		login := data.Login{}
+		login := saltdata.Login{}
 
-		err := data.FromJSON(&login, r.Body)
+		err := saltdata.FromJSON(&login, r.Body)
 		if err != nil {
 			l.l.Println("[ERROR] deserializing reCaptcha token: ", err.Error())
 			http.Error(w, "Error getting reCaptcha token", http.StatusBadRequest)
@@ -37,7 +38,7 @@ func (a *Auth) RefreshMiddleware(next http.Handler) http.Handler {
 		token := data.Refresh{}
 
 		// NOTE(Jovan): Deserialize JSON object
-		err := data.FromJSON(&token, r.Body)
+		err := saltdata.FromJSON(&token, r.Body)
 		if err != nil {
 			a.l.Println("[ERROR] deserializing refresh token: ", err.Error())
 			http.Error(w, "Error reading user", http.StatusBadRequest)

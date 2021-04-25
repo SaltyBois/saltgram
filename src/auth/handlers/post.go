@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"saltgram/auth/data"
+	saltdata "saltgram/data"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -15,7 +16,7 @@ import (
 
 func (l *Login) Login(w http.ResponseWriter, r *http.Request) {
 	l.l.Println("Handling POST reCaptcha")
-	login := r.Context().Value(KeyLogin{}).(data.Login)
+	login := r.Context().Value(KeyLogin{}).(saltdata.Login)
 	score, err := login.ReCaptcha.Verify()
 	if err != nil {
 		l.l.Println("[ERROR] verifying reCaptcha")
@@ -92,8 +93,8 @@ func (l *Login) Login(w http.ResponseWriter, r *http.Request) {
 	hashedPass := string(body)
 
 	w.Header().Add("Content-Type", "application/json")
-	u := data.Login{Username: login.Username, Password: hashedPass}
-	err = data.ToJSON(u, w)
+	u := saltdata.Login{Username: login.Username, Password: hashedPass}
+	err = saltdata.ToJSON(u, w)
 	if err != nil {
 		l.l.Printf("[ERROR] serializing login: %v", err)
 		http.Error(w, "Failed to serialize login", http.StatusInternalServerError)
@@ -116,7 +117,7 @@ func (a *Auth) AddRefreshToken(db *data.DBConn) func(http.ResponseWriter, *http.
 
 func (a *Auth) GetJWT(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user := data.Login{}
+		user := saltdata.Login{}
 		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil {
 			a.l.Printf("[ERROR] deserializing user: %v", err)

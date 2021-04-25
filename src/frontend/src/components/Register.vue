@@ -118,7 +118,7 @@ export default {
                     action: "register",
                 }
             }
-            this.axios.post("http://localhost:8081/users", user)
+            this.axios.post("users/register", user)
                 .then(response => {
                     console.log("Registered");
                     console.log(response);

@@ -24,6 +24,7 @@ require (
 	google.golang.org/api v0.44.0 // indirect
 	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46 // indirect
 	google.golang.org/grpc v1.37.0 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
 	gorm.io/driver/postgres v1.0.8 // indirect
 	gorm.io/gorm v1.21.8 // indirect
 )

@@ -1,29 +1,28 @@
 package main
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
+	"net"
 	"os"
-	"os/signal"
+	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
-	"saltgram/users/handlers"
-	"time"
+	"saltgram/users/grpc/servers"
 
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 )
 
 func getTLSConfig() (*tls.Config, error) {
-	crt, err := ioutil.ReadFile("../certs/localhost.crt")
+	crt, err := ioutil.ReadFile("../../certs/localhost.crt")
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := ioutil.ReadFile("../certs/localhost.key")
+	key, err := ioutil.ReadFile("../../certs/localhost.key")
 	if err != nil {
 		return nil, err
 	}
@@ -46,66 +45,80 @@ func main() {
 	db := data.DBConn{}
 	db.ConnectToDb()
 	db.MigradeData()
-
-	usersHandler := handlers.NewUsers(l)
-
-	serverMux := mux.NewRouter()
-	getRouter := serverMux.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/users", usersHandler.GetByJWS(&db))
-
-	postRouter := serverMux.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/users", usersHandler.Register(&db))
-	postRouter.Use(usersHandler.MiddlewareValidateUser)
-
-	putRouter := serverMux.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update(&db))
-	putRouter.Use(usersHandler.MiddlewareValidateUser)
-
-	passRouter := serverMux.PathPrefix("/password").Subrouter()
-	passRouter.HandleFunc("", usersHandler.ChangePassword(&db)).Methods(http.MethodPost)
-	passRouter.HandleFunc("", usersHandler.IsPasswordValid(&db)).Methods(http.MethodPut)
-	passRouter.Use(usersHandler.MiddlewareValidateChangeRequest)
-
-	emailRouter := serverMux.PathPrefix("/verifyemail").Subrouter()
-	emailRouter.HandleFunc("", usersHandler.VerifyEmail(&db)).Methods(http.MethodPost)
-	emailRouter.HandleFunc("/{un:[A-Za-z0-9]+}", usersHandler.IsEmailVerified(&db)).Methods(http.MethodGet)
-
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_API_PORT"))},
-		AllowedHeaders:   []string{"*"},
-		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodOptions},
-		AllowCredentials: true,
-		Debug:            true,
-	})
-
 	tlsConfig, err := getTLSConfig()
 	if err != nil {
 		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
 	}
 
-	server := http.Server{
-		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_USERS_PORT")),
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
-		IdleTimeout:  120 * time.Second,
-		Handler:      c.Handler(serverMux),
-		TLSConfig:    tlsConfig,
+	gUsersServer := servers.NewUsers(l, &db)
+	creds := credentials.NewTLS(tlsConfig)
+	grpcServer := grpc.NewServer(grpc.Creds(creds))
+	prusers.RegisterUsersServer(grpcServer, gUsersServer)
+	reflection.Register(grpcServer)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SALT_USERS_PORT")))
+	if err != nil {
+		l.Fatalf("[ERROR] creating listener: %v\n", err)
 	}
+	err = grpcServer.Serve(listener)
+	if err != nil {
+		l.Fatalf("[ERROR] while serving: %v\n", err)
+	}
+	grpcServer.GracefulStop()
 
-	go func() {
-		err := server.ListenAndServeTLS("", "")
-		if err != nil {
-			l.Fatalf("[ERROR] while serving: %v\n", err)
-		}
-	}()
+	// usersHandler := handlers.NewUsers(l)
 
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt, os.Kill)
+	// serverMux := mux.NewRouter()
+	// getRouter := serverMux.Methods(http.MethodGet).Subrouter()
+	// getRouter.HandleFunc("/users", usersHandler.GetByJWS(&db))
 
-	sig := <-signalChan
-	l.Println("Recieved terminate, graceful shutdown with sigtype:", sig)
+	// postRouter := serverMux.Methods(http.MethodPost).Subrouter()
+	// postRouter.HandleFunc("/users", usersHandler.Register(&db))
+	// postRouter.Use(usersHandler.MiddlewareValidateUser)
 
-	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	server.Shutdown(tc)
+	// putRouter := serverMux.Methods(http.MethodPut).Subrouter()
+	// putRouter.HandleFunc("/users/{id:[0-9]+}", usersHandler.Update(&db))
+	// putRouter.Use(usersHandler.MiddlewareValidateUser)
+
+	// passRouter := serverMux.PathPrefix("/password").Subrouter()
+	// passRouter.HandleFunc("", usersHandler.ChangePassword(&db)).Methods(http.MethodPost)
+	// passRouter.HandleFunc("", usersHandler.IsPasswordValid(&db)).Methods(http.MethodPut)
+	// passRouter.Use(usersHandler.MiddlewareValidateChangeRequest)
+
+	// emailRouter := serverMux.PathPrefix("/verifyemail").Subrouter()
+	// emailRouter.HandleFunc("", usersHandler.VerifyEmail(&db)).Methods(http.MethodPost)
+	// emailRouter.HandleFunc("/{un:[A-Za-z0-9]+}", usersHandler.IsEmailVerified(&db)).Methods(http.MethodGet)
+
+	// c := cors.New(cors.Options{
+	// 	AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_API_PORT"))},
+	// 	AllowedHeaders:   []string{"*"},
+	// 	AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodOptions},
+	// 	AllowCredentials: true,
+	// 	Debug:            true,
+	// })
+
+	// server := http.Server{
+	// 	Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_USERS_PORT")),
+	// 	ReadTimeout:  1 * time.Second,
+	// 	WriteTimeout: 1 * time.Second,
+	// 	IdleTimeout:  120 * time.Second,
+	// 	Handler:      c.Handler(serverMux),
+	// 	TLSConfig:    tlsConfig,
+	// }
+
+	// go func() {
+	// 	err := server.ListenAndServeTLS("", "")
+	// 	if err != nil {
+	// 		l.Fatalf("[ERROR] while serving: %v\n", err)
+	// 	}
+	// }()
+
+	// signalChan := make(chan os.Signal, 1)
+	// signal.Notify(signalChan, os.Interrupt, os.Kill)
+
+	// sig := <-signalChan
+	// l.Println("Recieved terminate, graceful shutdown with sigtype:", sig)
+
+	// tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// defer cancel()
+	// server.Shutdown(tc)
 }
