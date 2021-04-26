@@ -18,7 +18,7 @@ func (e *Email) ConfirmReset(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-	
+
 	cookie := http.Cookie{
 		Name:     "email",
 		Value:    res.Email,

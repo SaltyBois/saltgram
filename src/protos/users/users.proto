@@ -7,6 +7,19 @@ service Users {
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
     rpc ChangePassword(ChangeRequest) returns (ChangeResponse);
+    rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
+}
+
+message GetByUsernameRequest {
+    string username = 1;
+}
+
+message GetByUsernameResponse {
+    string email = 1;
+	string fullName = 2;
+	string username = 3;
+	string role = 4;
+    string hashedPassword = 5;
 }
 
 message ChangeRequest {

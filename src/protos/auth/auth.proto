@@ -4,6 +4,17 @@ option go_package = "./auth/prauth";
 service Auth {
     rpc Login(LoginRequest) returns (LoginResponse);
     rpc AddRefresh(AddRefreshRequest) returns (AddRefreshResponse);
+    rpc GetJWT(JWTRequest) returns (JWTResponse);
+}
+
+message JWTRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message JWTResponse {
+    string jws = 1;
+    string refresh = 2;
 }
 
 message AddRefreshRequest {

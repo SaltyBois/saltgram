@@ -91,6 +91,7 @@ func main() {
 	authHandler := handlers.NewAuth(l, authClient)
 	authRouter := serverMux.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
+	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 
 	usersConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
@@ -101,6 +102,7 @@ func main() {
 	usersHandler := handlers.NewUsers(l, usersClient)
 	usersRouter := serverMux.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
+	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
 
 	emailConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {

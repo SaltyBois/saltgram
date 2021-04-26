@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AuthClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	AddRefresh(ctx context.Context, in *AddRefreshRequest, opts ...grpc.CallOption) (*AddRefreshResponse, error)
+	GetJWT(ctx context.Context, in *JWTRequest, opts ...grpc.CallOption) (*JWTResponse, error)
 }
 
 type authClient struct {
@@ -48,12 +49,22 @@ func (c *authClient) AddRefresh(ctx context.Context, in *AddRefreshRequest, opts
 	return out, nil
 }
 
+func (c *authClient) GetJWT(ctx context.Context, in *JWTRequest, opts ...grpc.CallOption) (*JWTResponse, error) {
+	out := new(JWTResponse)
+	err := c.cc.Invoke(ctx, "/Auth/GetJWT", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServer is the server API for Auth service.
 // All implementations must embed UnimplementedAuthServer
 // for forward compatibility
 type AuthServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	AddRefresh(context.Context, *AddRefreshRequest) (*AddRefreshResponse, error)
+	GetJWT(context.Context, *JWTRequest) (*JWTResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedAuthServer) Login(context.Context, *LoginRequest) (*LoginResp
 }
 func (UnimplementedAuthServer) AddRefresh(context.Context, *AddRefreshRequest) (*AddRefreshResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddRefresh not implemented")
+}
+func (UnimplementedAuthServer) GetJWT(context.Context, *JWTRequest) (*JWTResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetJWT not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 
@@ -116,6 +130,24 @@ func _Auth_AddRefresh_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_GetJWT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JWTRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).GetJWT(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Auth/GetJWT",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).GetJWT(ctx, req.(*JWTRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +162,10 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddRefresh",
 			Handler:    _Auth_AddRefresh_Handler,
+		},
+		{
+			MethodName: "GetJWT",
+			Handler:    _Auth_GetJWT_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -6,10 +6,10 @@ import (
 )
 
 type Auth struct {
-	l          *log.Logger
-	authClient prauth.AuthClient
+	l  *log.Logger
+	ac prauth.AuthClient
 }
 
-func NewAuth(l *log.Logger, authClient prauth.AuthClient) *Auth {
-	return &Auth{l: l, authClient: authClient}
+func NewAuth(l *log.Logger, ac prauth.AuthClient) *Auth {
+	return &Auth{l: l, ac: ac}
 }

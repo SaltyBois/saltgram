@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"saltgram/auth/data"
 	saltdata "saltgram/data"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/users/prusers"
+	"time"
 
 	"github.com/casbin/casbin/v2"
+	"github.com/dgrijalva/jwt-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -29,6 +32,38 @@ func NewAuth(l *log.Logger, e *casbin.Enforcer, db *data.DBConn, usersClient pru
 		db:          db,
 		usersClient: usersClient,
 	}
+}
+
+func (a *Auth) GetJWT(ctx context.Context, r *prauth.JWTRequest) (*prauth.JWTResponse, error) {
+
+	// NOTE(Jovan): HS256 is considered safe enough
+	claims := saltdata.AccessClaims{
+		Username: r.Username,
+		Password: r.Password,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().UTC().Add(time.Second * 5).Unix(),
+			Issuer:    "SaltGram",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	jws, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	if err != nil {
+		a.l.Printf("[ERROR] failed signing JWT: %v", err)
+		return &prauth.JWTResponse{}, status.Error(codes.Internal, "Internal server error")
+	}
+
+	refreshToken, err := data.GetRefreshToken(a.db, r.Username)
+	if err != nil {
+		a.l.Printf("[ERROR] failed getting refresh token: %v", err)
+		return &prauth.JWTResponse{}, status.Error(codes.Internal, "Internal server error")
+	}
+
+	return &prauth.JWTResponse{
+		Jws:     jws,
+		Refresh: refreshToken,
+	}, nil
 }
 
 func (a *Auth) AddRefresh(ctx context.Context, r *prauth.AddRefreshRequest) (*prauth.AddRefreshResponse, error) {

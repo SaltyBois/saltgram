@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	saltdata "saltgram/data"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+	"time"
 
 	"github.com/go-playground/validator"
 )
@@ -46,7 +48,7 @@ func (e *Email) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = e.uc.ChangePassword(context.Background(), &prusers.ChangeRequest{
-		Email: cookie.Value,
+		Email:            cookie.Value,
 		OldPlainPassword: cr.OldPassword,
 		NewPlainPassword: cr.NewPassword,
 	})
@@ -109,6 +111,33 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Activation email sent"))
 }
 
+func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {
+	user := saltdata.Login{}
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		a.l.Printf("[ERROR] deserializing user: %v", err)
+		http.Error(w, "Failed to deserialize user", http.StatusBadRequest)
+		return
+	}
+	res, err := a.ac.GetJWT(context.Background(), &prauth.JWTRequest{Username: user.Username, Password: user.Password})
+	if err != nil {
+		a.l.Printf("[ERROR] getting jwt: %v\n", err)
+		http.Error(w, "Faile to get jwt", http.StatusBadRequest)
+		return
+	}
+	cookie := http.Cookie{
+		Name:     "refresh",
+		Value:    res.Refresh,
+		Expires:  time.Now().UTC().AddDate(0, 6, 0),
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &cookie)
+
+	w.Header().Add("Content-Type", "text/plain")
+	w.Write([]byte(res.Jws))
+}
+
 func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	login := saltdata.Login{}
 	err := saltdata.FromJSON(&login, r.Body)
@@ -123,7 +152,7 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-	res, err := a.authClient.Login(context.Background(), &prauth.LoginRequest{
+	res, err := a.ac.Login(context.Background(), &prauth.LoginRequest{
 		Username: login.Username,
 		Password: login.Password,
 		ReCaptcha: &prauth.ReCaptcha{

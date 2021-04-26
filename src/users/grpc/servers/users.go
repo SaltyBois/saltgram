@@ -32,6 +32,22 @@ func NewUsers(l *log.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.E
 	}
 }
 
+func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameRequest) (*prusers.GetByUsernameResponse, error) {
+	user, err := u.db.GetUserByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] getting user by username: %v\n", err)
+		return &prusers.GetByUsernameResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prusers.GetByUsernameResponse{
+		Email:          user.Email,
+		FullName:       user.FullName,
+		Username:       user.Username,
+		Role:           user.Role,
+		HashedPassword: user.HashedPassword,
+	}, nil
+}
+
 func (u *Users) ChangePassword(ctx context.Context, r *prusers.ChangeRequest) (*prusers.ChangeResponse, error) {
 	u.l.Println("Changing password")
 	err := data.ChangePassword(u.db, r.Email, r.OldPlainPassword, r.NewPlainPassword)

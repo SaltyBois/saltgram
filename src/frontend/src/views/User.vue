@@ -40,7 +40,7 @@ export default {
                 this.$router.push("/");
             }
 
-            this.axios.get("http://localhost:8081/users", {headers:{"Authorization": "Bearer " + jws}})
+            this.axios.get("users", {headers:{"Authorization": "Bearer " + jws}})
                 .then(r => {
                     console.log(r);
                     this.user = r.data;
