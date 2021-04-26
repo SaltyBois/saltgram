@@ -5,10 +5,38 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/auth/prauth"
 	"saltgram/protos/users/prusers"
 
 	"github.com/dgrijalva/jwt-go"
 )
+
+func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
+	a.l.Println("Handling REFRESH")
+	cookie, err := r.Cookie("refresh")
+	if err != nil {
+		a.l.Printf("[ERROR] getting cookie: %v", err)
+		http.Error(w, "No refresh cookie", http.StatusBadRequest)
+		return
+	}
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		a.l.Println("[ERROR] JWS not found")
+		http.Error(w, "Missing JWS", http.StatusBadRequest)
+		return
+	}
+
+	res, err := a.ac.Refresh(context.Background(), &prauth.RefreshRequest{OldJWS: jws, Refresh: cookie.Value})
+	if err != nil {
+		a.l.Printf("[ERROR] getting refresh token: %v\n", err)
+		http.Error(w, "Failed to get refresh token", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Add("Content-Type", "text/plain")
+	w.Write([]byte(res.NewJWS))
+}
 
 func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	jws, err := getUserJWS(r)

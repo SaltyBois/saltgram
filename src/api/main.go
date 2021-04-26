@@ -92,6 +92,7 @@ func main() {
 	authRouter := serverMux.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
+	authRouter.HandleFunc("/refesh", authHandler.Refresh).Methods(http.MethodGet)
 
 	usersConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
 	if err != nil {

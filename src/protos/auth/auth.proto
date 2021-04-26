@@ -5,6 +5,16 @@ service Auth {
     rpc Login(LoginRequest) returns (LoginResponse);
     rpc AddRefresh(AddRefreshRequest) returns (AddRefreshResponse);
     rpc GetJWT(JWTRequest) returns (JWTResponse);
+    rpc Refresh(RefreshRequest) returns (RefreshResponse);
+}
+
+message RefreshRequest {
+    string refresh = 1;
+    string oldJWS = 2;
+}
+
+message RefreshResponse {
+    string newJWS = 1;
 }
 
 message JWTRequest {

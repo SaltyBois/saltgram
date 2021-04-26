@@ -10,7 +10,7 @@
                     </v-btn>
                 </div>
                 <div v-if="showSettings" id="settings-container">
-                    <v-form id="settings-password">
+                    <v-form id="settings-password" v-model="isFormValid">
                         <h2>Change password:</h2>
                         <b id="err">{{err}}</b>
                         <v-text-field
@@ -142,7 +142,7 @@ export default {
                     console.log(r);
                     // NOTE(Jovan): Try to refresh
                     // TODO(Jovan): Maybe send existing jwt, just change exp date
-                    this.axios.get("http://localhost:8081/auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
+                    this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
                         .then(r => {
                             console.log(r);
                             this.$store.state.jws = r.data;
@@ -156,7 +156,7 @@ export default {
         },
     },
     mounted() {
-        // this.sendJWS();
+        this.sendJWS();
     },
     computed: {
         different: function() {

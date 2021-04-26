@@ -9,6 +9,7 @@ import (
 	saltdata "saltgram/data"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/users/prusers"
+	"strconv"
 	"time"
 
 	"github.com/casbin/casbin/v2"
@@ -32,6 +33,77 @@ func NewAuth(l *log.Logger, e *casbin.Enforcer, db *data.DBConn, usersClient pru
 		db:          db,
 		usersClient: usersClient,
 	}
+}
+
+func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.RefreshResponse, error) {
+
+	rTokenString := r.Refresh
+	rToken, err := jwt.ParseWithClaims(
+		rTokenString,
+		&saltdata.RefreshClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("REF_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		a.l.Printf("[ERROR] parsing refresh claims: %v", err)
+		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	claims, ok := rToken.Claims.(*saltdata.RefreshClaims)
+
+	if !ok {
+		a.l.Println("[ERROR] unable to parse claims")
+		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	refreshToken, err := data.GetRefreshToken(a.db, claims.Username)
+
+	if err != nil {
+		a.l.Println("[ERROR] can't find refresh token")
+		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	rt := data.Refresh{
+		Username: claims.Username,
+		Token:    refreshToken,
+	}
+	if err := rt.Verify(a.db); err != nil {
+		a.l.Println("[ERROR] refresh token no longer valid")
+		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	jws := r.OldJWS
+
+	// NOTE(Jovan): Not validating 'cause it is invalid
+	jwtOld, _ := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	jwsClaims, ok := jwtOld.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		a.l.Println("[ERROR] unable to parse claims")
+		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	// TODO(Jovan): Pull out into const
+	timeout, _ := strconv.Atoi(os.Getenv("TOKEN_TIMEOUT_MINUTES"))
+	jwsClaims.StandardClaims.ExpiresAt = time.Now().UTC().Add(time.Minute * time.Duration(timeout)).Unix()
+	jwtNew := jwt.NewWithClaims(jwt.SigningMethodHS256, jwsClaims)
+
+	jwsNew, err := jwtNew.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	if err != nil {
+		a.l.Printf("[ERROR] failed signing JWT: %v", err)
+		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prauth.RefreshResponse{NewJWS: jwsNew}, nil
 }
 
 func (a *Auth) GetJWT(ctx context.Context, r *prauth.JWTRequest) (*prauth.JWTResponse, error) {

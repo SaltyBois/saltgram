@@ -83,60 +83,60 @@ func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cr := ChangeRequest{}
 
-		err := saltdata.FromJSON(&cr, r.Body)
-		if err != nil {
-			u.l.Printf("[ERROR] deserializing ChangeRequest: %v\n", err)
-			http.Error(w, "Failed to parse request", http.StatusBadRequest)
-			return
-		}
-	
-		err = cr.Validate()
-		if err != nil {
-			u.l.Printf("[ERROR] ChangeRequest not valid: %v\n", err)
-			http.Error(w, "Bad change request", http.StatusBadRequest)
-			return
-		}
-		jws, err := getUserJWS(r)
-		if err != nil {
-			u.l.Printf("[ERROR] getting jws: %v\n", err)
-			http.Error(w, "Missing jws", http.StatusBadRequest)
-			return
-		}
+	err := saltdata.FromJSON(&cr, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing ChangeRequest: %v\n", err)
+		http.Error(w, "Failed to parse request", http.StatusBadRequest)
+		return
+	}
 
-		token, err := jwt.ParseWithClaims(
-			jws,
-			&saltdata.AccessClaims{},
-			func(t *jwt.Token) (interface{}, error) {
-				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-			},
-		)
+	err = cr.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] ChangeRequest not valid: %v\n", err)
+		http.Error(w, "Bad change request", http.StatusBadRequest)
+		return
+	}
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Printf("[ERROR] getting jws: %v\n", err)
+		http.Error(w, "Missing jws", http.StatusBadRequest)
+		return
+	}
 
-		if err != nil {
-			u.l.Printf("[ERROR] parsing claims: %v", err)
-			http.Error(w, "Error parsing claims", http.StatusBadRequest)
-			return
-		}
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
 
-		claims, ok := token.Claims.(*saltdata.AccessClaims)
+	if err != nil {
+		u.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
 
-		if !ok {
-			u.l.Println("[ERROR] unable to parse claims")
-			http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-			return
-		}
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
-		_, err = u.uc.ChangePassword(context.Background(), &prusers.ChangeRequest{
-			Username:            claims.Username,
-			OldPlainPassword: cr.OldPassword,
-			NewPlainPassword: cr.NewPassword,
-		})
+	if !ok {
+		u.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
 
-		if err != nil {
-			u.l.Printf("[ERROR] POST change password request: %v\n", err)
-			http.Error(w, "Error in POST change password request", http.StatusBadRequest)
-			return
-		}
-		w.Write([]byte("200 - OK"))
+	_, err = u.uc.ChangePassword(context.Background(), &prusers.ChangeRequest{
+		Username:         claims.Username,
+		OldPlainPassword: cr.OldPassword,
+		NewPlainPassword: cr.NewPassword,
+	})
+
+	if err != nil {
+		u.l.Printf("[ERROR] POST change password request: %v\n", err)
+		http.Error(w, "Error in POST change password request", http.StatusBadRequest)
+		return
+	}
+	w.Write([]byte("200 - OK"))
 }
 
 func (u *Users) ResetPassword(w http.ResponseWriter, r *http.Request) {
