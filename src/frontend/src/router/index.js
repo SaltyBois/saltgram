@@ -10,6 +10,7 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
+    // NOTE(Jovan): Logged out if switching to home, just as protonmail
     // beforeEnter: (to, from, next) => {
     //   if(this.$store.state.jws) 
     //     next("/user");
@@ -55,7 +56,6 @@ const routes = [
         next({ name: "Home"});
       })
    },
-  //  component: () => import(/* webpackChunkName: "activate" */ '../views/ActivateEmail')
  }
 ]
 
