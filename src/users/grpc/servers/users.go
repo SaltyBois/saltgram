@@ -32,6 +32,16 @@ func NewUsers(l *log.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.E
 	}
 }
 
+func (u *Users) ChangePassword(ctx context.Context, r *prusers.ChangeRequest) (*prusers.ChangeResponse, error) {
+	u.l.Println("Changing password")
+	err := data.ChangePassword(u.db, r.Email, r.OldPlainPassword, r.NewPlainPassword)
+	if err != nil {
+		u.l.Printf("[ERROR] attepmting to change password: %v\n", err)
+		return &prusers.ChangeResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+	return &prusers.ChangeResponse{}, nil
+}
+
 func (u *Users) VerifyEmail(ctx context.Context, r *prusers.VerifyEmailRequest) (*prusers.VerifyEmailResponse, error) {
 	u.l.Print("Verifying email")
 

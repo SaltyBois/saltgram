@@ -4,9 +4,31 @@ import (
 	"context"
 	"net/http"
 	"saltgram/protos/email/premail"
+	"time"
 
 	"github.com/gorilla/mux"
 )
+
+func (e *Email) ConfirmReset(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	token := vars["token"]
+	res, err := e.ec.ConfirmReset(context.Background(), &premail.ConfirmRequest{Token: token})
+	if err != nil {
+		e.l.Printf("[ERROR] confirming reset: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	
+	cookie := http.Cookie{
+		Name:     "email",
+		Value:    res.Email,
+		Expires:  time.Now().UTC().AddDate(0, 6, 0),
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	http.SetCookie(w, &cookie)
+	w.Write([]byte("200 - OK"))
+}
 
 func (e *Email) Activate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

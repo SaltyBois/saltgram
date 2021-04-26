@@ -56,7 +56,7 @@ export default {
                 oldPassword: this.oldPassword,
                 newPassword: this.newPassword1,
             };
-            this.axios.post("http://localhost:8081/email/change", changeRequest)
+            this.axios.post("/email/change", changeRequest)
                 .then(r => {
                     console.log(r);
                 })

@@ -23,12 +23,18 @@ const routes = [
    component: () => import(/* webpackChunkName: "user" */ '../views/User.vue')
  },
  {
+   // NOTE(Jovan): Confirm reset
   path: '/email/change/:token',
   name: 'PasswordReset',
   beforeEnter: (to, from, next) => {
     let token = to.params["token"]
-    axios.put("http://localhost:8081/email/change/" + token)
-      .finally(function() {
+    axios.put("/email/change/" + token)
+      .then(r => {
+        console.log(r);
+        next();
+      })
+      .catch(r => {
+        console.log(r);
         next({name: "Home"});
       });
   },

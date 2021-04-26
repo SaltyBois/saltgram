@@ -1,16 +1,12 @@
 package handlers
 
 import (
-	"io/ioutil"
-	"net/http"
-	"saltgram/users/data"
-
 	"github.com/go-playground/validator"
 )
 
 type ChangeRequest struct {
-	Email            string `json:"email" validate: "required"`
-	OldPlainPassword string `json:"oldPlainPassword" validate:"required`
+	Email            string `json:"email" validate:"required"`
+	OldPlainPassword string `json:"oldPlainPassword" validate:"required"`
 	NewPlainPassword string `json:"newPlainPassword" validate:"required"`
 }
 
@@ -21,44 +17,44 @@ func (cr *ChangeRequest) Validate() error {
 
 type KeyChangeRequest struct{}
 
-func (u *Users) VerifyEmail(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		u.l.Print("Activating email")
+// func (u *Users) VerifyEmail(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		u.l.Print("Activating email")
 
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			u.l.Printf("[ERROR] getting email: %v\n", err)
-			http.Error(w, "No email", http.StatusBadRequest)
-			return
-		}
-		email := string(body)
+// 		body, err := ioutil.ReadAll(r.Body)
+// 		if err != nil {
+// 			u.l.Printf("[ERROR] getting email: %v\n", err)
+// 			http.Error(w, "No email", http.StatusBadRequest)
+// 			return
+// 		}
+// 		email := string(body)
 
-		err = data.VerifyEmail(db, email)
-		if err != nil {
-			u.l.Printf("[ERROR] verifying email: %v\n", err)
-			http.Error(w, "Failed to verify email", http.StatusBadRequest)
-			return
-		}
+// 		err = data.VerifyEmail(db, email)
+// 		if err != nil {
+// 			u.l.Printf("[ERROR] verifying email: %v\n", err)
+// 			http.Error(w, "Failed to verify email", http.StatusBadRequest)
+// 			return
+// 		}
 
-		w.Write([]byte("Verified email"))
-	}
-}
+// 		w.Write([]byte("Verified email"))
+// 	}
+// }
 
-func (u *Users) ChangePassword(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		u.l.Println("Changing password")
+// func (u *Users) ChangePassword(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		u.l.Println("Changing password")
 
-		changeRequest := r.Context().Value(KeyChangeRequest{}).(ChangeRequest)
+// 		changeRequest := r.Context().Value(KeyChangeRequest{}).(ChangeRequest)
 
-		err := data.ChangePassword(db, changeRequest.Email, changeRequest.OldPlainPassword, changeRequest.NewPlainPassword)
-		if err != nil {
-			u.l.Printf("[ERROR] attepmting to change password: %v\n")
-			http.Error(w, "Failed to change password", http.StatusBadRequest)
-			return
-		}
-		w.Write([]byte("Password changed"))
-	}
-}
+// 		err := data.ChangePassword(db, changeRequest.Email, changeRequest.OldPlainPassword, changeRequest.NewPlainPassword)
+// 		if err != nil {
+// 			u.l.Printf("[ERROR] attepmting to change password: %v\n")
+// 			http.Error(w, "Failed to change password", http.StatusBadRequest)
+// 			return
+// 		}
+// 		w.Write([]byte("Password changed"))
+// 	}
+// }
 
 // func (u *Users) Register(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
 // 	return func(w http.ResponseWriter, r *http.Request) {

@@ -6,7 +6,16 @@ service Users {
     rpc CheckPassword(CheckPasswordRequest) returns (CheckPasswordResponse);
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
+    rpc ChangePassword(ChangeRequest) returns (ChangeResponse);
 }
+
+message ChangeRequest {
+    string oldPlainPassword = 1;
+    string newPlainPassword = 2;
+    string email = 3;
+}
+
+message ChangeResponse {}
 
 message VerifyEmailRequest {
     string email = 1;

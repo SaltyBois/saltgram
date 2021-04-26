@@ -106,10 +106,14 @@ func main() {
 	if err != nil {
 		l.Fatalf("[ERROR] dialing email connection")
 	}
+
 	emailClient := premail.NewEmailClient(emailConnection)
-	emailHandler := handlers.NewEmail(l, emailClient)
+	emailHandler := handlers.NewEmail(l, emailClient, usersClient)
 	emailRouter := serverMux.PathPrefix("/email").Subrouter()
 	emailRouter.HandleFunc("/activate/{token}", emailHandler.Activate).Methods(http.MethodPut)
+	emailRouter.HandleFunc("/forgot", emailHandler.ForgotPassword).Methods(http.MethodPost)
+	emailRouter.HandleFunc("/change/{token}", emailHandler.ConfirmReset).Methods(http.MethodPut)
+	emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
