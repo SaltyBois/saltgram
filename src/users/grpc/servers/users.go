@@ -59,7 +59,7 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 
 func (u *Users) ChangePassword(ctx context.Context, r *prusers.ChangeRequest) (*prusers.ChangeResponse, error) {
 	u.l.Println("Changing password")
-	err := data.ChangePassword(u.db, r.Email, r.OldPlainPassword, r.NewPlainPassword)
+	err := data.ChangePassword(u.db, r.Username, r.OldPlainPassword, r.NewPlainPassword)
 	if err != nil {
 		u.l.Printf("[ERROR] attepmting to change password: %v\n", err)
 		return &prusers.ChangeResponse{}, status.Error(codes.InvalidArgument, "Bad request")

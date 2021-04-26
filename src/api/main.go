@@ -104,6 +104,7 @@ func main() {
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
 
 	emailConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
@@ -116,7 +117,7 @@ func main() {
 	emailRouter.HandleFunc("/activate/{token}", emailHandler.Activate).Methods(http.MethodPut)
 	emailRouter.HandleFunc("/forgot", emailHandler.ForgotPassword).Methods(http.MethodPost)
 	emailRouter.HandleFunc("/reset/{token}", emailHandler.ConfirmReset).Methods(http.MethodPut)
-	emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
+	// emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

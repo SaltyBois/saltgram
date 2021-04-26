@@ -33,7 +33,7 @@ message GetByUsernameResponse {
 message ChangeRequest {
     string oldPlainPassword = 1;
     string newPlainPassword = 2;
-    string email = 3;
+    string username = 3;
 }
 
 message ChangeResponse {}

@@ -117,7 +117,7 @@ func VerifyEmail(db *DBConn, email string) error {
 }
 
 func ChangePassword(db *DBConn, email, oldPlainPassword, newPlainPassword string) error {
-	user, err := db.GetUserByEmail(email)
+	user, err := db.GetUserByUsername(email)
 	if err != nil {
 		return err
 	}

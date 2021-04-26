@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 	saltdata "saltgram/data"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 )
 
@@ -24,41 +26,41 @@ func (cr *ChangeRequest) Validate() error {
 	return validate.Struct(cr)
 }
 
-func (e *Email) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	cr := ChangeRequest{}
+// func (e *Email) ChangePassword(w http.ResponseWriter, r *http.Request) {
+// 	cr := ChangeRequest{}
 
-	err := saltdata.FromJSON(&cr, r.Body)
-	if err != nil {
-		e.l.Printf("[ERROR] deserializing ChangeRequest: %v\n", err)
-		http.Error(w, "Failed to parse request", http.StatusBadRequest)
-		return
-	}
+// 	err := saltdata.FromJSON(&cr, r.Body)
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] deserializing ChangeRequest: %v\n", err)
+// 		http.Error(w, "Failed to parse request", http.StatusBadRequest)
+// 		return
+// 	}
 
-	err = cr.Validate()
-	if err != nil {
-		e.l.Printf("[ERROR] ChangeRequest not valid: %v\n", err)
-		http.Error(w, "Bad change request", http.StatusBadRequest)
-		return
-	}
+// 	err = cr.Validate()
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] ChangeRequest not valid: %v\n", err)
+// 		http.Error(w, "Bad change request", http.StatusBadRequest)
+// 		return
+// 	}
 
-	cookie, err := r.Cookie("email")
-	if err != nil {
-		e.l.Printf("[ERROR] getting cookie: %v", err)
-		http.Error(w, "No change request cookie", http.StatusBadRequest)
-		return
-	}
-	_, err = e.uc.ChangePassword(context.Background(), &prusers.ChangeRequest{
-		Email:            cookie.Value,
-		OldPlainPassword: cr.OldPassword,
-		NewPlainPassword: cr.NewPassword,
-	})
-	if err != nil {
-		e.l.Printf("[ERROR] POST change password request: %v\n", err)
-		http.Error(w, "Error in POST change password request", http.StatusBadRequest)
-		return
-	}
-	w.Write([]byte("200 - OK"))
-}
+// 	cookie, err := r.Cookie("email")
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] getting cookie: %v", err)
+// 		http.Error(w, "No change request cookie", http.StatusBadRequest)
+// 		return
+// 	}
+// 	_, err = e.uc.ChangePassword(context.Background(), &prusers.ChangeRequest{
+// 		Email:            cookie.Value,
+// 		OldPlainPassword: cr.OldPassword,
+// 		NewPlainPassword: cr.NewPassword,
+// 	})
+// 	if err != nil {
+// 		e.l.Printf("[ERROR] POST change password request: %v\n", err)
+// 		http.Error(w, "Error in POST change password request", http.StatusBadRequest)
+// 		return
+// 	}
+// 	w.Write([]byte("200 - OK"))
+// }
 
 func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
@@ -76,6 +78,65 @@ func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	}()
 	// NOTE(Jovan): Always send 200 OK as per OWASP
 	w.Write([]byte("200 - OK"))
+}
+
+func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	cr := ChangeRequest{}
+
+		err := saltdata.FromJSON(&cr, r.Body)
+		if err != nil {
+			u.l.Printf("[ERROR] deserializing ChangeRequest: %v\n", err)
+			http.Error(w, "Failed to parse request", http.StatusBadRequest)
+			return
+		}
+	
+		err = cr.Validate()
+		if err != nil {
+			u.l.Printf("[ERROR] ChangeRequest not valid: %v\n", err)
+			http.Error(w, "Bad change request", http.StatusBadRequest)
+			return
+		}
+		jws, err := getUserJWS(r)
+		if err != nil {
+			u.l.Printf("[ERROR] getting jws: %v\n", err)
+			http.Error(w, "Missing jws", http.StatusBadRequest)
+			return
+		}
+
+		token, err := jwt.ParseWithClaims(
+			jws,
+			&saltdata.AccessClaims{},
+			func(t *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+			},
+		)
+
+		if err != nil {
+			u.l.Printf("[ERROR] parsing claims: %v", err)
+			http.Error(w, "Error parsing claims", http.StatusBadRequest)
+			return
+		}
+
+		claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+		if !ok {
+			u.l.Println("[ERROR] unable to parse claims")
+			http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+			return
+		}
+
+		_, err = u.uc.ChangePassword(context.Background(), &prusers.ChangeRequest{
+			Username:            claims.Username,
+			OldPlainPassword: cr.OldPassword,
+			NewPlainPassword: cr.NewPassword,
+		})
+
+		if err != nil {
+			u.l.Printf("[ERROR] POST change password request: %v\n", err)
+			http.Error(w, "Error in POST change password request", http.StatusBadRequest)
+			return
+		}
+		w.Write([]byte("200 - OK"))
 }
 
 func (u *Users) ResetPassword(w http.ResponseWriter, r *http.Request) {
