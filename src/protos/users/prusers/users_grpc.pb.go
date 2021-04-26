@@ -23,6 +23,7 @@ type UsersClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
 	ChangePassword(ctx context.Context, in *ChangeRequest, opts ...grpc.CallOption) (*ChangeResponse, error)
+	ResetPassword(ctx context.Context, in *UserResetRequest, opts ...grpc.CallOption) (*UserResetResponse, error)
 	GetByUsername(ctx context.Context, in *GetByUsernameRequest, opts ...grpc.CallOption) (*GetByUsernameResponse, error)
 }
 
@@ -79,6 +80,15 @@ func (c *usersClient) ChangePassword(ctx context.Context, in *ChangeRequest, opt
 	return out, nil
 }
 
+func (c *usersClient) ResetPassword(ctx context.Context, in *UserResetRequest, opts ...grpc.CallOption) (*UserResetResponse, error) {
+	out := new(UserResetResponse)
+	err := c.cc.Invoke(ctx, "/Users/ResetPassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *usersClient) GetByUsername(ctx context.Context, in *GetByUsernameRequest, opts ...grpc.CallOption) (*GetByUsernameResponse, error) {
 	out := new(GetByUsernameResponse)
 	err := c.cc.Invoke(ctx, "/Users/GetByUsername", in, out, opts...)
@@ -97,6 +107,7 @@ type UsersServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
 	ChangePassword(context.Context, *ChangeRequest) (*ChangeResponse, error)
+	ResetPassword(context.Context, *UserResetRequest) (*UserResetResponse, error)
 	GetByUsername(context.Context, *GetByUsernameRequest) (*GetByUsernameResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
@@ -119,6 +130,9 @@ func (UnimplementedUsersServer) VerifyEmail(context.Context, *VerifyEmailRequest
 }
 func (UnimplementedUsersServer) ChangePassword(context.Context, *ChangeRequest) (*ChangeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
+}
+func (UnimplementedUsersServer) ResetPassword(context.Context, *UserResetRequest) (*UserResetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
 }
 func (UnimplementedUsersServer) GetByUsername(context.Context, *GetByUsernameRequest) (*GetByUsernameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByUsername not implemented")
@@ -226,6 +240,24 @@ func _Users_ChangePassword_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserResetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).ResetPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/ResetPassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).ResetPassword(ctx, req.(*UserResetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Users_GetByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetByUsernameRequest)
 	if err := dec(in); err != nil {
@@ -270,6 +302,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePassword",
 			Handler:    _Users_ChangePassword_Handler,
+		},
+		{
+			MethodName: "ResetPassword",
+			Handler:    _Users_ResetPassword_Handler,
 		},
 		{
 			MethodName: "GetByUsername",

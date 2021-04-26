@@ -30,7 +30,7 @@ export default {
     },
     methods: {
         requestReset: function() {
-            this.axios.post("/email/forgot", this.email, {headers: {withCredentials: true}})
+            this.axios.post("email/forgot", this.email, {headers: {withCredentials: true}})
                 .then(r => {
                     console.log(r);
                     this.emailSent = true;

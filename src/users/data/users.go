@@ -47,6 +47,33 @@ func randSeq(n int) string {
 	return string(b)
 }
 
+var ErrorNewPasswordSameAsOld = fmt.Errorf("new password same as old")
+
+func ResetPassword(db *DBConn, email, password string) error {
+	user, err := db.GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	oldHashedPassword := user.HashedPassword
+
+	user.HashedPassword = password
+	err = user.GenerateSaltAndHashedPassword()
+	if err != nil {
+		return err
+	}
+
+	if oldHashedPassword == user.HashedPassword {
+		return ErrorNewPasswordSameAsOld
+	}
+
+	err = db.UpdateUser(user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (u *User) GenerateSaltAndHashedPassword() error {
 	rand.Seed(time.Now().UnixNano())
 	u.Salt = randSeq(SALT_LENGTH)

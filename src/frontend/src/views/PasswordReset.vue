@@ -1,20 +1,22 @@
 <template>
     <div id="reset-main">
         <v-form id="reset-container" v-model="isFormValid">
-            <v-text-field
+            <h1>Reset password</h1>
+            <b id="err">{{err}}</b>
+            <!-- <v-text-field
             v-model="oldPassword"
             label="Old password"
             :rules="[rules.required, rules.min, different]"
             :append-icon="showPassword1 ? 'fa-eye' : 'fa-eye-slash'"
             :type="showPassword1 ? 'text' : 'password'"
             @click:append="showPassword1 = !showPassword1"
-            required/>
+            required/> -->
 
             <v-text-field
             v-model="newPassword1"
             label="New password"
             hint="Min 8 characters, upper/lowercase, number and symbol"
-            :rules="[rules.required, rules.min, rules.passMatch, different, passMatch, passStr]"
+            :rules="[rules.required, rules.min, rules.passMatch, passMatch, passStr]"
             :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
             :type="showPassword2 ? 'text' : 'password'"
             @click:append="showPassword2 = !showPassword2"
@@ -24,7 +26,7 @@
             v-model="newPassword2"
             label="Confirm new password"
             hint="Min 8 characters, upper/lowercase, number and symbol"
-            :rules="[rules.required, rules.min, rules.passMatch, different, passMatch, passStr]"
+            :rules="[rules.required, rules.min, rules.passMatch, passMatch, passStr]"
             :append-icon="showPassword3 ? 'fa-eye' : 'fa-eye-slash'"
             :type="showPassword3 ? 'text' : 'password'"
             @click:append="showPassword3 = !showPassword3"
@@ -45,10 +47,11 @@ export default {
     },
     data() {
         return {
+            err: "",
             passScore: 0,
             passScoreText: '',
             isFormValid: false,
-            oldPassword: "",
+            // oldPassword: "",
             newPassword1: "",
             newPassword2: "",
             showPassword1: false,
@@ -68,17 +71,15 @@ export default {
         },
 
         changePassword: function() {
-            let changeRequest = {
-                oldPassword: this.oldPassword,
-                newPassword: this.newPassword1,
-            };
-            this.axios.post("/email/change", changeRequest)
+            this.err = "";
+            this.axios.post("users/resetpass", this.newPassword1, {headers: {withCredentials: true}})
                 .then(r => {
                     console.log(r);
                     this.$router.push("/");
                 })
                 .catch(r => {
                     console.log(r);
+                    this.err = "Invalid old password";
                 });
         }
     },
@@ -92,9 +93,9 @@ export default {
             return this.newPassword1 == this.newPassword2 || "Passwords must match"
         },
 
-        different: function() {
-            return (this.newPassword1 != this.oldPassword && this.newPassword2 != this.oldPassword) || "Cannot use old password"
-        }
+        // different: function() {
+        //     return (this.newPassword1 != this.oldPassword && this.newPassword2 != this.oldPassword) || "Cannot use old password"
+        // }
     }
 }
 </script>
@@ -121,5 +122,10 @@ export default {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+    }
+
+    #err {
+        color: #f00;
+        text-align: center;
     }
 </style>

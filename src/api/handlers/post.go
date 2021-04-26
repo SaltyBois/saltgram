@@ -68,11 +68,39 @@ func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	email := string(body)
-	_, err = e.ec.RequestReset(context.Background(), &premail.ResetRequest{Email: email})
-	if err != nil {
-		e.l.Printf("[ERROR] sending email request: %v\n", err)
-	}
+	go func() {
+		_, err = e.ec.RequestReset(context.Background(), &premail.ResetRequest{Email: email})
+		if err != nil {
+			e.l.Printf("[ERROR] sending email request: %v\n", err)
+		}
+	}()
 	// NOTE(Jovan): Always send 200 OK as per OWASP
+	w.Write([]byte("200 - OK"))
+}
+
+func (u *Users) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] parsing body: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	cookie, err := r.Cookie("emailforreset")
+	if err != nil {
+		u.l.Printf("[ERROR] getting cookie: %v", err)
+		http.Error(w, "No reset request cookie", http.StatusBadRequest)
+		return
+	}
+
+	newPassword := string(body)
+	_, err = u.uc.ResetPassword(context.Background(), &prusers.UserResetRequest{Email: cookie.Value, Password: newPassword})
+	if err != nil {
+		u.l.Printf("[ERROR] resetting password: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
 	w.Write([]byte("200 - OK"))
 }
 

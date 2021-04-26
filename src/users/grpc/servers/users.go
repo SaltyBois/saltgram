@@ -32,6 +32,15 @@ func NewUsers(l *log.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.E
 	}
 }
 
+func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) (*prusers.UserResetResponse, error) {
+	err := data.ResetPassword(u.db, r.Email, r.Password)
+	if err != nil {
+		u.l.Printf("[ERROR] resetting password: %v\n", err)
+		return &prusers.UserResetResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+	return &prusers.UserResetResponse{}, nil
+}
+
 func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameRequest) (*prusers.GetByUsernameResponse, error) {
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {

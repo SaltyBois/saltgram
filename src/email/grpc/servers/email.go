@@ -31,16 +31,6 @@ func (e *Email) ConfirmReset(ctx context.Context, r *premail.ConfirmRequest) (*p
 	}
 
 	return &premail.ConfirmResponse{Email: email}, nil
-	// TODO(Jovan): Move out to api
-	// cookie := http.Cookie{
-	// 	Name:     "email",
-	// 	Value:    email,
-	// 	Expires:  time.Now().UTC().AddDate(0, 6, 0),
-	// 	HttpOnly: true,
-	// 	SameSite: http.SameSiteNoneMode,
-	// }
-	// http.SetCookie(w, &cookie)
-	// w.Write([]byte("Activated"))
 }
 
 func (e *Email) RequestReset(ctx context.Context, r *premail.ResetRequest) (*premail.ResetResponse, error) {

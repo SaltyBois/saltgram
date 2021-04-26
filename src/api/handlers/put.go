@@ -20,10 +20,12 @@ func (e *Email) ConfirmReset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := http.Cookie{
-		Name:     "email",
+		Name:     "emailforreset",
 		Value:    res.Email,
 		Expires:  time.Now().UTC().AddDate(0, 6, 0),
 		HttpOnly: true,
+		Secure: true,
+		Path: "/users",
 		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &cookie)

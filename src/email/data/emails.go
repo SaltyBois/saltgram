@@ -111,7 +111,7 @@ func SendPasswordReset(db *DBConn, email string) error {
 	db.Add(request)
 	subject := "Salty Bois: Password Reset"
 	content := fmt.Sprintf("Dear user,\nClick this link to reset your password:\n%s\n\n"+
-		"If you did not request this, ignore this email!", generatePasswordChangeURL(request.Token))
+		"If you did not request this, ignore this email!", generatePasswordResetURL(request.Token))
 	return sendEmail(email, subject, content)
 }
 
@@ -154,6 +154,6 @@ func generateActivationURL(token string) string {
 	return fmt.Sprintf("https://localhost:%s/email/activate/%s", os.Getenv("SALT_WEB_PORT"), token)
 }
 
-func generatePasswordChangeURL(token string) string {
-	return fmt.Sprintf("https://localhost:%s/email/change/%s", os.Getenv("SALT_WEB_PORT"), token)
+func generatePasswordResetURL(token string) string {
+	return fmt.Sprintf("https://localhost:%s/email/reset/%s", os.Getenv("SALT_WEB_PORT"), token)
 }

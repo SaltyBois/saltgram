@@ -25,11 +25,11 @@ const routes = [
  },
  {
    // NOTE(Jovan): Confirm reset
-  path: '/email/change/:token',
+  path: '/email/reset/:token',
   name: 'PasswordReset',
   beforeEnter: (to, from, next) => {
     let token = to.params["token"]
-    axios.put("/email/change/" + token)
+    axios.put("email/reset/" + token, {withCredentials: true})
       .then(r => {
         console.log(r);
         next();
