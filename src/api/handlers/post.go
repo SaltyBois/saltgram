@@ -219,6 +219,8 @@ func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {
 		Value:    res.Refresh,
 		Expires:  time.Now().UTC().AddDate(0, 6, 0),
 		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
 	}
 
 	http.SetCookie(w, &cookie)

@@ -15,7 +15,7 @@
                         <b id="err">{{err}}</b>
                         <v-text-field
                         v-model="oldPassword"
-                        label="New password"
+                        label="Old password"
                         :rules="[rules.required, rules.min, different]"
                         :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
                         :type="showPassword2 ? 'text' : 'password'"
@@ -88,31 +88,28 @@ export default {
         changePassword: function() {
             this.err = "";
 
-            // NOTE(Jovan): First refresh jws
-            let jws = this.$store.state.jws;
-            this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
-                .then(r => {
-                    console.log(r);
+            this.refreshToken()
+                .then((r) => {
                     this.$store.state.jws = r.data;
-
-                let changeRequest = {
-                    oldPassword: this.oldPassword,
-                    newPassword: this.newPassword1,
-                };
-                jws = this.$store.state.jws;
-                this.axios.post("users/changepass", changeRequest, {headers: {"Authorization": "Bearer " + jws}})
-                    .then(r => {
-                        console.log(r);
-                        this.$router.go();
-                    })
-                    .catch(r => {
-                        console.log(r);
-                        this.err = "Invalid old password!";
-                    });
+                    console.log("Stored new jws")
+                    let changeRequest = {
+                        oldPassword: this.oldPassword,
+                        newPassword: this.newPassword1,
+                    }
+                    console.log("Sending new jws")
+                    this.axios.post("users/changepass", changeRequest, {headers: {"Authorization": "Bearer " + this.$store.state.jws}})
+                        .then(r => {
+                            console.log(r);
+                            this.showSettings = false;
+                        })
+                        .catch(r => {
+                            console.log(r);
+                            this.err = "Invalid old password!";
+                        });
                 })
                 .catch(r => {
                     console.log(r);
-                    this.$router.push("/");
+                    this.$router.push("/")
                 });
         },
 
@@ -127,7 +124,16 @@ export default {
             this.$router.go();
         },
 
-        sendJWS: function() {
+        refreshToken: async function() {
+            let jws = this.$store.state.jws
+            if (!jws) {
+                this.$router.push("/")
+            }
+
+            return this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
+        },
+
+        getUserInfo: function() {
             let jws = this.$store.state.jws
             if (!jws) {
                 this.$router.push("/");
@@ -141,8 +147,7 @@ export default {
                 .catch(r => {
                     console.log(r);
                     // NOTE(Jovan): Try to refresh
-                    // TODO(Jovan): Maybe send existing jwt, just change exp date
-                    this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
+                    this.this.refreshToken()
                         .then(r => {
                             console.log(r);
                             this.$store.state.jws = r.data;
@@ -156,7 +161,7 @@ export default {
         },
     },
     mounted() {
-        this.sendJWS();
+        this.getUserInfo();
     },
     computed: {
         different: function() {

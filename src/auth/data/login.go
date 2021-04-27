@@ -41,5 +41,5 @@ func GetRefreshTokens(db *DBConn) []*Refresh {
 func (r *Refresh) Verify(db *DBConn) error {
 	// NOTE(Jovan): https://gorm.io/docs/security.html
 	rt := Refresh{}
-	return db.DB.Where("TOKEN == ?", r.Token).First(&rt).Error
+	return db.DB.Where("TOKEN = ?", r.Token).First(&rt).Error
 }
