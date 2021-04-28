@@ -22,6 +22,7 @@ type AuthClient interface {
 	AddRefresh(ctx context.Context, in *AddRefreshRequest, opts ...grpc.CallOption) (*AddRefreshResponse, error)
 	GetJWT(ctx context.Context, in *JWTRequest, opts ...grpc.CallOption) (*JWTResponse, error)
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error)
+	CheckPermissions(ctx context.Context, in *PermissionRequest, opts ...grpc.CallOption) (*PermissionResponse, error)
 }
 
 type authClient struct {
@@ -68,6 +69,15 @@ func (c *authClient) Refresh(ctx context.Context, in *RefreshRequest, opts ...gr
 	return out, nil
 }
 
+func (c *authClient) CheckPermissions(ctx context.Context, in *PermissionRequest, opts ...grpc.CallOption) (*PermissionResponse, error) {
+	out := new(PermissionResponse)
+	err := c.cc.Invoke(ctx, "/Auth/CheckPermissions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServer is the server API for Auth service.
 // All implementations must embed UnimplementedAuthServer
 // for forward compatibility
@@ -76,6 +86,7 @@ type AuthServer interface {
 	AddRefresh(context.Context, *AddRefreshRequest) (*AddRefreshResponse, error)
 	GetJWT(context.Context, *JWTRequest) (*JWTResponse, error)
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
+	CheckPermissions(context.Context, *PermissionRequest) (*PermissionResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -94,6 +105,9 @@ func (UnimplementedAuthServer) GetJWT(context.Context, *JWTRequest) (*JWTRespons
 }
 func (UnimplementedAuthServer) Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Refresh not implemented")
+}
+func (UnimplementedAuthServer) CheckPermissions(context.Context, *PermissionRequest) (*PermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPermissions not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 
@@ -180,6 +194,24 @@ func _Auth_Refresh_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_CheckPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).CheckPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Auth/CheckPermissions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).CheckPermissions(ctx, req.(*PermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +234,10 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Refresh",
 			Handler:    _Auth_Refresh_Handler,
+		},
+		{
+			MethodName: "CheckPermissions",
+			Handler:    _Auth_CheckPermissions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

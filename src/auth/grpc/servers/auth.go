@@ -20,26 +20,64 @@ import (
 
 type Auth struct {
 	prauth.UnimplementedAuthServer
-	l           *log.Logger
-	e           *casbin.Enforcer
-	db          *data.DBConn
-	usersClient prusers.UsersClient
+	l  *log.Logger
+	e  *casbin.Enforcer
+	db *data.DBConn
+	uc prusers.UsersClient
 }
 
-func NewAuth(l *log.Logger, e *casbin.Enforcer, db *data.DBConn, usersClient prusers.UsersClient) *Auth {
+func NewAuth(l *log.Logger, e *casbin.Enforcer, db *data.DBConn, uc prusers.UsersClient) *Auth {
 	return &Auth{
-		l:           l,
-		e:           e,
-		db:          db,
-		usersClient: usersClient,
+		l:  l,
+		e:  e,
+		db: db,
+		uc: uc,
 	}
 }
 
-func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.RefreshResponse, error) {
+func (a *Auth) CheckPermissions(ctx context.Context, r *prauth.PermissionRequest) (*prauth.PermissionResponse, error) {
 
-	rTokenString := r.Refresh
+	subject := "anon"
+	if len(r.Jws) > 0 {
+		jwt, err := jwt.ParseWithClaims(
+			r.Jws,
+			&saltdata.AccessClaims{},
+			func(t *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+			},
+		)
+		if err != nil {
+			a.l.Printf("[ERROR] parsing token: %v\n", err)
+			return &prauth.PermissionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		}
+		claims, ok := jwt.Claims.(*saltdata.AccessClaims)
+		if !ok {
+			a.l.Printf("[ERROR] parsing claims: %v\n", err)
+			return &prauth.PermissionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		}
+		res, err := a.uc.GetRole(context.Background(), &prusers.RoleRequest{Username: claims.Username})
+		if err != nil {
+			a.l.Printf("[ERROR] getting user role: %v\n", err)
+			return &prauth.PermissionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		}
+		subject = res.Role
+	}
+	ok, err := a.e.Enforce(subject, r.Path, r.Method)
+	if err != nil {
+		a.l.Printf("[ERROR] enforcing: %v\n", err)
+		return &prauth.PermissionResponse{}, status.Error(codes.Internal, "Internal server error")
+	}
+	if !ok {
+		a.l.Printf("[DENIED] Subject: %v, Object: %v, Method: %v\n", subject, r.Path, r.Method)
+		return &prauth.PermissionResponse{}, status.Error(codes.PermissionDenied, "Permission denied")
+	}
+	a.l.Printf("[GRANTED] Subject: %v, Object: %v, Method: %v\n", subject, r.Path, r.Method)
+	return &prauth.PermissionResponse{}, nil
+}
+
+func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.RefreshResponse, error) {
 	rToken, err := jwt.ParseWithClaims(
-		rTokenString,
+		r.Refresh,
 		&saltdata.RefreshClaims{},
 		func(t *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("REF_SECRET_KEY")), nil
@@ -74,14 +112,12 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
-	jws := r.OldJWS
-
 	// NOTE(Jovan): Not validating 'cause it is invalid
 	jwtOld, _ := jwt.ParseWithClaims(
-		jws,
+		r.OldJWS,
 		&saltdata.AccessClaims{},
 		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+			return []byte(os.Getenv("REF_SECRET_KEY")), nil
 		},
 	)
 
@@ -155,7 +191,7 @@ func (a *Auth) AddRefresh(ctx context.Context, r *prauth.AddRefreshRequest) (*pr
 var ErrorBadRequest = fmt.Errorf("bad request")
 
 func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.LoginResponse, error) {
-	res, err := a.usersClient.CheckEmail(context.Background(), &prusers.CheckEmailRequest{Username: r.Username})
+	res, err := a.uc.CheckEmail(context.Background(), &prusers.CheckEmailRequest{Username: r.Username})
 	if err != nil {
 		a.l.Printf("[ERROR] checking email: %v\n", err)
 		return &prauth.LoginResponse{}, err
@@ -180,7 +216,7 @@ func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.Login
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
-	pres, err := a.usersClient.CheckPassword(context.Background(), &prusers.CheckPasswordRequest{Username: r.Username, Password: r.Password})
+	pres, err := a.uc.CheckPassword(context.Background(), &prusers.CheckPasswordRequest{Username: r.Username, Password: r.Password})
 	if err != nil {
 		a.l.Println("[ERROR] bad request")
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")

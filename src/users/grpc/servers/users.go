@@ -57,6 +57,16 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 	}, nil
 }
 
+func (u *Users) GetRole(ctx context.Context, r *prusers.RoleRequest) (*prusers.RoleResponse, error) {
+	role, err := data.GetRole(u.db, r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] getting role: %v\n", err)
+		return &prusers.RoleResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prusers.RoleResponse{Role: role}, nil
+}
+
 func (u *Users) ChangePassword(ctx context.Context, r *prusers.ChangeRequest) (*prusers.ChangeResponse, error) {
 	u.l.Println("Changing password")
 	err := data.ChangePassword(u.db, r.Username, r.OldPlainPassword, r.NewPlainPassword)

@@ -9,6 +9,15 @@ service Users {
     rpc ChangePassword(ChangeRequest) returns (ChangeResponse);
     rpc ResetPassword(UserResetRequest) returns(UserResetResponse);
     rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
+    rpc GetRole(RoleRequest) returns (RoleResponse);
+}
+
+message RoleRequest {
+    string username = 1;
+}
+
+message RoleResponse {
+    string role = 1;
 }
 
 message UserResetRequest {

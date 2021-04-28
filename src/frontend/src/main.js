@@ -26,6 +26,7 @@ const store = new Vuex.Store({
     jws: "",
   },
 });
+export default store;
 
 new Vue({
   router,

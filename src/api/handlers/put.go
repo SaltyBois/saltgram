@@ -2,12 +2,37 @@ package handlers
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
+	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"time"
 
 	"github.com/gorilla/mux"
 )
+
+func (a *Auth) CheckPermissions(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		a.l.Printf("[ERROR] reading body: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	route := string(body)
+	jws, _ := getUserJWS(r)
+	_, err = a.ac.CheckPermissions(context.Background(),
+		&prauth.PermissionRequest{
+			Jws:    jws,
+			Path:   route,
+			Method: r.Method,
+		})
+	if err != nil {
+		a.l.Printf("[ERROR] authenticating: %v\n", err)
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	w.Write([]byte("200 - OK"))
+}
 
 func (e *Email) ConfirmReset(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

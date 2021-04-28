@@ -19,7 +19,7 @@
                         :rules="[rules.required, rules.min, different]"
                         :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
                         :type="showPassword2 ? 'text' : 'password'"
-                        @click:append="showPassword2 = !showPassword2"
+                        @click:append="showPassword1 = !showPassword1"
                         required/>
                         <v-text-field
                         v-model="newPassword1"
@@ -69,6 +69,10 @@ export default {
     },
     data: function() {
         return {
+            err: "",
+            showPassword1: false, 
+            showPassword2: false, 
+            showPassword3: false, 
             oldPassword: '',
             newPassword1: '',
             newPassword2: '',
@@ -87,16 +91,13 @@ export default {
     methods: {
         changePassword: function() {
             this.err = "";
-
             this.refreshToken()
                 .then((r) => {
                     this.$store.state.jws = r.data;
-                    console.log("Stored new jws")
                     let changeRequest = {
                         oldPassword: this.oldPassword,
                         newPassword: this.newPassword1,
                     }
-                    console.log("Sending new jws")
                     this.axios.post("users/changepass", changeRequest, {headers: {"Authorization": "Bearer " + this.$store.state.jws}})
                         .then(r => {
                             console.log(r);

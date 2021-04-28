@@ -6,7 +6,16 @@ service Auth {
     rpc AddRefresh(AddRefreshRequest) returns (AddRefreshResponse);
     rpc GetJWT(JWTRequest) returns (JWTResponse);
     rpc Refresh(RefreshRequest) returns (RefreshResponse);
+    rpc CheckPermissions(PermissionRequest) returns (PermissionResponse);
 }
+
+message PermissionRequest {
+    string jws = 1;
+    string path = 2;
+    string method = 3;
+}
+
+message PermissionResponse {}
 
 message RefreshRequest {
     string refresh = 1;

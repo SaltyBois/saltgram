@@ -80,6 +80,7 @@ export default {
           this.axios.post("auth/jwt", r.data)
             .then(r => {
               this.$store.state.jws = r.data;
+              console.log("Saved jwt ", this.$store.state.jws);
               this.$router.push("/user");
             })
             .catch(r => {

@@ -93,6 +93,7 @@ func main() {
 	authRouter.HandleFunc("/refresh", authHandler.Refresh) //.Methods(http.MethodGet)
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
+	authRouter.HandleFunc("", authHandler.CheckPermissions).Methods(http.MethodPut)
 
 	usersConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
