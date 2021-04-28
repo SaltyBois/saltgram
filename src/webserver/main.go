@@ -2,39 +2,16 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"saltgram/internal"
 	"time"
 
 	spa "github.com/roberthodgen/spa-server"
 )
-
-func getTLSConfig() (*tls.Config, error) {
-	crt, err := ioutil.ReadFile("../../certs/localhost.crt")
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := ioutil.ReadFile("../../certs/localhost.key")
-	if err != nil {
-		return nil, err
-	}
-
-	cert, err := tls.X509KeyPair(crt, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		ServerName:   "localhost",
-	}, nil
-}
 
 func hstsMiddleware(h http.Handler) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -44,11 +21,12 @@ func hstsMiddleware(h http.Handler) func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	log.Printf("Running web server on port: %v\n", os.Getenv("SALT_WEB_PORT"))
-	serverMux := http.NewServeMux()
-	serverMux.HandleFunc("/", hstsMiddleware(spa.SpaHandler("../frontend/dist", "index.html")))
+	l := log.New(os.Stdout, "saltgram-web", log.LstdFlags)
+	l.Printf("Running web server on port: %v\n", os.Getenv("SALT_WEB_PORT"))
+	s := internal.NewService(l)
+	s.S.HandleFunc("/", hstsMiddleware(spa.SpaHandler("../frontend/dist", "index.html")))
 
-	tlsConfig, err := getTLSConfig()
+	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "")
 	if err != nil {
 		log.Fatalf("[ERROR] getting TLS config: %v\n", err)
 	}
@@ -58,8 +36,8 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
-		TLSConfig:    tlsConfig,
-		Handler:      serverMux,
+		TLSConfig:    s.TLS.TC,
+		Handler:      s.S,
 	}
 
 	go func() {

@@ -2,124 +2,67 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"saltgram/api/handlers"
+	"saltgram/internal"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
-
-func loadTLSCert(crtPath, keyPath string) (*tls.Certificate, error) {
-	crt, err := ioutil.ReadFile(crtPath)
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := ioutil.ReadFile(keyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	cert, err := tls.X509KeyPair(crt, key)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cert, nil
-}
-
-func getTLSConfig() (*tls.Config, error) {
-	cert, err := loadTLSCert("../../certs/localhost.crt", "../../certs/localhost.key")
-	if err != nil {
-		return nil, err
-	}
-
-	caCert, err := ioutil.ReadFile("../../certs/RootCA.pem")
-	if err != nil {
-		return nil, err
-	}
-
-	caPool := x509.NewCertPool()
-	caPool.AppendCertsFromPEM(caCert)
-
-	return &tls.Config{
-		Certificates: []tls.Certificate{*cert},
-		ServerName:   "localhost",
-		RootCAs:      caPool,
-	}, nil
-}
-
-func getConnection(creds credentials.TransportCredentials, addr string) (*grpc.ClientConn, error) {
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(creds))
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
-}
 
 func main() {
 	l := log.New(os.Stdout, "saltgram-api-gateway", log.LstdFlags)
 	l.Printf("Starting API Gateway on port: %s\n", os.Getenv("SALT_API_PORT"))
-
-	serverMux := mux.NewRouter()
-
-	tlsConfig, err := getTLSConfig()
+	s := internal.NewService(l)
+	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
 	if err != nil {
 		l.Fatalf("[ERROR] configuring tls: %v\n", err)
 	}
 
-	creds := credentials.NewTLS(tlsConfig)
-	authConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_AUTH_PORT")))
+	authConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_AUTH_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing auth connection: %v\n", err)
 	}
 	defer authConnection.Close()
 	authClient := prauth.NewAuthClient(authConnection)
 	authHandler := handlers.NewAuth(l, authClient)
-	authRouter := serverMux.PathPrefix("/auth").Subrouter()
+	authRouter := s.S.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/refresh", authHandler.Refresh) //.Methods(http.MethodGet)
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 	authRouter.HandleFunc("", authHandler.CheckPermissions).Methods(http.MethodPut)
 
-	usersConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
+	usersConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing users connection: %v\n", err)
 	}
 	defer usersConnection.Close()
 	usersClient := prusers.NewUsersClient(usersConnection)
 	usersHandler := handlers.NewUsers(l, usersClient)
-	usersRouter := serverMux.PathPrefix("/users").Subrouter()
+	usersRouter := s.S.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
 
-	emailConnection, err := getConnection(creds, fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
+	emailConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing email connection")
 	}
 
 	emailClient := premail.NewEmailClient(emailConnection)
 	emailHandler := handlers.NewEmail(l, emailClient, usersClient)
-	emailRouter := serverMux.PathPrefix("/email").Subrouter()
+	emailRouter := s.S.PathPrefix("/email").Subrouter()
 	emailRouter.HandleFunc("/activate/{token}", emailHandler.Activate).Methods(http.MethodPut)
 	emailRouter.HandleFunc("/forgot", emailHandler.ForgotPassword).Methods(http.MethodPost)
 	emailRouter.HandleFunc("/reset/{token}", emailHandler.ConfirmReset).Methods(http.MethodPut)
-	// emailRouter.HandleFunc("/change", emailHandler.ChangePassword).Methods(http.MethodPost)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
@@ -134,8 +77,8 @@ func main() {
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
 		IdleTimeout:  120 * time.Second,
-		Handler:      c.Handler(serverMux),
-		TLSConfig:    tlsConfig,
+		Handler:      c.Handler(s.S),
+		TLSConfig:    s.TLS.TC,
 	}
 
 	go func() {

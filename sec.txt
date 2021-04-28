@@ -1,0 +1,583 @@
+Results:
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/auth.go]:
+
+  > [line 5 : column 2] - could not import saltgram/protos/auth/prauth (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/email.go]:
+
+  > [line 5 : column 2] - could not import saltgram/protos/email/premail (invalid package name: "")
+
+  > [line 6 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/get.go]:
+
+  > [line 7 : column 11] - could not import saltgram/data (invalid package name: "")
+
+  > [line 11 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 11 : column 2] - could not import github.com/dgrijalva/jwt-go (invalid package name: "")
+
+  > [line 49 : column 16] - undeclared name: jwt
+
+  > [line 52 : column 11] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/post.go]:
+
+  > [line 15 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 16 : column 2] - could not import github.com/go-playground/validator (invalid package name: "")
+
+  > [line 106 : column 16] - undeclared name: jwt
+
+  > [line 109 : column 11] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/put.go]:
+
+  > [line 11 : column 2] - could not import github.com/gorilla/mux (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/api/main.go]:
+
+  > [line 10 : column 2] - could not import saltgram/api/handlers (invalid package name: "")
+
+  > [line 11 : column 2] - could not import saltgram/internal (invalid package name: "")
+
+  > [line 12 : column 2] - could not import saltgram/protos/auth/prauth (invalid package name: "")
+
+  > [line 13 : column 2] - could not import saltgram/protos/email/premail (invalid package name: "")
+
+  > [line 14 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+  > [line 17 : column 2] - could not import github.com/rs/cors (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/data/database.go]:
+
+  > [line 6 : column 2] - could not import gorm.io/driver/postgres (invalid package name: "")
+
+  > [line 7 : column 2] - could not import gorm.io/gorm (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/data/login.go]:
+
+  > [line 6 : column 2] - could not import github.com/go-playground/validator (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/grpc/servers/auth.go]:
+
+  > [line 8 : column 2] - could not import saltgram/auth/data (invalid package name: "")
+
+  > [line 9 : column 11] - could not import saltgram/data (invalid package name: "")
+
+  > [line 10 : column 2] - could not import saltgram/protos/auth/prauth (invalid package name: "")
+
+  > [line 11 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+  > [line 15 : column 2] - "github.com/casbin/casbin/v2" imported but not used
+
+  > [line 15 : column 2] - could not import github.com/casbin/casbin/v2 (invalid package name: "")
+
+  > [line 16 : column 2] - could not import github.com/dgrijalva/jwt-go (invalid package name: "")
+
+  > [line 16 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 17 : column 2] - could not import google.golang.org/grpc/codes (invalid package name: "")
+
+  > [line 18 : column 2] - could not import google.golang.org/grpc/status (invalid package name: "")
+
+  > [line 24 : column 6] - undeclared name: casbin
+
+  > [line 29 : column 32] - undeclared name: casbin
+
+  > [line 42 : column 15] - undeclared name: jwt
+
+  > [line 45 : column 12] - undeclared name: jwt
+
+  > [line 79 : column 17] - undeclared name: jwt
+
+  > [line 82 : column 11] - undeclared name: jwt
+
+  > [line 116 : column 15] - undeclared name: jwt
+
+  > [line 119 : column 11] - undeclared name: jwt
+
+  > [line 134 : column 12] - undeclared name: jwt
+
+  > [line 134 : column 30] - undeclared name: jwt
+
+  > [line 151 : column 19] - undeclared name: jwt
+
+  > [line 157 : column 11] - undeclared name: jwt
+
+  > [line 157 : column 29] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/handlers/auth.go]:
+
+  > [line 8 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 8 : column 2] - could not import github.com/dgrijalva/jwt-go (invalid package name: "")
+
+  > [line 18 : column 17] - undeclared name: jwt
+
+  > [line 23 : column 17] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/handlers/get.go]:
+
+  > [line 6 : column 2] - "github.com/casbin/casbin/v2" imported but not used
+
+  > [line 6 : column 2] - could not import github.com/casbin/casbin/v2 (invalid package name: "")
+
+  > [line 9 : column 36] - undeclared name: casbin
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/handlers/middleware.go]:
+
+  > [line 6 : column 2] - could not import saltgram/auth/data (invalid package name: "")
+
+  > [line 7 : column 11] - could not import saltgram/data (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/handlers/post.go]:
+
+  > [line 11 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 129 : column 20] - undeclared name: jwt
+
+  > [line 135 : column 12] - undeclared name: jwt
+
+  > [line 135 : column 30] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/auth/main.go]:
+
+  > [line 8 : column 2] - could not import saltgram/auth/data (invalid package name: "")
+
+  > [line 9 : column 2] - could not import saltgram/auth/grpc/servers (invalid package name: "")
+
+  > [line 10 : column 2] - could not import saltgram/internal (invalid package name: "")
+
+  > [line 11 : column 2] - could not import saltgram/protos/auth/prauth (invalid package name: "")
+
+  > [line 12 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+  > [line 14 : column 2] - "github.com/casbin/casbin/v2" imported but not used
+
+  > [line 14 : column 2] - could not import github.com/casbin/casbin/v2 (invalid package name: "")
+
+  > [line 15 : column 2] - could not import google.golang.org/grpc/reflection (invalid package name: "")
+
+  > [line 25 : column 23] - undeclared name: casbin
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/data/claims.go]:
+
+  > [line 6 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 6 : column 2] - could not import github.com/dgrijalva/jwt-go (invalid package name: "")
+
+  > [line 12 : column 17] - undeclared name: jwt
+
+  > [line 17 : column 17] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/data/login.go]:
+
+  > [line 3 : column 8] - could not import github.com/go-playground/validator (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/data/recaptcha.go]:
+
+  > [line 8 : column 12] - could not import cloud.google.com/go/recaptchaenterprise/apiv1 (invalid package name: "")
+
+  > [line 10 : column 14] - could not import google.golang.org/genproto/googleapis/cloud/recaptchaenterprise/v1 (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/email/data/database.go]:
+
+  > [line 6 : column 2] - could not import gorm.io/driver/postgres (invalid package name: "")
+
+  > [line 7 : column 2] - could not import gorm.io/gorm (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/email/data/emails.go]:
+
+  > [line 10 : column 2] - could not import github.com/google/uuid (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/email/grpc/servers/email.go]:
+
+  > [line 6 : column 2] - could not import saltgram/email/data (invalid package name: "")
+
+  > [line 7 : column 2] - could not import saltgram/protos/email/premail (invalid package name: "")
+
+  > [line 8 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+  > [line 10 : column 2] - could not import google.golang.org/grpc/codes (invalid package name: "")
+
+  > [line 11 : column 2] - could not import google.golang.org/grpc/status (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/email/handlers/post.go]:
+
+  > [line 7 : column 2] - could not import saltgram/email/data (invalid package name: "")
+
+  > [line 9 : column 2] - could not import github.com/go-playground/validator (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/email/main.go]:
+
+  > [line 8 : column 2] - could not import saltgram/email/data (invalid package name: "")
+
+  > [line 9 : column 2] - could not import saltgram/email/grpc/servers (invalid package name: "")
+
+  > [line 10 : column 2] - could not import saltgram/internal (invalid package name: "")
+
+  > [line 11 : column 2] - could not import saltgram/protos/email/premail (invalid package name: "")
+
+  > [line 12 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+  > [line 14 : column 2] - could not import google.golang.org/grpc/reflection (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/internal/internal.go]:
+
+  > [line 9 : column 2] - could not import github.com/gorilla/mux (invalid package name: "")
+
+  > [line 10 : column 2] - could not import google.golang.org/grpc (invalid package name: "")
+
+  > [line 11 : column 2] - could not import google.golang.org/grpc/credentials (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/protos/auth/prauth/auth.pb.go]:
+
+  > [line 10 : column 15] - could not import google.golang.org/protobuf/reflect/protoreflect (invalid package name: "")
+
+  > [line 11 : column 12] - could not import google.golang.org/protobuf/runtime/protoimpl (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/protos/auth/prauth/auth_grpc.pb.go]:
+
+  > [line 7 : column 7] - could not import google.golang.org/grpc (invalid package name: "")
+
+  > [line 8 : column 8] - could not import google.golang.org/grpc/codes (invalid package name: "")
+
+  > [line 9 : column 9] - could not import google.golang.org/grpc/status (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/protos/email/premail/email.pb.go]:
+
+  > [line 10 : column 15] - could not import google.golang.org/protobuf/reflect/protoreflect (invalid package name: "")
+
+  > [line 11 : column 12] - could not import google.golang.org/protobuf/runtime/protoimpl (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/protos/email/premail/email_grpc.pb.go]:
+
+  > [line 7 : column 7] - could not import google.golang.org/grpc (invalid package name: "")
+
+  > [line 8 : column 8] - could not import google.golang.org/grpc/codes (invalid package name: "")
+
+  > [line 9 : column 9] - could not import google.golang.org/grpc/status (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/protos/users/prusers/users.pb.go]:
+
+  > [line 10 : column 15] - could not import google.golang.org/protobuf/reflect/protoreflect (invalid package name: "")
+
+  > [line 11 : column 12] - could not import google.golang.org/protobuf/runtime/protoimpl (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/protos/users/prusers/users_grpc.pb.go]:
+
+  > [line 7 : column 7] - could not import google.golang.org/grpc (invalid package name: "")
+
+  > [line 8 : column 8] - could not import google.golang.org/grpc/codes (invalid package name: "")
+
+  > [line 9 : column 9] - could not import google.golang.org/grpc/status (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/users/data/database.go]:
+
+  > [line 6 : column 2] - could not import gorm.io/driver/postgres (invalid package name: "")
+
+  > [line 7 : column 2] - could not import gorm.io/gorm (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/users/data/recaptcha.go]:
+
+  > [line 8 : column 12] - could not import cloud.google.com/go/recaptchaenterprise/apiv1 (invalid package name: "")
+
+  > [line 9 : column 2] - could not import github.com/go-playground/validator (invalid package name: "")
+
+  > [line 10 : column 14] - could not import google.golang.org/genproto/googleapis/cloud/recaptchaenterprise/v1 (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/users/data/users.go]:
+
+  > [line 9 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 9 : column 2] - could not import github.com/dgrijalva/jwt-go (invalid package name: "")
+
+  > [line 11 : column 2] - could not import golang.org/x/crypto/bcrypt (invalid package name: "")
+
+  > [line 225 : column 17] - undeclared name: jwt
+
+  > [line 230 : column 17] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/users/grpc/servers/users.go]:
+
+  > [line 7 : column 2] - could not import saltgram/protos/auth/prauth (invalid package name: "")
+
+  > [line 8 : column 2] - could not import saltgram/protos/email/premail (invalid package name: "")
+
+  > [line 9 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+  > [line 10 : column 2] - could not import saltgram/users/data (invalid package name: "")
+
+  > [line 13 : column 2] - could not import github.com/dgrijalva/jwt-go (invalid package name: "")
+
+  > [line 13 : column 2] - "github.com/dgrijalva/jwt-go" imported but not used
+
+  > [line 14 : column 2] - could not import google.golang.org/grpc/codes (invalid package name: "")
+
+  > [line 15 : column 2] - could not import google.golang.org/grpc/status (invalid package name: "")
+
+  > [line 97 : column 19] - undeclared name: jwt
+
+  > [line 103 : column 11] - undeclared name: jwt
+
+  > [line 103 : column 29] - undeclared name: jwt
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/users/handlers/get.go]:
+
+  > [line 5 : column 2] - could not import saltgram/users/data (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/users/handlers/post.go]:
+
+  > [line 4 : column 2] - could not import github.com/go-playground/validator (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/users/main.go]:
+
+  > [line 8 : column 2] - could not import saltgram/internal (invalid package name: "")
+
+  > [line 9 : column 2] - could not import saltgram/protos/auth/prauth (invalid package name: "")
+
+  > [line 10 : column 2] - could not import saltgram/protos/email/premail (invalid package name: "")
+
+  > [line 11 : column 2] - could not import saltgram/protos/users/prusers (invalid package name: "")
+
+  > [line 12 : column 2] - could not import saltgram/users/data (invalid package name: "")
+
+  > [line 13 : column 2] - could not import saltgram/users/grpc/servers (invalid package name: "")
+
+  > [line 15 : column 2] - could not import google.golang.org/grpc/reflection (invalid package name: "")
+
+
+Golang errors in file: [/home/hk47/workspace/salty/xws/saltgram/src/webserver/main.go]:
+
+  > [line 14 : column 6] - could not import github.com/roberthodgen/spa-server (invalid package name: "")
+
+
+
+[[97;41m/home/hk47/workspace/salty/xws/saltgram/src/users/data/users.go:45[0m] - G404 (CWE-338): Use of weak random number generator (math/rand instead of crypto/rand) (Confidence: MEDIUM, Severity: HIGH)
+    44: 	for i := range b {
+  > 45: 		b[i] = letters[rand.Intn(len(letters))]
+    46: 	}
+
+
+
+[[97;41m/home/hk47/workspace/salty/xws/saltgram/src/webserver/main.go:33-36[0m] - G402 (CWE-295): TLS MinVersion too low. (Confidence: HIGH, Severity: HIGH)
+    32: 
+  > 33: 	return &tls.Config{
+  > 34: 		Certificates: []tls.Certificate{cert},
+  > 35: 		ServerName:   "localhost",
+  > 36: 	}, nil
+    37: }
+
+
+
+[[30;43m/home/hk47/workspace/salty/xws/saltgram/src/internal/internal.go:73[0m] - G304 (CWE-22): Potential file inclusion via variable (Confidence: HIGH, Severity: MEDIUM)
+    72: 
+  > 73: 	key, err := ioutil.ReadFile(keyPath)
+    74: 	if err != nil {
+
+
+
+[[30;43m/home/hk47/workspace/salty/xws/saltgram/src/internal/internal.go:68[0m] - G304 (CWE-22): Potential file inclusion via variable (Confidence: HIGH, Severity: MEDIUM)
+    67: func loadTLSCert(crtPath, keyPath string) (*tls.Certificate, error) {
+  > 68: 	crt, err := ioutil.ReadFile(crtPath)
+    69: 	if err != nil {
+
+
+
+[[30;43m/home/hk47/workspace/salty/xws/saltgram/src/internal/internal.go:42[0m] - G304 (CWE-22): Potential file inclusion via variable (Confidence: HIGH, Severity: MEDIUM)
+    41: 	if len(rootPEMPath) > 0 {
+  > 42: 		caCert, err := ioutil.ReadFile(rootPEMPath)
+    43: 		if err != nil {
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/webserver/main.go:80[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    79: 	defer cancel()
+  > 80: 	server.Shutdown(tc)
+    81: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/users/handlers/put.go:46[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    45: 
+  > 46: 		w.Write([]byte(hashedPass))
+    47: 	}
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/users/data/users.go:219[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    218: 
+  > 219: 	smith.GenerateSaltAndHashedPassword()
+    220: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/users/data/users.go:136[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    135: 	}
+  > 136: 	db.UpdateUser(user)
+    137: 	return nil
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/users/data/users.go:115[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    114: 	user.Activated = true
+  > 115: 	db.UpdateUser(user)
+    116: 	return nil
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/email/handlers/post.go:89[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    88: 	w.WriteHeader(http.StatusOK)
+  > 89: 	w.Write([]byte("200 - OK"))
+    90: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/email/data/emails.go:111[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    110: 	fmt.Printf("Adding request: %v\n", request.Token)
+  > 111: 	db.Add(request)
+    112: 	subject := "Salty Bois: Password Reset"
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/email/data/emails.go:102[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    101: 	request := NewEmailRequest(email)
+  > 102: 	db.Add(request)
+    103: 	subject := "Salty Bois: Account Activation"
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/email/data/emails.go:64[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    63: 	}
+  > 64: 	db.Remove(r.Token)
+    65: 	return r.Email, nil
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/email/data/emails.go:50[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    49: 	// }
+  > 50: 	db.Remove(a.Token)
+    51: 	return a.Email, sendConfirmation(a.Email)
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/auth/handlers/post.go:161[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    160: 		w.Header().Add("Content-Type", "text/plain")
+  > 161: 		w.Write([]byte(jws))
+    162: 	}
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/main.go:99[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    98: 	defer cancel()
+  > 99: 	server.Shutdown(tc)
+    100: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/put.go:70[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    69: 
+  > 70: 	w.Write([]byte("200 - OK"))
+    71: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/put.go:57[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    56: 	http.SetCookie(w, &cookie)
+  > 57: 	w.Write([]byte("200 - OK"))
+    58: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/put.go:34[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    33: 	}
+  > 34: 	w.Write([]byte("200 - OK"))
+    35: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/post.go:229[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    228: 	w.Header().Add("Content-Type", "text/plain")
+  > 229: 	w.Write([]byte(res.Jws))
+    230: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/post.go:200[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    199: 
+  > 200: 	w.Write([]byte("Activation email sent"))
+    201: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/post.go:165[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    164: 
+  > 165: 	w.Write([]byte("200 - OK"))
+    166: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/post.go:139[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    138: 	}
+  > 139: 	w.Write([]byte("200 - OK"))
+    140: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/post.go:80[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    79: 	// NOTE(Jovan): Always send 200 OK as per OWASP
+  > 80: 	w.Write([]byte("200 - OK"))
+    81: }
+
+
+
+[[37;40m/home/hk47/workspace/salty/xws/saltgram/src/api/handlers/get.go:38[0m] - G104 (CWE-703): Errors unhandled. (Confidence: HIGH, Severity: LOW)
+    37: 	w.Header().Add("Content-Type", "text/plain")
+  > 38: 	w.Write([]byte(res.NewJWS))
+    39: }
+
+
+
+[1;36mSummary:[0m
+   Files: 48
+   Lines: 6721
+   Nosec: 0
+  Issues: [1;31m26[0m
+
