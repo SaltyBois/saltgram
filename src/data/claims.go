@@ -1,15 +1,10 @@
-package handlers
+package data
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/dgrijalva/jwt-go"
 )
-
-type Auth struct {
-	l *log.Logger
-}
 
 type AccessClaims struct {
 	Username       string             `json:"username"`
@@ -38,8 +33,4 @@ func (rc RefreshClaims) Valid() error {
 	}
 
 	return rc.StandardClaims.Valid()
-}
-
-func NewAuth(l *log.Logger) *Auth {
-	return &Auth{l}
 }

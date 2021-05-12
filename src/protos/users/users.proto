@@ -1,0 +1,86 @@
+syntax = "proto3";
+option go_package = "./users/prusers";
+
+service Users {
+    rpc CheckEmail(CheckEmailRequest) returns (CheckEmailResponse);
+    rpc CheckPassword(CheckPasswordRequest) returns (CheckPasswordResponse);
+    rpc Register(RegisterRequest) returns (RegisterResponse);
+    rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
+    rpc ChangePassword(ChangeRequest) returns (ChangeResponse);
+    rpc ResetPassword(UserResetRequest) returns(UserResetResponse);
+    rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
+    rpc GetRole(RoleRequest) returns (RoleResponse);
+}
+
+message RoleRequest {
+    string username = 1;
+}
+
+message RoleResponse {
+    string role = 1;
+}
+
+message UserResetRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message UserResetResponse {}
+
+message GetByUsernameRequest {
+    string username = 1;
+}
+
+message GetByUsernameResponse {
+    string email = 1;
+	string fullName = 2;
+	string username = 3;
+	string role = 4;
+    string hashedPassword = 5;
+}
+
+message ChangeRequest {
+    string oldPlainPassword = 1;
+    string newPlainPassword = 2;
+    string username = 3;
+}
+
+message ChangeResponse {}
+
+message VerifyEmailRequest {
+    string email = 1;
+}
+
+message VerifyEmailResponse {}
+
+message RegisterResponse {}
+
+message UserReCaptcha {
+    string action = 1;
+    string token = 2;
+}
+
+message RegisterRequest {
+    string username = 1;
+    string fullName = 2;
+    string email = 3;
+    string password = 4;
+    UserReCaptcha reCaptcha = 5;
+}
+
+message CheckPasswordRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message CheckPasswordResponse {
+    string hashedPass = 2;
+}
+
+message CheckEmailRequest {
+    string username = 1;
+}
+
+message CheckEmailResponse {
+    bool verified = 1;
+}

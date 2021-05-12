@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import axios from 'axios'
+import store from '../main.js'
 
 Vue.use(VueRouter)
 
@@ -10,6 +11,7 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
+    // NOTE(Jovan): Logged out if switching to home, just as protonmail
     // beforeEnter: (to, from, next) => {
     //   if(this.$store.state.jws) 
     //     next("/user");
@@ -23,12 +25,18 @@ const routes = [
    component: () => import(/* webpackChunkName: "user" */ '../views/User.vue')
  },
  {
-  path: '/email/change/:token',
+   // NOTE(Jovan): Confirm reset
+  path: '/email/reset/:token',
   name: 'PasswordReset',
   beforeEnter: (to, from, next) => {
     let token = to.params["token"]
-    axios.put("http://localhost:8081/email/change/" + token)
-      .finally(function() {
+    axios.put("email/reset/" + token, {withCredentials: true})
+      .then(r => {
+        console.log(r);
+        next();
+      })
+      .catch(r => {
+        console.log(r);
         next({name: "Home"});
       });
   },
@@ -44,12 +52,11 @@ const routes = [
    name: 'ActivateEmail',
    beforeEnter: (to, from, next) => {
     let token = to.params["token"]
-    axios.put("http://localhost:8081/email/activate/" + token)
+    axios.put("email/activate/" + token)
       .finally(function(){
         next({ name: "Home"});
       })
    },
-  //  component: () => import(/* webpackChunkName: "activate" */ '../views/ActivateEmail')
  }
 ]
 
@@ -60,8 +67,18 @@ const router = new VueRouter({
 })
 
 // TODO(Jovan): Authentication
-// router.beforeEach((to, from, next) => {
-
-// });
+router.beforeEach((to, from, next) => {
+  console.log("Looking for jwt: ", store.state["jws"])
+  let jws = store.state["jws"];
+  axios.put("auth", to.path, {headers: {"Authorization" : "Bearer " + jws}})
+    .then(r => {
+      console.log(r);
+      next();
+    })
+    .catch(r => {
+      console.log(r);
+      next({name: "Home"})
+    })
+});
 
 export default router

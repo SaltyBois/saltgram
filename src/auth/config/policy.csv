@@ -1,0 +1,8 @@
+p, admin, /*, *
+
+p, anon, /, *
+p, anon, /login, *
+p, anon, /email*, *
+p, anon, /forgotpassword, *
+
+p, user, /user*, *

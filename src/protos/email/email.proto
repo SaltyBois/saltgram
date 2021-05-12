@@ -1,0 +1,35 @@
+syntax = "proto3";
+option go_package = "./email/premail";
+
+service Email {
+    rpc SendActivation(SendActivationRequest) returns(SendActivationResponse);
+    rpc Activate(ActivateRequest) returns (ActivateResponse);
+    rpc RequestReset(ResetRequest) returns(ResetResponse);
+    rpc ConfirmReset(ConfirmRequest) returns (ConfirmResponse);
+}
+
+message ConfirmRequest {
+    string token = 1;
+}
+
+message ConfirmResponse {
+    string email = 1;
+}
+
+message ResetRequest {
+    string email = 1;
+}
+
+message ResetResponse {}
+
+message ActivateRequest {
+    string token = 1;
+}
+
+message ActivateResponse {}
+
+message SendActivationRequest {
+    string email = 1;
+}
+
+message SendActivationResponse {}

@@ -1,0 +1,60 @@
+syntax = "proto3";
+option go_package = "./auth/prauth";
+
+service Auth {
+    rpc Login(LoginRequest) returns (LoginResponse);
+    rpc AddRefresh(AddRefreshRequest) returns (AddRefreshResponse);
+    rpc GetJWT(JWTRequest) returns (JWTResponse);
+    rpc Refresh(RefreshRequest) returns (RefreshResponse);
+    rpc CheckPermissions(PermissionRequest) returns (PermissionResponse);
+}
+
+message PermissionRequest {
+    string jws = 1;
+    string path = 2;
+    string method = 3;
+}
+
+message PermissionResponse {}
+
+message RefreshRequest {
+    string refresh = 1;
+    string oldJWS = 2;
+}
+
+message RefreshResponse {
+    string newJWS = 1;
+}
+
+message JWTRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message JWTResponse {
+    string jws = 1;
+    string refresh = 2;
+}
+
+message AddRefreshRequest {
+    string username = 1;
+    string token = 2;
+}
+
+message AddRefreshResponse {}
+
+message ReCaptcha {
+    string token = 1;
+    string action = 2;
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+    ReCaptcha reCaptcha = 3;
+}
+
+message LoginResponse {
+    string username = 1;
+    string password = 2;
+}

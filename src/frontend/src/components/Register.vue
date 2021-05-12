@@ -46,9 +46,7 @@
                     :type="showPassword2 ? 'text' : 'password'"
                     @click:append="showPassword2 = !showPassword2"
                     required/>
-                    <!-- <small id="password-tip">
-                        Use a combination of upper and lowercase letters, numbers and symbols.
-                    </small> -->
+                    <b id="pass-str"><div>Password strength: </div><div>{{passScoreText}}</div></b>
                     <password-meter :password="password1" @score="onScore"/>
                     <vue-recaptcha
                     ref="recaptcha"
@@ -74,6 +72,7 @@ export default {
     data: function() {
         return {
             passScore: 0,
+            passScoreText: '',
             emailSent: false,
             processing: false,
             isFormValid: false,
@@ -95,8 +94,9 @@ export default {
 
     methods: {
         onScore: function({score, strength}) {
-            console.log("Password score: " + strength);
+            // console.log("Password score: " + strength);
             this.passScore = score;
+            this.passScoreText = strength;
         },
 
         registerUser: function() {
@@ -118,7 +118,7 @@ export default {
                     action: "register",
                 }
             }
-            this.axios.post("http://localhost:8081/users", user)
+            this.axios.post("users/register", user)
                 .then(response => {
                     console.log("Registered");
                     console.log(response);
@@ -181,6 +181,12 @@ export default {
         display: flex;
         flex-direction: column;
         align-content: center;
+    }
+    
+    #pass-str {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
     }
 
 </style>
