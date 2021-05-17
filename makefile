@@ -40,7 +40,7 @@ front_build:
 
 # NOTE(Jovan): Should be deprecated?
 dev: node_modules
-	cd $(MAINDIR) && go run main.go &
+	cd $(MAINDIR) && go run main.
 	cd $(FRONTDIR) && npm run serve
 
 install: node_modules
@@ -58,3 +58,13 @@ tidy:
 # TODO(Jovan): Build npm
 build:
 	cd $(MAINDIR) && go build -v
+
+kill:
+	npx kill-port $(SALT_WEB_PORT) &
+	npx kill-port $(SALT_API_PORT) &
+	npx kill-port $(SALT_AUTH_PORT) &
+	npx kill-port $(SALT_USERS_PORT) &
+	npx kill-port $(SALT_EMAIL_PORT) &
+	exit
+	
+	
