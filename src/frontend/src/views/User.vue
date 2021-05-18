@@ -1,14 +1,119 @@
 <template>
     <div id="user-main">
+      <transition name="fade" appear style="z-index: 11">
+        <portal-target name="drop-down-profile-menu" />
+      </transition>
+      <top-bar style="position: sticky; top: 0; z-index: 10"/>
         <div id="user-header">
             <div id="user-icon-logout">
-                <i id="user-icon" class="fa fa-user"></i>
-                <div id="logout-settings">
-                    <v-btn @click="logout" class="accent">Logout</v-btn>
-                    <v-btn @click="showSettings=!showSettings">
-                        <i class="fa fa-cog" aria-hidden="true"></i>
+              <v-layout align-center column>
+                <h2 style="text-align: center; margin-top: 10px">USERNAME</h2>
+                  <v-img  id="profile-image"
+                          src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
+                          alt="Profile picture"
+                          @click="showProfileImageDialog = true"/>
+                  <transition name="fade" appear>
+                    <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
+                  </transition>
+                  <transition name="slide" appear>
+                    <v-layout class="modal"
+                              v-if="showProfileImageDialog"
+                              justify-center
+                              column>
+                        <v-btn class="accent"
+                               @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
+
+                      <v-divider class="mt-5 mb-5"/>
+                      <v-btn @click="showProfileImageDialog = false" class="accent">
+                        Cancel
+                      </v-btn>
+                    </v-layout>
+                  </transition>
+
+                <input type="file"
+                       ref="file"
+                       style="display: none"
+                       @change="onSelectedFile"
+                       accept="image/*">
+              </v-layout>
+
+              <v-layout column
+                        style="background: hotpink"
+                        justify-space-between>
+                <v-layout style="background: gold; height: 0.1%"
+                          justify-center
+                          column>
+                  <v-layout id="logout-settings" class="mt-5 " column>
+
+<!--                    <v-btn @click="showSettings=!showSettings; showProfileSettingsDialog=!showProfileSettingsDialog" class="accent"> TODO(Mile): UZETI OVO U OBZIR!!! -->
+                    <v-btn @click=" showProfileSettingsDialog=!showProfileSettingsDialog" class="accent">
+                      <i class="fa fa-cog" aria-hidden="true"></i>
+                      settings
                     </v-btn>
-                </div>
+                    <transition name="fade" appear>
+                      <div class="modal-overlay" v-if="showProfileSettingsDialog" @click="showProfileSettingsDialog = false"></div>
+                    </transition>
+                    <transition name="slide" appear>
+                      <v-layout class="modal"
+                                v-if="showProfileSettingsDialog"
+                                justify-center
+                                column>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Edit profile</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Change Password</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Apps and websites</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Email and sms</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Push notifications</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Manage contacts</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Privacy and security</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Emails from Instagram</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="primary mb-3">Switch to Professional Account</v-btn>
+
+                        <v-divider class="mb-3"/>
+
+                        <v-btn @click="logout; showProfileSettingsDialog = false" class="error mb-3">Logout</v-btn>
+                        <v-btn @click="showProfileSettingsDialog = false" class="accent">
+                          Cancel
+                        </v-btn>
+                      </v-layout>
+                    </transition>
+                  </v-layout>
+                  <v-layout row>
+                    <v-layout column
+                              align-center>
+                      <h4>Posts</h4>
+                      <h3><b>123</b></h3>
+                    </v-layout>
+                    <v-layout column
+                              align-center>
+                      <h4>Following</h4>
+                      <h3><b>1000</b></h3>
+                    </v-layout>
+                    <v-layout column
+                              align-center>
+                      <h4>Followers</h4>
+                      <h3><b>10k</b></h3>
+                    </v-layout>
+                  </v-layout>
+
+                </v-layout>
+
+                <v-layout column
+                          style="background: chartreuse">
+                  <h3><b>Ime i prezime</b></h3>
+                  <h4 v-if="descriptionTextBoxReadOnly">{{this.descriptionTextBoxText}}</h4>
+                  <v-text-field v-else
+                                v-model="descriptionTextBoxText"
+                                style="width: 300px; padding: 5px; margin: 5px; height: 50%"/>
+                  <v-btn v-if="descriptionTextBoxReadOnly"
+                         @click="changeDescription"
+                         class="mt-3 mb-3 align-content-md-stretch accent">Change description</v-btn>
+                  <v-btn v-else
+                         @click="changeDescription"
+                         class="mt-3 mb-3 align-content-md-stretch accent">Confirm description</v-btn>
+                </v-layout>
+              </v-layout>
+
+
                 <div v-if="showSettings" id="settings-container">
                     <v-form id="settings-password" v-model="isFormValid">
                         <h2>Change password:</h2>
@@ -52,10 +157,12 @@
                 <p>{{user.email}}</p>
             </div>
         </div>
-        <div id="user-stories">
+        <div id="user-stories"
+             style="background: darkolivegreen">
             Stories
         </div>
-        <div id="user-media">
+        <div id="user-media"
+             style="background: lightskyblue">
             Media
         </div>
     </div>
@@ -63,8 +170,10 @@
 
 <script>
 import passwordMeter from 'vue-simple-password-meter';
+import TopBar from "@/components/TopBar";
 export default {
     components: {
+      TopBar,
         passwordMeter,
     },
     data: function() {
@@ -80,6 +189,11 @@ export default {
             passScoreText: '',
             isFormValid: false,
             showSettings: false,
+            profilePicture: '',
+            descriptionTextBoxReadOnly: true,
+            descriptionTextBoxText: '[[Description]]',
+            showProfileImageDialog: false,
+            showProfileSettingsDialog: false,
             user: {},
             rules: {
                 required: v => !!v || "Required",
@@ -112,6 +226,17 @@ export default {
                     console.log(r);
                     this.$router.push("/")
                 });
+        },
+
+        onSelectedFile(event) {
+          console.log(event)
+            this.profilePicture = event.target.files[0]
+            console.log(this.profilePicture)
+        },
+
+        changeDescription() {
+          this.descriptionTextBoxReadOnly = !this.descriptionTextBoxReadOnly
+
         },
 
         onScore: function({score, strength}) {
@@ -162,7 +287,7 @@ export default {
         },
     },
     mounted() {
-        this.getUserInfo();
+        // this.getUserInfo(); // TODO UNCOMMENT THIS
     },
     computed: {
         different: function() {
@@ -188,27 +313,97 @@ export default {
         justify-content: flex-start;
         align-content: center;
         /* text-align: center; */
-        background: #fafafa;
+        background: #efeeee;
         height: 100vh;
     }
 
     #user-header {
         display: flex;
         flex-direction: row;
-        justify-content: center;
+        justify-content: space-between;
+        background: cadetblue;
+        margin-left: 10%;
+        margin-right: 10%;
     }
 
     #user-icon-logout {
-        display: flex;
-        flex-direction: column;
+        display: inline-flex;
+        flex-direction: row;
         justify-content: center;
+        background-color: red;
+        width: 100%;
     }
 
-    #user-icon {
-        text-align: center;
-        font-size: 8rem;
-        margin: 1rem 2rem;
+
+    /*
+    */
+    #profile-image {
+      width: 300px;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 20%;
+      margin: 10px;
+      cursor: pointer;
+
+      border-style: solid;
+      border-width: 10px;
+      border-color: cornflowerblue;
+      transition: .1s;
     }
+
+    #profile-image:hover {
+      transition: .1s;
+      border-width: 5px;
+      border-color: cornflowerblue;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 98;
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 99;
+
+      width: 100%;
+      max-width: 400px;
+      background-color: #FFF;
+      border-radius: 16px;
+
+      padding: 25px;
+    }
+
+    .fade-enter-active,
+    .fade-leave-active {
+      transition: opacity .5s;
+    }
+
+    .fade-enter,
+    .fade-leave-to {
+      opacity: 0;
+    }
+
+    .slide-enter-active,
+    .slide-leave-active {
+      transition: transform .5s;
+    }
+
+    .slide-enter,
+    .slide-leave-to {
+      transform: translateY(-50%) translateX(100vw);
+    }
+
+    /*
+     */
 
     #username {
         font-weight: 400;
@@ -220,7 +415,6 @@ export default {
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        margin: 1rem 2rem;
         /* text-align:left; */
         /* padding: 1rem 2rem;
         background: #fff;
@@ -251,10 +445,17 @@ export default {
     }
 
     #user-stories {
+        justify-content: center;
         text-align: center;
+        height: 70px;
+        margin-left: 10%;
+        margin-right: 10%;
     }
 
     #user-media {
+        justify-content: center;
         text-align: center;
+        margin-left: 10%;
+        margin-right: 10%;
     }
 </style>
