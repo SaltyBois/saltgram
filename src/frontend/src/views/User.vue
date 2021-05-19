@@ -1,171 +1,196 @@
 <template>
-    <div id="user-main">
-      <transition name="fade" appear style="z-index: 11">
-        <portal-target name="drop-down-profile-menu" />
-      </transition>
-      <top-bar style="position: sticky; top: 0; z-index: 10"/>
-        <div id="user-header">
-            <div id="user-icon-logout">
-              <v-layout align-center column>
-                <h2 style="text-align: center; margin-top: 10px">USERNAME</h2>
-                  <v-img  id="profile-image"
-                          src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
-                          alt="Profile picture"
-                          @click="showProfileImageDialog = true"/>
-                  <transition name="fade" appear>
-                    <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
-                  </transition>
-                  <transition name="slide" appear>
-                    <v-layout class="modal"
-                              v-if="showProfileImageDialog"
-                              justify-center
-                              column>
-                        <v-btn class="accent"
-                               @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
+  <div id="user-main">
+    <div id="user-header">
+      <div id="user-icon-logout">
+        <v-layout align-center column style="width: 40%;">
+          <h2 style="text-align: center; margin-top: 10px">USERNAME</h2>
+            <v-img  id="profile-image"
+                    src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
+                    alt="Profile picture"
+                    @click="showProfileImageDialog = true"/>
+            <transition name="fade" appear>
+              <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
+            </transition>
+            <transition name="slide" appear>
 
-                      <v-divider class="mt-5 mb-5"/>
-                      <v-btn @click="showProfileImageDialog = false" class="accent">
-                        Cancel
-                      </v-btn>
-                    </v-layout>
-                  </transition>
+              <v-layout class="modal"
+                        v-if="showProfileImageDialog"
+                        justify-center
+                        column>
+                  <v-btn class="primary"
+                         @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
 
-                <input type="file"
-                       ref="file"
-                       style="display: none"
-                       @change="onSelectedFile"
-                       accept="image/*">
+                <v-divider class="mt-5 mb-5"/>
+                <v-btn @click="showProfileImageDialog = false" class="accent">
+                  Cancel
+                </v-btn>
               </v-layout>
+            </transition>
 
+          <input type="file"
+                 ref="file"
+                 style="display: none"
+                 @change="onSelectedFile"
+                 accept="image/*">
+        </v-layout>
+
+        <v-layout column
+                  style="width: 70%"
+                  justify-space-between>
+          <v-layout style="height: 40%;"
+                    justify-center
+                    column>
+
+            <v-layout row
+                      style="justify-content: center; margin-top: 80px">
               <v-layout column
-                        style="background: hotpink"
-                        justify-space-between>
-                <v-layout style="background: gold; height: 0.1%"
-                          justify-center
-                          column>
-                  <v-layout id="logout-settings" class="mt-5 " column>
-
-<!--                    <v-btn @click="showSettings=!showSettings; showProfileSettingsDialog=!showProfileSettingsDialog" class="accent"> TODO(Mile): UZETI OVO U OBZIR!!! -->
-                    <v-btn @click=" showProfileSettingsDialog=!showProfileSettingsDialog" class="accent">
-                      <i class="fa fa-cog" aria-hidden="true"></i>
-                      settings
-                    </v-btn>
-                    <transition name="fade" appear>
-                      <div class="modal-overlay" v-if="showProfileSettingsDialog" @click="showProfileSettingsDialog = false"></div>
-                    </transition>
-                    <transition name="slide" appear>
-                      <v-layout class="modal"
-                                v-if="showProfileSettingsDialog"
-                                justify-center
-                                column>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Edit profile</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Change Password</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Apps and websites</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Email and sms</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Push notifications</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Manage contacts</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Privacy and security</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Emails from Instagram</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="primary mb-3">Switch to Professional Account</v-btn>
-
-                        <v-divider class="mb-3"/>
-
-                        <v-btn @click="logout; showProfileSettingsDialog = false" class="error mb-3">Logout</v-btn>
-                        <v-btn @click="showProfileSettingsDialog = false" class="accent">
-                          Cancel
-                        </v-btn>
-                      </v-layout>
-                    </transition>
-                  </v-layout>
-                  <v-layout row>
-                    <v-layout column
-                              align-center>
-                      <h4>Posts</h4>
-                      <h3><b>123</b></h3>
-                    </v-layout>
-                    <v-layout column
-                              align-center>
-                      <h4>Following</h4>
-                      <h3><b>1000</b></h3>
-                    </v-layout>
-                    <v-layout column
-                              align-center>
-                      <h4>Followers</h4>
-                      <h3><b>10k</b></h3>
-                    </v-layout>
-                  </v-layout>
-
-                </v-layout>
-
-                <v-layout column
-                          style="background: chartreuse">
-                  <h3><b>Ime i prezime</b></h3>
-                  <h4 v-if="descriptionTextBoxReadOnly">{{this.descriptionTextBoxText}}</h4>
-                  <v-text-field v-else
-                                v-model="descriptionTextBoxText"
-                                style="width: 300px; padding: 5px; margin: 5px; height: 50%"/>
-                  <v-btn v-if="descriptionTextBoxReadOnly"
-                         @click="changeDescription"
-                         class="mt-3 mb-3 align-content-md-stretch accent">Change description</v-btn>
-                  <v-btn v-else
-                         @click="changeDescription"
-                         class="mt-3 mb-3 align-content-md-stretch accent">Confirm description</v-btn>
-                </v-layout>
+                        align-center>
+                <h4>Posts</h4>
+                <h3><b>123</b></h3>
               </v-layout>
+              <v-layout column
+                        align-center>
+                <h4>Following</h4>
+                <h3><b>1000</b></h3>
+              </v-layout>
+              <v-layout column
+                        align-center>
+                <h4>Followers</h4>
+                <h3><b>10k</b></h3>
+              </v-layout>
+            </v-layout>
+
+          </v-layout>
+
+          <v-layout column
+                    style="height: 60%; margin: 20px">
+            <h3><b>Ime i prezime</b></h3>
+            <h4 id="description">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+              dolore magna aliqua. Aliquam ut porttitor leo a diam. Porttitor eget dolor morbi non arcu risus quis.
+              Gravida cum sociis natoque penatibus et. At in tellus integer feugiat scelerisque.
+              Tellus orci ac auctor augue mauris. Mi bibendum neque egestas congue quisque egestas.
+              Scelerisque eleifend donec pretium vulputate sapien nec sagittis. At varius vel pharetra vel turpis nunc.
+            </h4>
+          </v-layout>
+        </v-layout>
 
 
-                <div v-if="showSettings" id="settings-container">
-                    <v-form id="settings-password" v-model="isFormValid">
-                        <h2>Change password:</h2>
-                        <b id="err">{{err}}</b>
-                        <v-text-field
-                        v-model="oldPassword"
-                        label="Old password"
-                        :rules="[rules.required, rules.min, different]"
-                        :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
-                        :type="showPassword2 ? 'text' : 'password'"
-                        @click:append="showPassword1 = !showPassword1"
-                        required/>
-                        <v-text-field
-                        v-model="newPassword1"
-                        label="New password"
-                        hint="Min 8 characters, upper/lowercase, number and symbol"
-                        :rules="[rules.required, rules.min, rules.passMatch, passMatch, passStr]"
-                        :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
-                        :type="showPassword2 ? 'text' : 'password'"
-                        @click:append="showPassword2 = !showPassword2"
-                        required/>
+          <div v-if="showSettings" id="settings-container">
+              <v-form id="settings-password" v-model="isFormValid">
+                  <h2>Change password:</h2>
+                  <b id="err">{{err}}</b>
+                  <v-text-field
+                  v-model="oldPassword"
+                  label="Old password"
+                  :rules="[rules.required, rules.min, different]"
+                  :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
+                  :type="showPassword2 ? 'text' : 'password'"
+                  @click:append="showPassword1 = !showPassword1"
+                  required/>
+                  <v-text-field
+                  v-model="newPassword1"
+                  label="New password"
+                  hint="Min 8 characters, upper/lowercase, number and symbol"
+                  :rules="[rules.required, rules.min, rules.passMatch, passMatch, passStr]"
+                  :append-icon="showPassword2 ? 'fa-eye' : 'fa-eye-slash'"
+                  :type="showPassword2 ? 'text' : 'password'"
+                  @click:append="showPassword2 = !showPassword2"
+                  required/>
 
-                        <v-text-field
-                        v-model="newPassword2"
-                        label="Confirm new password"
-                        hint="Min 8 characters, upper/lowercase, number and symbol"
-                        :rules="[rules.required, rules.min, rules.passMatch, passMatch, passStr]"
-                        :append-icon="showPassword3 ? 'fa-eye' : 'fa-eye-slash'"
-                        :type="showPassword3 ? 'text' : 'password'"
-                        @click:append="showPassword3 = !showPassword3"
-                        required/>
-                        <b id="pass-str"><div>Password strength: </div><div>{{passScoreText}}</div></b>
-                        <password-meter :password="newPassword1" @score="onScore"/>
-                        <v-btn :disabled="!isFormValid" @click="changePassword">Change password</v-btn>
-                    </v-form>
-                </div>
-            </div>
-            <div id="user-info">
-                <h2 id="username">{{user.username}}</h2>
-                <p>{{user.fullName}}</p>
-                <p>{{user.email}}</p>
-            </div>
-        </div>
-        <div id="user-stories"
-             style="background: darkolivegreen">
-            Stories
-        </div>
-        <div id="user-media"
-             style="background: lightskyblue">
-            Media
-        </div>
+                  <v-text-field
+                  v-model="newPassword2"
+                  label="Confirm new password"
+                  hint="Min 8 characters, upper/lowercase, number and symbol"
+                  :rules="[rules.required, rules.min, rules.passMatch, passMatch, passStr]"
+                  :append-icon="showPassword3 ? 'fa-eye' : 'fa-eye-slash'"
+                  :type="showPassword3 ? 'text' : 'password'"
+                  @click:append="showPassword3 = !showPassword3"
+                  required/>
+                  <b id="pass-str"><div>Password strength: </div><div>{{passScoreText}}</div></b>
+                  <password-meter :password="newPassword1" @score="onScore"/>
+                  <v-btn :disabled="!isFormValid" @click="changePassword">Change password</v-btn>
+              </v-form>
+          </div>
+      </div>
+      <div id="user-info">
+          <h2 id="username">{{user.username}}</h2>
+          <p>{{user.fullName}}</p>
+          <p>{{user.email}}</p>
+      </div>
     </div>
+
+<!--        TODO: STORY HIGHLIGHTS-->
+    <v-layout id="user-stories"
+              style="background: darkolivegreen"
+              row>
+      <v-layout class="inner-story-layout"
+                style="background-color: darkorchid; margin: 10px">
+        <v-container class="story-highlight-layout"
+                     style="background-color: red"
+                     column
+                     fluid>
+          <v-img  class="story-highlight"
+                  src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+                  alt="Profile picture"/>
+          <h5>Highlights 1</h5>
+        </v-container>
+        <v-container class="story-highlight-layout"
+                     style="background-color: blue;"
+                     column>
+          <v-img  class="story-highlight"
+                  src="https://filmdaily.co/wp-content/uploads/2020/05/coughing-cat-meme-lede.jpg"
+                  alt="Profile picture"/>
+          <h5>Highlights 2</h5>
+        </v-container>
+        <v-container class="story-highlight-layout"
+                     style="background-color: coral;"
+                     column>
+          <v-img  class="story-highlight"
+                  src="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab"
+                  alt="Profile picture"/>
+          <h5>Highlights 3</h5>
+        </v-container>
+      </v-layout>
+
+
+
+
+
+
+    </v-layout >
+<!--        TODO: POSTS -->
+    <v-layout id="user-media"
+              style="background: lightskyblue"
+              column>
+        <v-layout class="inner-post-layout" row style="background-color: red">
+
+          <v-layout class="post-layout" style="background-color: blue">
+            <v-img  class="post"
+                    src="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"
+                    alt="Profile picture"/>
+          </v-layout>
+
+          <v-layout class="post-layout" style="background-color: gold">
+
+          </v-layout>
+
+          <v-layout class="post-layout" style="background-color: forestgreen">
+
+          </v-layout>
+
+          <v-layout class="post-layout" style="background-color: deeppink">
+
+          </v-layout>
+        </v-layout>
+    </v-layout>
+<!--        <div style="background: red; height: 300px">-->
+
+<!--        </div>-->
+<!--        <div style="background: blue; height: 300px">-->
+
+<!--        </div>-->
+  </div>
 </template>
 
 <script>
@@ -314,24 +339,26 @@ export default {
         align-content: center;
         /* text-align: center; */
         background: #efeeee;
-        height: 100vh;
+        height: auto;
     }
 
     #user-header {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        background: cadetblue;
+        /*background: cadetblue;*/
         margin-left: 10%;
         margin-right: 10%;
+        height: auto;
     }
 
     #user-icon-logout {
         display: inline-flex;
         flex-direction: row;
         justify-content: center;
-        background-color: red;
+        /*background-color: red;*/
         width: 100%;
+      height: auto;
     }
 
 
@@ -349,6 +376,7 @@ export default {
       border-width: 10px;
       border-color: cornflowerblue;
       transition: .1s;
+      z-index: 0;
     }
 
     #profile-image:hover {
@@ -358,7 +386,7 @@ export default {
     }
 
     .modal-overlay {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       right: 0;
@@ -368,7 +396,7 @@ export default {
     }
 
     .modal {
-      position: fixed;
+      position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -381,6 +409,12 @@ export default {
 
       padding: 25px;
     }
+
+    /*.modal2, .modal {*/
+    /*  position: absolute;*/
+    /*  top: 0;*/
+    /*  right: 0;*/
+    /*}*/
 
     .fade-enter-active,
     .fade-leave-active {
@@ -445,17 +479,89 @@ export default {
     }
 
     #user-stories {
-        justify-content: center;
-        text-align: center;
-        height: 70px;
-        margin-left: 10%;
-        margin-right: 10%;
+        flex-direction: column;
+        height: auto;
+        margin: 0 10%;
     }
 
     #user-media {
         justify-content: center;
         text-align: center;
+        height: auto;
         margin-left: 10%;
         margin-right: 10%;
+    }
+
+    #description {
+
+    }
+
+    .story-highlight {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 20%;
+      margin: 10px;
+      cursor: pointer;
+
+      border-style: solid;
+      border-width: 2px;
+      border-color: #323232;
+
+      transition: .3s;
+      z-index: 0;
+    }
+
+    /*.story-highlight:hover {*/
+    /*  border-style: solid;*/
+    /*  border-width: 5px;*/
+    /*  border-color: #323232;*/
+
+    /*  transition: .3s;*/
+    /*}*/
+
+    .story-highlight-layout {
+      padding: 5px 10px;
+      width: 150px;
+      text-align: -webkit-center;
+    }
+
+    .inner-story-layout {
+      display: flex;
+      flex-wrap: nowrap;
+      flex-direction: row;
+      align-content: flex-start;
+      width: fit-content;
+    }
+
+    .inner-post-layout {
+      margin: 10px;
+      display: flex;
+      scroll-behavior: smooth;
+    }
+
+    .post-layout {
+      width: 200px;
+      height: 200px;
+      margin: 5px;
+      display: block;
+      text-align: -webkit-center;
+      justify-content: center;
+    }
+
+    .post {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 20%;
+      margin: 10px;
+      cursor: pointer;
+
+      border-style: solid;
+      border-width: 2px;
+      border-color: #323232;
+
+      transition: .3s;
+      z-index: 0;
     }
 </style>

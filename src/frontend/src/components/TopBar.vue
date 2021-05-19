@@ -39,17 +39,18 @@
         <v-btn  id="right-side-button4"
                 depressed
                 @click="profileDropDownMenuActive=!profileDropDownMenuActive">
-          <i class="fa fa-address-card mr-3" />
-          @USERNAME
+          <i class="fa fa-address-card mr-3 ml-3" />
+          <b>@USERNAME</b>
         </v-btn>
 
         <portal to="drop-down-profile-menu">
           <transition name="fade" appear>
-            <div class="modal-overlay"
+            <div class="modal-overlay-2"
                  v-if="profileDropDownMenuActive"
                  @click="profileDropDownMenuActive = false">
             </div>
           </transition>
+        </portal>
           <transition name="fade" appear>
             <v-layout class="dropdown-menu"
                       v-if="profileDropDownMenuActive"
@@ -65,7 +66,7 @@
                 <i class="fa fa-folder-open mr-1"/>
                 saved
               </v-btn>
-              <v-btn @click="profileDropDownMenuActive = false" class="accent mt-3">
+              <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; console.log(showProfileSettingsDialog)" class="accent mt-3">
                 <i class="fa fa-cog mr-1"/>
                 settings
               </v-btn>
@@ -81,7 +82,35 @@
             <div class="arrow-up"
                  v-if="profileDropDownMenuActive"/>
           </transition>
+
+        <portal to="settings-menu">
+          <transition name="fade" appear>
+            <div class="modal-overlay-2" v-if="showProfileSettingsDialog" @click="showProfileSettingsDialog = false"></div>
+          </transition>
         </portal>
+          <transition name="slide" appear>
+            <v-layout class="modal2"
+                      v-if="showProfileSettingsDialog"
+                      justify-center
+                      column>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Edit profile</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Change Password</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Apps and websites</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Email and sms</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Push notifications</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Manage contacts</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Privacy and security</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Emails from Instagram</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="primary mb-3">Switch to Professional Account</v-btn>
+
+              <v-divider class="mb-3"/>
+
+              <v-btn @click="showProfileSettingsDialog = false" class="error mb-3">Logout</v-btn>
+              <v-btn @click="showProfileSettingsDialog = false" class="accent">
+                Cancel
+              </v-btn>
+            </v-layout>
+          </transition>
 
       </div>
     </div>
@@ -94,6 +123,7 @@ export default {
   data: function() {
     return {
       profileDropDownMenuActive: false,
+      showProfileSettingsDialog: false,
     }
   }
 }
@@ -102,12 +132,16 @@ export default {
 <style scoped>
 
 #bar-main {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: inline-block;
   flex-direction: row;
   align-content: center;
   /* text-align: center; */
   background: #FFFFFF;
-  height: 13vh;
+  height: 90px;
+  width: 100%;
   outline-width: 3px;
   padding-left: 10%;
   padding-right: 10%;
@@ -205,6 +239,7 @@ export default {
   width: auto;
   height: 100%;
   padding: 5px;
+  overflow: auto;
 }
 
 #search-bar {
@@ -213,26 +248,45 @@ export default {
   background: #fafafa;
 }
 
-.modal-overlay {
+.modal-overlay-2 {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 98;
-  background-color: red;
+  z-index: 2;
+  background-color: transparent;
   opacity: 0.3;
+  height: 100%;
+}
+
+.modal2 {
+  position: absolute;
+  top: 400%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  border-style: solid;
+  border-color: black;
+  border-width: 2px;
+
+  width: 100%;
+  max-width: 400px;
+  background-color: #FFF;
+  border-radius: 16px;
+
+  padding: 25px;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 12%;
+  top: 105%;
   right: 10%;
   bottom: 0;
   z-index: 99;
   background-color: white;
   border-style: solid;
-  border-width: 2px;
+  border-width: 3px;
   border-color: #858585;
   width: 15%;
   height: 250px;
@@ -244,7 +298,7 @@ export default {
 
 .arrow-up {
   position: absolute;
-  top: 8.5%;
+  top: 75%;
   right: 12.5%;
   bottom: 0;
   z-index: 98;
@@ -264,6 +318,16 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform .5s;
+}
+
+.slide-enter,
+.slide-leave-to {
+  transform: translateY(-50%) translateX(100vw);
 }
 
 </style>

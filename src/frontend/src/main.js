@@ -7,12 +7,16 @@ import VueAxios from 'vue-axios'
 import VueRecaptcha from 'vue-recaptcha'
 import Login from './components/Login.vue'
 import Register from './components/Register.vue'
-import vuetify from './plugins/vuetify';
+import vuetify from './plugins/vuetify'
+import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import PortalVue from 'portal-vue';
+
 
 Vue.config.productionTip = false
 
 Vue.use(VueAxios, axios);
 Vue.use(Vuex);
+Vue.use(PortalVue);
 
 Vue.component("vue-recaptcha", VueRecaptcha);
 Vue.component("sg-login", Login);
