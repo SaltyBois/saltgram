@@ -3,6 +3,7 @@
     <div id="margin-div">
       <div>
         <v-btn id="main-button"
+               @click="$router.push('/main')"
                depressed
                height="100%">
           <v-img id="logo-image"
@@ -21,6 +22,7 @@
 
       <div id="buttons-div">
         <v-btn  id="right-side-button0"
+                @click="$router.push('/main')"
                 depressed>
           <i class="fa fa-home" />
         </v-btn>
@@ -58,7 +60,7 @@
                       align-content-center
                       wrap
                       column>
-              <v-btn @click="profileDropDownMenuActive = false" class="accent">
+              <v-btn @click="profileDropDownMenuActive = false; $router.push('/user')" class="accent">
                 <i class="fa fa-address-book mr-1"/>
                 profile
               </v-btn>

@@ -1,5 +1,8 @@
 <template>
   <div id="user-main">
+    <portal-target name="drop-down-profile-menu" />
+    <portal-target name="settings-menu"/>
+    <TopBar style="position: sticky; z-index: 2"> </TopBar>
     <div id="user-header">
       <div id="user-icon-logout">
         <v-layout align-center column style="width: 40%;">
@@ -122,74 +125,80 @@
 
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
-              style="background: darkolivegreen"
-              row>
+              column>
       <v-layout class="inner-story-layout"
-                style="background-color: darkorchid; margin: 10px">
-        <v-container class="story-highlight-layout"
-                     style="background-color: red"
-                     column
-                     fluid>
+                style="margin: 10px">
+        <div class="story-highlight-layout">
           <v-img  class="story-highlight"
                   src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
                   alt="Profile picture"/>
           <h5>Highlights 1</h5>
-        </v-container>
-        <v-container class="story-highlight-layout"
-                     style="background-color: blue;"
-                     column>
+        </div>
+        <div class="story-highlight-layout">
           <v-img  class="story-highlight"
                   src="https://filmdaily.co/wp-content/uploads/2020/05/coughing-cat-meme-lede.jpg"
                   alt="Profile picture"/>
           <h5>Highlights 2</h5>
-        </v-container>
-        <v-container class="story-highlight-layout"
-                     style="background-color: coral;"
-                     column>
+        </div>
+        <div class="story-highlight-layout">
           <v-img  class="story-highlight"
                   src="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab"
                   alt="Profile picture"/>
           <h5>Highlights 3</h5>
-        </v-container>
+        </div>
+        <div class="story-highlight-layout">
+          <v-img  class="story-highlight"
+                  src="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab"
+                  alt="Profile picture"/>
+          <h5>Highlights 3</h5>
+        </div>
       </v-layout>
-
-
-
-
-
-
     </v-layout >
-<!--        TODO: POSTS -->
-    <v-layout id="user-media"
-              style="background: lightskyblue"
-              column>
-        <v-layout class="inner-post-layout" row style="background-color: red">
 
-          <v-layout class="post-layout" style="background-color: blue">
-            <v-img  class="post"
-                    src="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"
-                    alt="Profile picture"/>
-          </v-layout>
-
-          <v-layout class="post-layout" style="background-color: gold">
-
-          </v-layout>
-
-          <v-layout class="post-layout" style="background-color: forestgreen">
-
-          </v-layout>
-
-          <v-layout class="post-layout" style="background-color: deeppink">
-
-          </v-layout>
-        </v-layout>
+    <!--  TODO: LAYOUT FOR TOGGLING: POSTS, SAVED, TAGGED  -->
+    <v-layout id="radio-button-layout">
+      <v-radio-group row  v-model="radioButton">
+        <v-radio label="Posts"  value="posts"/>
+        <v-radio label="Saved"  value="saved"/>
+        <v-radio label="Tagged" value="tagged"/>
+      </v-radio-group>
     </v-layout>
-<!--        <div style="background: red; height: 300px">-->
 
-<!--        </div>-->
-<!--        <div style="background: blue; height: 300px">-->
 
-<!--        </div>-->
+<!--        TODO: POSTS -->
+    <transition name="fade">
+      <v-layout class="user-media"
+                v-if="radioButton === 'posts'"
+                column>
+        <v-img  class="post"
+                src="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"
+                alt="Post"/>
+      </v-layout>
+    </transition>
+
+
+    <!--        TODO: SAVED -->
+    <transition name="fade">
+      <v-layout class="user-media"
+                v-if="radioButton === 'saved'"
+                column>
+        <v-img  class="post"
+                src="https://i.imgflip.com/4dqg8x.png"
+                alt="Post"/>
+      </v-layout>
+    </transition>
+
+    <!--        TODO: TAGGED -->
+    <transition name="fade">
+      <v-layout class="user-media"
+                v-if="radioButton === 'tagged'"
+                column>
+        <v-img  class="post"
+                src="https://i.pinimg.com/originals/5f/7c/5f/5f7c5faefbe68f8c1a3c7c4427bc0abb.jpg"
+                alt="Post"/>
+      </v-layout>
+    </transition>
+
   </div>
 </template>
 
@@ -219,6 +228,7 @@ export default {
             descriptionTextBoxText: '[[Description]]',
             showProfileImageDialog: false,
             showProfileSettingsDialog: false,
+            radioButton: 'posts',
             user: {},
             rules: {
                 required: v => !!v || "Required",
@@ -410,12 +420,6 @@ export default {
       padding: 25px;
     }
 
-    /*.modal2, .modal {*/
-    /*  position: absolute;*/
-    /*  top: 0;*/
-    /*  right: 0;*/
-    /*}*/
-
     .fade-enter-active,
     .fade-leave-active {
       transition: opacity .5s;
@@ -449,16 +453,6 @@ export default {
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        /* text-align:left; */
-        /* padding: 1rem 2rem;
-        background: #fff;
-        border: 1px solid #eee; */
-    }
-
-    #logout-settings {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
     }
 
     #settings-password {
@@ -484,13 +478,26 @@ export default {
         margin: 0 10%;
     }
 
-    #user-media {
-        justify-content: center;
-        text-align: center;
-        height: auto;
-        margin-left: 10%;
-        margin-right: 10%;
+    .user-media {
+      --w:400px;
+      --n:3;
+      --m:2;
+
+      margin: 0 10%;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(clamp(100%/(var(--n) + 1) + 0.1%,(var(--w) - 100vw)*1000,100%/(var(--m) + 1) + 0.1%),1fr)); /*this */
+      gap:10px;
+
+      transition: 0.3s;
     }
+
+    #radio-button-layout {
+      height: 70px;
+      text-align: -webkit-center;
+      justify-content: center;
+      margin: 0 10%;
+      float: left;
+     }
 
     #description {
 
@@ -507,18 +514,16 @@ export default {
       border-style: solid;
       border-width: 2px;
       border-color: #323232;
+      filter: brightness(1);
 
       transition: .3s;
       z-index: 0;
     }
 
-    /*.story-highlight:hover {*/
-    /*  border-style: solid;*/
-    /*  border-width: 5px;*/
-    /*  border-color: #323232;*/
-
-    /*  transition: .3s;*/
-    /*}*/
+    .story-highlight:hover {
+      transition: .3s;
+      filter: brightness(0.7);
+    }
 
     .story-highlight-layout {
       padding: 5px 10px;
@@ -527,31 +532,25 @@ export default {
     }
 
     .inner-story-layout {
-      display: flex;
-      flex-wrap: nowrap;
+      height: 150px;
       flex-direction: row;
-      align-content: flex-start;
-      width: fit-content;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+
     }
 
-    .inner-post-layout {
-      margin: 10px;
-      display: flex;
-      scroll-behavior: smooth;
-    }
-
-    .post-layout {
-      width: 200px;
-      height: 200px;
-      margin: 5px;
-      display: block;
-      text-align: -webkit-center;
-      justify-content: center;
+    .inner-post-layout > div {
+      display: inline-block;
+      color: white;
+      text-align: center;
+      padding: 14px;
+      text-decoration: none;
     }
 
     .post {
-      width: 180px;
-      height: 180px;
+      width: 300px;
+      height: 300px;
       object-fit: cover;
       border-radius: 20%;
       margin: 10px;
@@ -560,8 +559,15 @@ export default {
       border-style: solid;
       border-width: 2px;
       border-color: #323232;
+      background-color: transparent;
+      filter: brightness(1);
 
       transition: .3s;
       z-index: 0;
+    }
+
+    .post:hover {
+      transition: .3s;
+      filter: brightness(0.7);
     }
 </style>
