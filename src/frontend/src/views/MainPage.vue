@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #efeeee;">
+  <div style="background-color: #efeeee; height: auto">
     <portal-target name="drop-down-profile-menu" />
     <portal-target name="settings-menu"/>
     <TopBar style="position: sticky; z-index: 2"/>
@@ -25,7 +25,7 @@
                     </b>
                   </v-img>
                 </div>
-                <b>Your story</b>
+                <b>Add story</b>
               </div>
               <div class="story-layout">
                 <v-img  class="story-close-friends"
@@ -54,9 +54,101 @@
             </v-layout>
           </v-layout >
         </div>
+<!--        TODO: MILE-->
         <div id="posts-div"
-             style="background-color: mediumslateblue;">
+             style="background-color: transparent;">
+          <div style="margin-top: 5px">
+            <v-btn class="follow-button" width="150px">+ new posts</v-btn>
+          </div>
+          <div class="post-card">
+            <div class="post-header"
+                 style="background-color: transparent">
+              <div class="post-header-left-side">
+                  <v-img  class="post-header-profile"
+                          src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+                          @click="$router.push('/user')"
+                          alt="Profile picture"/>
+                <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
+              </div>
+              <div class="post-header-right-side">
+                <b>...</b>
+              </div>
+            </div>
+            <div class="post-content"
+                 style="background-color: transparent">
+              <v-img  class="post-content-media"
+                      src="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab"
+                      alt="Profile picture"/>
+            </div>
+            <div class="post-interactions"
+                 style="background-color: transparent">
+              <div class="post-interactions-left-side">
+                <div style="width: 50px; height: 50px; text-align: -webkit-center">
+                  <i class="fa fa-thumbs-o-up like" aria-hidden="true"
+                     />
+                </div>
+                <div style="width: 50px; height: 50px; text-align: -webkit-center;">
+                  <i class="fa fa-thumbs-o-up dislike" aria-hidden="true"
+                  />
+                </div>
 
+                <div style="width: 50px; height: 50px; text-align: -webkit-center">
+                  <i class="fa fa fa-comment-o like" aria-hidden="true"
+                  />
+                </div>
+              </div>
+              <div class="post-interactions-right-side">
+                <div style="width: 50px; height: 50px; text-align: -webkit-center">
+                  <i class="fa fa-folder-open-o like" aria-hidden="true"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="post-description"
+                 style="background-color: transparent">
+              <div style=" padding: 5px;">
+                <p style="text-align: left; font-size: 12pt; margin-bottom: auto;">
+                  <b>1234</b> Likes  <b>532</b> Dislikes
+                <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
+                  <b>USERNAME </b>
+                  Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+                </p>
+              </div>
+            </div>
+            <div class="post-comment-section"
+                 style="background-color: transparent">
+              <div class="all-comments" >
+                <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
+                  View all <b>32</b> comments
+                </p>
+              </div>
+              <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
+                FIRST COMMENT
+              </p>
+              <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
+                Second COMMENT
+              </p>
+              <p style="text-align: left; font-size: 10pt; margin-bottom: auto; color: #858585">
+                Posted 1 hour ago
+              </p>
+            </div>
+            <!--  TODO(Mile): Emojis need to be included GENERICALLY  -->
+            <div class="post-footer"
+                 style="background-color: transparent">
+              <div style="float: left; height: available; display: flex; flex-direction: row; width: 80%">
+                <div @click="emojiVisible=!emojiVisible" class="smiley-div">
+                  <b class="smiley">:)</b>
+                </div>
+                <v-text-field label="Add a comment" style="width: available; padding: 5px" />
+
+              </div>
+              <div style="float: right; height: available; display: inline-block; ">
+                <v-btn class="follow-button" style="margin: 5px; width: 75px">
+                  post
+                </v-btn>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div id="suggestions-div"
@@ -174,6 +266,20 @@ export default {
   components: {
     TopBar,
   },
+  data() {
+    return {
+      emojiVisible: false,
+      value: '',
+    }
+  },
+  methods: {
+    setEmoji (emoji) {
+      this.value += emoji;
+    },
+    setGif (gif) {
+      this.value += gif;
+    }
+  },
 }
 </script>
 
@@ -196,12 +302,15 @@ export default {
     display: flex;
     height: 150px;
     flex-direction: row;
+
+
   }
 
   #posts-div {
     display: flex;
-    height: 500px;
+    height: auto;
     flex-direction: column;
+    text-align: -webkit-center;
   }
 
   #suggestions-div {
@@ -267,10 +376,9 @@ export default {
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
-
   }
 
-  .story, .story-close-friends, .no-story, .story-seen {
+  .story, .story-close-friends, .no-story, .story-seen, .post-header-profile {
     width: 80px;
     height: 80px;
     object-fit: cover;
@@ -302,6 +410,11 @@ export default {
     border-color: #36c400;
   }
 
+  .post-header-profile {
+    width: 30px;
+    height: 30px;
+  }
+
   .no-story {
     border-style: solid;
     border-width: 2px;
@@ -329,7 +442,7 @@ export default {
   .story-plus {
     position: relative;
     bottom: 10px;
-    left: 0px;
+    left: 0;
   }
 
   .story-seen {
@@ -344,7 +457,7 @@ export default {
   .suggested-profile {
     display: -webkit-inline-flex;
     flex-direction: row;
-    height: 60px;
+    height: auto;
     background-color: transparent;
 
   }
@@ -366,14 +479,125 @@ export default {
     border-color: #ff2626;
   }
 
-  .suggestion-info {
-    display: flex;
+  .post-card {
+    margin: 10px 50px;
+    background-color: white;
+    width: available;
+    height: auto;
+
+    border: #323232 solid 1px;
+  }
+
+  .post-header {
+    height: 51px;
+
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #373737;
+
+  }
+
+  .post-content {
+    width: 30vw;
+    height: 30vw;
+
+    align-content: center;
+
+    object-fit: cover;
+  }
+
+  .post-interactions, post-footer {
+      height: 51px;
+
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-top-color: #373737;
+  }
+
+  .post-description {
+    height: auto;
+  }
+
+  .post-comment-section {
+    height: auto;
+    padding: 5px;
+  }
+
+  .post-footer {
+    height: 50px;
+    /*display: flex;*/
+    /*flex-direction: row;*/
+  }
+
+  .post-header-left-side, .post-header-right-side, .post-interactions-left-side, .post-interactions-right-side .post-footer-right-side {
+    direction: ltr;
     flex-direction: row;
+    text-align: -webkit-center;
+    align-items: center;
+    float: left;
+    display: flex;
+    justify-content: center
   }
 
-  .post-div {
+  .post-header-right-side, .post-interactions-right-side, .post-footer-right-side {
+    float: right;
+    width: 50px;
+    height: 50px;
+  }
+
+  .post-content-media {
+    position: relative;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    max-width:100%;
+    max-height:100%;
 
   }
 
+  .like, .dislike {
+    position: relative;
+    top: 12px;
+    left: 0;
+    transform: scale(2);
+    margin: 0 3px;
+
+    transition: 0.2s;
+  }
+
+  .dislike {
+    transform: scale(2) rotate(180deg);
+  }
+
+  .like:hover {
+    transition: 0.2s;
+    color: #016ddb;
+    cursor: pointer;
+  }
+
+  .dislike:hover {
+    transition: 0.2s;
+    color: #ff0000;
+    cursor: pointer;
+  }
+
+  .all-comments {
+
+  }
+
+  .smiley {
+    position: relative;
+    top: 10px;
+    left: 0px;
+  }
+
+  .smiley-div {
+    width: 30px;
+    height: 50px;
+    text-align: center;
+    transform: rotate(90deg);
+    cursor: pointer;
+  }
 
 </style>

@@ -24,24 +24,24 @@
         <v-btn  id="right-side-button0"
                 @click="$router.push('/main')"
                 depressed>
-          <i class="fa fa-home" />
+          <i class="fa fa-home icons" />
         </v-btn>
         <v-btn  id="right-side-button1"
                 depressed>
-          <i class="fa fa-plus-square" />
+          <i class="fa fa-plus-square icons" />
         </v-btn>
         <v-btn  id="right-side-button2"
                 depressed>
-          <i class="fa fa-heart" />
+          <i class="fa fa-heart icons" />
         </v-btn>
         <v-btn  id="right-side-button3"
                 depressed>
-          <i class="fa fa-commenting" />
+          <i class="fa fa-commenting icons" />
         </v-btn>
         <v-btn  id="right-side-button4"
                 depressed
                 @click="profileDropDownMenuActive=!profileDropDownMenuActive">
-          <i class="fa fa-address-card mr-3 ml-3" />
+          <i class="fa fa-address-card mr-3 ml-3 icons" />
           <b>@USERNAME</b>
         </v-btn>
 
@@ -195,10 +195,8 @@ export default {
 }
 
 #right-side-button0 {
-  outline-offset: 0px;
   background: transparent;
   align-content: center;
-  outline-color: black;
   width: 50px;
   height: 100%;
   padding: 5px;
@@ -330,6 +328,10 @@ export default {
 .slide-enter,
 .slide-leave-to {
   transform: translateY(-50%) translateX(100vw);
+}
+
+.icons {
+  transform: scale(2);
 }
 
 </style>
