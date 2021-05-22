@@ -35,6 +35,7 @@
           <i class="fa fa-heart icons" />
         </v-btn>
         <v-btn  id="right-side-button3"
+                @click="$router.push('/inbox')"
                 depressed>
           <i class="fa fa-commenting icons" />
         </v-btn>
