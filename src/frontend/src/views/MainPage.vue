@@ -144,8 +144,7 @@
                       class="emoji-invoker"
                       slot="emoji-invoker"
                       slot-scope="{ events: { click: clickEvent } }"
-                      @click.stop="clickEvent"
-                  >
+                      @click.stop="clickEvent">
                     <svg height="24" viewBox="0 0 24 24" width="24" style="margin-top: 10px" xmlns="http://www.w3.org/2000/svg">
                       <path d="M0 0h24v24H0z" fill="none"/>
                       <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
@@ -526,6 +525,11 @@ export default {
     height: auto;
 
     border: #323232 solid 1px;
+
+    border-start-end-radius: 10px 10px;
+    border-end-end-radius: 10px 10px;
+    border-start-start-radius: 10px 10px;
+    border-end-start-radius: 10px 10px;
   }
 
   .post-header {
@@ -667,13 +671,15 @@ export default {
     height: 40px;
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
   }
-  .emoji-invoker:hover {
-    transform: scale(1.1);
-  }
-  .emoji-invoker > svg {
-    fill: black;
+
+  /*.emoji-invoker > svg {*/
+  /*  !*fill: black;*!*/
+  /*}*/
+
+  svg:hover {
+    fill: #016ddb;
   }
 
   .emoji-picker {
