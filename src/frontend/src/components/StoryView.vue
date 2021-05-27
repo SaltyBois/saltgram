@@ -1,13 +1,10 @@
 <template>
-  <div>
 
-  </div>
 </template>
 
 <script>
 export default {
-  name: "UserSettings",
-
+name: "StoryView"
 }
 </script>
 

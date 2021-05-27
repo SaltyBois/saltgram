@@ -157,12 +157,26 @@
 
     <!--  TODO: LAYOUT FOR TOGGLING: POSTS, SAVED, TAGGED  -->
     <v-layout id="radio-button-layout">
+<!--      <v-btn color="primary category-buttons" @click="radioButton = 'posts'; postsClicked()" ref="postsBtn">-->
+<!--        <i class="fa fa-image"/>-->
+<!--        Posts-->
+<!--      </v-btn>-->
+<!--      <v-btn color="accent category-buttons" @click="radioButton = 'saved'; savedClicked()" ref="savedBtn">-->
+<!--        <i class="fa fa-folder-open-o"/>-->
+<!--        Saved-->
+<!--      </v-btn>-->
+<!--      <v-btn color="accent category-buttons" @click="radioButton = 'tagged'; taggedClicked()" ref="taggedBtn">-->
+<!--        <i class="fa fa-tag"/>-->
+<!--        Tagged-->
+<!--      </v-btn>-->
       <v-radio-group row  v-model="radioButton">
         <v-radio label="Posts"  value="posts"/>
         <v-radio label="Saved"  value="saved"/>
         <v-radio label="Tagged" value="tagged"/>
       </v-radio-group>
     </v-layout>
+
+
 
 
 <!--        TODO: POSTS -->
@@ -320,6 +334,21 @@ export default {
                         });
                 });
         },
+      postsClicked() {
+        this.$refs.postsBtn.color = 'primary';
+        this.$refs.savedBtn.color = 'accent';
+        this.$refs.taggedBtn.color = 'accent';
+      },
+      savedClicked() {
+        this.$refs.postsBtn.color = 'accent';
+        this.$refs.savedBtn.color = 'primary';
+        this.$refs.taggedBtn.color = 'accent';
+      },
+      taggedClicked() {
+        this.$refs.postsBtn.color = 'accent';
+        this.$refs.savedBtn.color = 'accent';
+        this.$refs.taggedBtn.color = 'primary';
+      }
     },
     mounted() {
         // this.getUserInfo(); // TODO UNCOMMENT THIS
@@ -569,5 +598,9 @@ export default {
     .post:hover {
       transition: .3s;
       filter: brightness(0.7);
+    }
+
+    .category-buttons {
+      margin: 0 5px;
     }
 </style>
