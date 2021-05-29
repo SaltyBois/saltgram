@@ -13,6 +13,14 @@ export default {
   name: 'App',
   data: () => ({
   }),
+  watch: {
+    $route: {
+      immediate: true,
+      handler(to) {
+        document.title = to.meta.title || 'Saltgram';
+      }
+    },
+  }
 };
 </script>
 

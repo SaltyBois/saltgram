@@ -1,12 +1,24 @@
 <template>
-  <v-img  class="post"
-          src="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"
-          alt="Post"/>
+  <div>
+    <PostView ref="postView" media-path="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"/>
+    <v-img  class="post"
+            src="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"
+            @click="showPostFun"
+            alt="Post"/>
+  </div>
 </template>
 
 <script>
+import PostView from "@/components/PostView";
+
 export default {
-  name: "PostOnUserPage"
+  name: "PostOnUserPage",
+  components: {PostView},
+  methods: {
+    showPostFun() {
+      this.$refs.postView.$data.show = !this.$refs.postView.$data.show
+    }
+  }
 }
 </script>
 

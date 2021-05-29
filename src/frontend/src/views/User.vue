@@ -5,9 +5,10 @@
     <TopBar style="position: sticky; z-index: 2"> </TopBar>
     <div id="user-header">
       <div id="user-icon-logout">
-
-        <ProfileImage/>
-
+        <v-layout align-center
+                  justify-center>
+          <ProfileImage/>
+        </v-layout>
         <v-layout column
                   style="width: 70%"
                   justify-space-between>

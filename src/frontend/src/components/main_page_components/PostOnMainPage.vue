@@ -1,7 +1,7 @@
 <template>
   <div class="post-card">
-    <div class="post-header"
-         style="background-color: transparent">
+    <PostView ref="postView" media-path="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab" />
+    <div class="post-header">
       <div class="post-header-left-side">
         <v-img  class="post-header-profile"
                 src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
@@ -13,38 +13,30 @@
         <b>...</b>
       </div>
     </div>
-    <div class="post-content"
-         style="background-color: transparent">
+    <div class="post-content">
       <v-img  class="post-content-media"
               src="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab"
-              alt="Profile picture"/>
+              alt="Post content"/>
     </div>
-    <div class="post-interactions"
-         style="background-color: transparent">
+    <div class="post-interactions">
       <div class="post-interactions-left-side">
         <div style="width: 50px; height: 50px; text-align: -webkit-center">
-          <i class="fa fa-thumbs-o-up like" aria-hidden="true"
-          />
+          <i class="fa fa-thumbs-o-up like" aria-hidden="true"/>
         </div>
         <div style="width: 50px; height: 50px; text-align: -webkit-center;">
-          <i class="fa fa-thumbs-o-up dislike" aria-hidden="true"
-          />
+          <i class="fa fa-thumbs-o-up dislike" aria-hidden="true"/>
         </div>
-
         <div style="width: 50px; height: 50px; text-align: -webkit-center">
-          <i class="fa fa fa-comment-o like" aria-hidden="true"
-          />
+          <i class="fa fa fa-comment-o like" aria-hidden="true" @click="showPostFun"/>
         </div>
       </div>
       <div class="post-interactions-right-side">
         <div style="width: 50px; height: 50px; text-align: -webkit-center">
-          <i class="fa fa-folder-open-o like" aria-hidden="true"
-          />
+          <i class="fa fa-folder-open-o like" aria-hidden="true"/>
         </div>
       </div>
     </div>
-    <div class="post-description"
-         style="background-color: transparent">
+    <div class="post-description">
       <div style=" padding: 5px;">
         <p style="text-align: left; font-size: 12pt; margin-bottom: auto;">
           <b>1234</b> Likes  <b>532</b> Dislikes
@@ -54,26 +46,25 @@
         </p>
       </div>
     </div>
-    <div class="post-comment-section"
-         style="background-color: transparent">
+    <div class="post-comment-section">
       <div class="all-comments" >
         <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
+          FIRST COMMENT
+        </p>
+        <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
+          Second COMMENT
+        </p>
+        <p style="text-align: left; font-size: 10pt; margin-bottom: auto; cursor: pointer" @click="showPostFun">
           View all <b>32</b> comments
         </p>
+        <p style="text-align: left; font-size: 10pt; margin-bottom: auto; color: #858585">
+          Posted 1 hour ago
+        </p>
       </div>
-      <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-        FIRST COMMENT
-      </p>
-      <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-        Second COMMENT
-      </p>
-      <p style="text-align: left; font-size: 10pt; margin-bottom: auto; color: #858585">
-        Posted 1 hour ago
-      </p>
+
     </div>
     <!--  TODO(Mile): Emojis need to be included GENERICALLY  -->
-    <div class="post-footer"
-         style="background-color: transparent">
+    <div class="post-footer">
       <div style="float: left; height: available; display: flex; flex-direction: row; width: 80%">
         <EmojiPicker @emoji="append" :search="search">
           <div
@@ -121,12 +112,13 @@
 
 <script>
 import EmojiPicker from 'vue-emoji-picker'
+import PostView from "@/components/PostView";
 
 
 export default {
   name: "PostOnMainPage",
   components: {
-    EmojiPicker
+    EmojiPicker, PostView
   },
   props: {
 
@@ -138,6 +130,9 @@ export default {
     append(emoji) {
       this.input += emoji
     },
+    showPostFun() {
+      this.$refs.postView.$data.show = !this.$refs.postView.$data.show
+    }
   },
   mounted() {
 
@@ -146,6 +141,7 @@ export default {
     return {
       input: '',
       search: '',
+      showPost: false
     }
   }
 }

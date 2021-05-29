@@ -1,6 +1,6 @@
 <template>
   <v-layout column
-            style="height: 60%; margin: 20px">
+            style="height: 60%; margin: 20px; max-height: 500px;">
     <h3><b>Ime i prezime</b></h3>
     <h4>
       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
