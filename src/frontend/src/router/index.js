@@ -73,6 +73,11 @@ const routes = [
     name: 'Inbox',
     component: () => import(/* webpackChunkName: "inbox" */ '../views/Inbox.vue')
 },
+{
+    path: '/notifications', // TODO(Mile): This needs to be set on path '/' when auth successful
+    name: 'Notifications',
+    component: () => import(/* webpackChunkName: "notifications" */ '../views/Notifications.vue')
+},
 ]
 
 const router = new VueRouter({

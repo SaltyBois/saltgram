@@ -15,7 +15,7 @@
           <ProfileInList v-for="index in 14" :key="index"/>
         </v-layout>
         <v-divider class="mt-5 mb-5"/>
-        <v-btn @click="show=!show; toggleParent" class="accent">
+        <v-btn @click="show=!show;" class="accent">
           Exit
         </v-btn>
       </v-layout>
@@ -37,13 +37,11 @@ export default {
   },
   data: function () {
     return {
-      show: true
+      show: false
     }
   },
   methods: {
-    toggleParent() {
-      this.$emit('toggle-visibility')
-    }
+
   }
 }
 </script>

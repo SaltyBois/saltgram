@@ -9,18 +9,18 @@
     <v-layout column
               align-center
               class="following-follower-div"
-              @click="print; modalVisible=!modalVisible; title='Following';">
+              @click="toggleVisibility(); title='Following'">
       <h4>Following</h4>
       <h3><b>1000</b></h3>
     </v-layout>
     <v-layout column
               align-center
               class="following-follower-div"
-              @click="print; modalVisible=!modalVisible; title='Followers'; print">
+              @click="toggleVisibility(); title='Followers'">
       <h4>Followers</h4>
       <h3><b>10k</b></h3>
     </v-layout>
-    <ModalListOfProfiles v-if="modalVisible" @toggle-visibility="toggleVisibility" :title="title"/>
+    <ModalListOfProfiles ref="modalList" :title="title"/>
   </v-layout>
 </template>
 
@@ -32,19 +32,13 @@ export default {
   components: {ModalListOfProfiles},
   data: function () {
     return {
-      modalVisible: false,
-
       title: ''
     }
   },
   methods: {
     toggleVisibility() {
-      this.modalVisible = !this.modalVisible
+      this.$refs.modalList.$data.show = !this.$refs.modalList.$data.show
     },
-    print(){
-      console.log('this.modalVisible:')
-      console.log(this.modalVisible)
-    }
   }
 }
 </script>

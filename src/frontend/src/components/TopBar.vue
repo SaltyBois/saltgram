@@ -31,8 +31,9 @@
           <i class="fa fa-plus-square icons" />
         </v-btn>
         <v-btn  id="right-side-button2"
+                @click="$router.push('/notifications')"
                 depressed>
-          <i class="fa fa-heart icons" />
+          <i class="fa fa-heart icons heart" />
         </v-btn>
         <v-btn  id="right-side-button3"
                 @click="$router.push('/inbox')"
@@ -42,7 +43,10 @@
         <v-btn  id="right-side-button4"
                 depressed
                 @click="profileDropDownMenuActive=!profileDropDownMenuActive">
-          <i class="fa fa-address-card mr-3 ml-3 icons" />
+          <v-img  class="post-header-profile"
+                  src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+                  @click="$router.push('/user')"
+                  alt="Profile picture"/>
           <b>@USERNAME</b>
         </v-btn>
 
@@ -333,6 +337,25 @@ export default {
 
 .icons {
   transform: scale(2);
+}
+
+.post-header-profile {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 20%;
+  margin: 10px;
+  cursor: pointer;
+
+
+  filter: brightness(1);
+
+  transition: .3s;
+  z-index: 0;
+}
+
+.heart {
+  color: red;
 }
 
 </style>

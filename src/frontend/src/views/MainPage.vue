@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #efeeee; min-height: fit-content">
+  <div style="background-color: #efeeee; height: 100%">
     <button class="go-up-button" @click="scrollUp">
       <i class="fa fa-level-up" style="transform: scale(2)"/>
     </button>
@@ -200,6 +200,12 @@ export default {
     top: 90%;
     left: 95%;
     border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .go-up-button:hover {
+    transform: scale(1.2);
+    transition: 0.3s;
   }
 
 </style>
