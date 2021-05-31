@@ -42,12 +42,14 @@ export default {
   transform: translate(-50%, -50%);
   z-index: 99;
 
-  max-width: 80%;
+  max-width: 80vw;
   max-height: 90vh;
   background-color: #FFF;
   border-radius: 16px;
 
   padding: 25px;
+
+  overflow-y: auto;
 }
 
 .modal-overlay {
@@ -61,8 +63,9 @@ export default {
 }
 
 .image {
-  max-width: available;
-  max-height: available;
+  object-fit: contain;
+  width: 50%;
+  height: 50%;
 }
 
 .slide-enter-active,

@@ -1,6 +1,6 @@
 <template>
   <div class="story-layout">
-    <div>
+    <div @click="$router.push('/newContent'); ">
       <v-img  class="no-story"
               src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
               alt="Profile picture">
@@ -15,7 +15,10 @@
 
 <script>
 export default {
-  name: "MyNoStory"
+  name: "MyNoStory",
+  methods: {
+
+  }
 }
 </script>
 

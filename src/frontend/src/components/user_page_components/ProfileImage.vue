@@ -1,6 +1,9 @@
 <template>
   <v-layout align-center column style="width: 40%;">
-    <h2 style="text-align: center; margin-top: 10px">USERNAME</h2>
+    <h2 style="text-align: center; margin-top: 10px">
+      USERNAME
+      <i class="fa fa-check-square verified-icon ml-5"/>
+    </h2>
     <v-img  id="profile-image"
             src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
             alt="Profile picture"
@@ -117,6 +120,16 @@ export default {
 .slide-enter,
 .slide-leave-to {
   transform: translateY(-50%) translateX(100vw);
+}
+
+.verified-icon {
+  color: #858585;
+  transform: scale(1.5);
+}
+
+.verified-icon:hover {
+  color: #016ddb;
+  transform: scale(1.5);
 }
 
 </style>

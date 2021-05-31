@@ -27,6 +27,7 @@
           <i class="fa fa-home icons" />
         </v-btn>
         <v-btn  id="right-side-button1"
+                @click="$router.push('/newContent')"
                 depressed>
           <i class="fa fa-plus-square icons" />
         </v-btn>
