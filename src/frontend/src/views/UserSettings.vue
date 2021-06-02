@@ -84,10 +84,4 @@ export default {
 
 }
 
-.menu-item {
-
-
-
-}
-
 </style>

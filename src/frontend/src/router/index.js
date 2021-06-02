@@ -83,6 +83,11 @@ const routes = [
     name: 'NewContent',
     component: () => import(/* webpackChunkName: "newContent" */ '../views/NewContent.vue')
 },
+{
+    path: '/admin', // TODO(Mile): This needs to be set on path '/' when auth successful
+    name: 'AdminPage',
+    component: () => import(/* webpackChunkName: "admin" */ '../views/AdminPage.vue')
+},
 ]
 
 const router = new VueRouter({
