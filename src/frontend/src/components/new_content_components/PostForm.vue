@@ -17,16 +17,24 @@
                ref="file"
                style="display: none"
                @change="onSelectedFile($event)"
-               accept="image/*">
+               accept="image/*,video/*">
 
         <div class="content-shape">
-          <ImageMessage v-if="showContent" :image-src="this.item.image" @toggle-image-message="showContent = false"/>
+          <ImageMessage v-if="showContent && typeContent === 'image'" :image-src="this.item.image" @toggle-image-message="showContent = false"/>
           <v-img  class="content-item"
-                  v-if="isUploadedContent"
+                  v-if="isUploadedContent && typeContent === 'image'"
                   :src="this.item.image"
                   alt="Profile picture"
                   @click="showContent = true"/>
-          <i class="fa fa-image no-content mt-10" v-else/>
+          <i class="fa fa-image no-content mt-10" v-if="!isUploadedContent"/>
+          <Media class="content-item"
+                 v-if="isUploadedContent && typeContent === 'video'"
+                 :kind="'video'"
+                 :autoplay="true"
+                 :controls="true"
+                 :loop="true"
+                 :style="{width: '500px'}"
+                 :src="[this.item.image]"/>
         </div>
       </div>
       <div class="post-form-body-right-side">
@@ -34,6 +42,7 @@
         </div>
         <div style="height: 100%; padding: 10px 5px">
           <v-textarea no-resize outlined label="Add a description" style="width: 100%; min-height: auto; padding: 5px;"/>
+          <v-text-field outlined label="Add location" style="width: 100%; min-height: auto; padding: 5px;"/>
           <v-text-field outlined label="Tag people" style="width: 100%; min-height: auto; padding: 5px;"/>
           <v-btn class="primary" :disabled="!isUploadedContent">Post</v-btn>
         </div>
@@ -47,10 +56,11 @@
 
 <script>
 import ImageMessage from "@/components/inbox_components/ImageMessage";
+import Media from "@dongido/vue-viaudio"
 
 export default {
   name: "PostForm",
-  components: {ImageMessage},
+  components: {ImageMessage, Media},
   data: function () {
     return {
       isUploadedContent: false,
@@ -59,6 +69,7 @@ export default {
       },
       showProfileImageDialog: false,
       showContent: false,
+      typeContent: ''
     }
   },
   methods: {
@@ -67,7 +78,12 @@ export default {
       if (!files.length)
         return;
       console.log(files.length)
+      console.log(files[0])
       this.item.image = URL.createObjectURL(files[0])
+      console.log(this.item.image)
+      if (files[0]['type'].includes('image')) this.typeContent = 'image';
+      else this.typeContent = 'video';
+      console.log(this.typeContent)
       this.isUploadedContent = true;
     },
     removeContent(item) {

@@ -9,6 +9,9 @@
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
 
+    <v-btn class="follow-button" v-if="!userFollowed" @click="userFollowed = !userFollowed">Follow</v-btn>
+    <v-btn class="unfollow-button" v-else @click="userFollowed = !userFollowed">Unfollow</v-btn>
+
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
     </transition>
@@ -42,6 +45,7 @@ export default {
   data: function () {
     return {
       showProfileImageDialog: false,
+      userFollowed: false,
     }
   },
   methods: {
@@ -130,6 +134,21 @@ export default {
 .verified-icon:hover {
   color: #016ddb;
   transform: scale(1.5);
+}
+
+.follow-button, .unfollow-button  {
+
+  background-color: transparent;
+  color: #016ddb;
+  border-color: #016ddb;
+  border-style: solid;
+  border-width: 1px;
+  text-align: -webkit-center;
+}
+
+.unfollow-button {
+  color: #ff2626;
+  border-color: #ff2626;
 }
 
 </style>

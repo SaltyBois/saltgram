@@ -12,22 +12,30 @@
                  v-if="isUploadedContent"
                  @click="removeContent(item)">Remove content</v-btn>
           <v-btn class="primary ml-3" :disabled="!isUploadedContent">Publish story</v-btn>
+          <v-btn class="success ml-3" :disabled="!isUploadedContent">Publish close friends story</v-btn>
         </div>
 
         <input type="file"
                ref="file"
                style="display: none"
                @change="onSelectedFile($event)"
-               accept="image/*">
+               accept="image/*, video/*">
 
         <div class="content-shape">
           <ImageMessage v-if="showContent" :image-src="this.item.image" @toggle-image-message="showContent = false"/>
           <v-img  class="content-item"
-                  v-if="isUploadedContent"
+                  v-if="isUploadedContent && typeContent === 'image'"
                   :src="this.item.image"
                   alt="Profile picture"
                   @click="showContent = true"/>
-          <i class="fa fa-image no-content mt-10" v-else/>
+          <i class="fa fa-image no-content mt-10" v-if="!isUploadedContent"/>
+          <Media class="content-item"
+                 v-if="isUploadedContent && typeContent === 'video'"
+                 :kind="'video'"
+                 :autoplay="true"
+                 :controls="true"
+                 :loop="true"
+                 :src="[this.item.image]"/>
         </div>
       </div>
     </div>
@@ -39,10 +47,11 @@
 
 <script>
 import ImageMessage from "@/components/inbox_components/ImageMessage";
+import Media from "@dongido/vue-viaudio"
 
 export default {
   name: "StoryForm",
-  components: {ImageMessage},
+  components: {ImageMessage, Media},
   data: function () {
     return {
       isUploadedContent: false,
@@ -51,6 +60,7 @@ export default {
       },
       showProfileImageDialog: false,
       showContent: false,
+      typeContent: ''
     }
   },
   methods: {
@@ -60,6 +70,9 @@ export default {
         return;
       console.log(files.length)
       this.item.image = URL.createObjectURL(files[0])
+      if (files[0]['type'].includes('image')) this.typeContent = 'image'
+      else this.typeContent = 'video'
+      console.log(this.typeContent)
       this.isUploadedContent = true;
     },
     removeContent(item) {

@@ -46,7 +46,6 @@
                 @click="profileDropDownMenuActive=!profileDropDownMenuActive">
           <v-img  class="post-header-profile"
                   src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
-                  @click="$router.push('/user')"
                   alt="Profile picture"/>
           <b>@USERNAME</b>
         </v-btn>
@@ -70,17 +69,17 @@
                 <i class="fa fa-address-book mr-1"/>
                 profile
               </v-btn>
-              <v-btn @click="profileDropDownMenuActive = false" class="accent mt-3" light>
+              <v-btn @click="profileDropDownMenuActive = false;" class="accent mt-3" light>
                 <i class="fa fa-folder-open mr-1"/>
                 saved
               </v-btn>
-              <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; console.log(showProfileSettingsDialog)" class="accent mt-3">
+              <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; $router.push('/user/settings')" class="accent mt-3">
                 <i class="fa fa-cog mr-1"/>
                 settings
               </v-btn>
 
               <v-divider class="mt-3 mb-3"/>
-              <v-btn @click="profileDropDownMenuActive = false" class="error">
+              <v-btn @click="profileDropDownMenuActive = false; logout()" class="error">
                 <i class="fa fa-lock mr-1"/>profile
                 logout
               </v-btn>
@@ -89,35 +88,6 @@
           <transition name="fade" appear>
             <div class="arrow-up"
                  v-if="profileDropDownMenuActive"/>
-          </transition>
-
-        <portal to="settings-menu">
-          <transition name="fade" appear>
-            <div class="modal-overlay-2" v-if="showProfileSettingsDialog" @click="showProfileSettingsDialog = false"></div>
-          </transition>
-        </portal>
-          <transition name="slide" appear>
-            <v-layout class="modal2"
-                      v-if="showProfileSettingsDialog"
-                      justify-center
-                      column>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Edit profile</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Change Password</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Apps and websites</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Email and sms</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Push notifications</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Manage contacts</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Privacy and security</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent mb-3">Emails from Instagram</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="primary mb-3">Switch to Professional Account</v-btn>
-
-              <v-divider class="mb-3"/>
-
-              <v-btn @click="showProfileSettingsDialog = false" class="error mb-3">Logout</v-btn>
-              <v-btn @click="showProfileSettingsDialog = false" class="accent">
-                Cancel
-              </v-btn>
-            </v-layout>
           </transition>
 
       </div>
@@ -133,6 +103,12 @@ export default {
       profileDropDownMenuActive: false,
       showProfileSettingsDialog: false,
     }
+  },
+  methods: {
+    logout: function() {
+      this.$store.state.jws = "";
+      this.$router.push('/');
+    },
   }
 }
 </script>

@@ -22,10 +22,6 @@ name: "StoryMuted"
   filter: brightness(1.5);
   opacity: 0.5;
 
-  /*white-space: nowrap;*/
-  /*overflow:hidden;*/
-  /*text-overflow: ellipsis;*/
-  /*border: 1px solid #000000;*/
 }
 
 .story-seen{
