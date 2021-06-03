@@ -61,6 +61,46 @@
       </div>
     </div>
     <div class="item-container ">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 50%;">
+          <h3 style="margin-top: 14px;">Phone number</h3>
+        </div>
+        <div style="width: 50%;">
+          <v-text-field outlined no-resize value="+381 123 4567" style="width: 400px;"/>
+        </div>
+      </div>
+    </div>
+    <div class="item-container ">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 50%;">
+          <h3 style="margin-top: 14px;">Gender</h3>
+        </div>
+        <div style="width: 50%;">
+          <v-select outlined :items="genderRoles" v-model="genderRoles[0]" style="width: 400px"/>
+        </div>
+      </div>
+    </div>
+    <div class="item-container " style="height: auto;">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 40%;">
+          <h3 style="margin-top: 14px;">Date of Birth</h3>
+        </div>
+        <div style="width: 60%;">
+          <v-date-picker show-current />
+        </div>
+      </div>
+    </div>
+    <div class="item-container ">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 50%;">
+          <h3 style="margin-top: 14px;">Web Site</h3>
+        </div>
+        <div style="width: 50%;">
+          <v-text-field outlined no-resize value="Saltgram.rs" style="width: 400px;"/>
+        </div>
+      </div>
+    </div>
+    <div class="item-container ">
       <v-btn class="primary mb-5">Confirm changes</v-btn>
     </div>
   </div>
@@ -75,7 +115,8 @@ export default {
   data: function () {
     return {
       profileImage: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg',
-      showContent: false
+      showContent: false,
+      genderRoles: [ 'Male', 'Female' ]
     }
   },
   methods: {
