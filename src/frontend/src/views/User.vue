@@ -7,7 +7,7 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage/>
+          <ProfileImage :following-prop="followingUser" username="Username" image-src="Insert image source" @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -16,7 +16,7 @@
                     justify-center
                     column>
 
-            <ProfileHeader/>
+            <ProfileHeader />
 
           </v-layout>
 
@@ -27,8 +27,15 @@
       </div>
     </div>
 
+    <div v-if="!followingUser && privateUser" class="private-account">
+      <i class="fa fa-lock" style="transform: scale(2.5)"/>
+      <h3>This user is private</h3>
+
+    </div>
+
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
+              v-if="!(!followingUser && privateUser)"
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
@@ -37,7 +44,8 @@
     </v-layout >
 
     <!--  TODO: LAYOUT FOR TOGGLING: POSTS, SAVED, TAGGED  -->
-    <v-layout id="radio-button-layout">
+    <v-layout id="radio-button-layout"
+              v-if="!(!followingUser && privateUser)">
       <v-radio-group row  v-model="radioButton">
         <v-radio label="Posts"  value="posts"/>
         <v-radio label="Saved"  value="saved"/>
@@ -48,10 +56,9 @@
 <!--        TODO: POSTS -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'posts'"
+                v-if="radioButton === 'posts' && !(!followingUser && privateUser)"
                 column>
         <PostOnUserPage/>
-
       </v-layout>
     </transition>
 
@@ -59,7 +66,7 @@
     <!--        TODO: SAVED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'saved'"
+                v-if="radioButton === 'saved' && !(!followingUser && privateUser)"
                 column>
         <PostOnUserPage/>
         <PostOnUserPage/>
@@ -69,7 +76,7 @@
     <!--        TODO: TAGGED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'tagged'"
+                v-if="radioButton === 'tagged' && !(!followingUser && privateUser)"
                 column>
         <PostOnUserPage/>
         <PostOnUserPage/>
@@ -80,7 +87,6 @@
 </template>
 
 <script>
-import passwordMeter from 'vue-simple-password-meter';
 import TopBar from "@/components/TopBar";
 import ProfileImage from "@/components/user_page_components/ProfileImage";
 import ProfileHeader from "@/components/user_page_components/ProfileHeader";
@@ -90,28 +96,14 @@ import PostOnUserPage from "@/components/user_page_components/PostOnUserPage";
 
 export default {
     components: {
-      TopBar, passwordMeter, ProfileImage, ProfileHeader, NameAndDescription, StoryHighlight, PostOnUserPage
+      TopBar, ProfileImage, ProfileHeader, NameAndDescription, StoryHighlight, PostOnUserPage
     },
     data: function() {
-        return {
-            err: "",
-            showPassword1: false, 
-            showPassword2: false, 
-            showPassword3: false, 
-            oldPassword: '',
-            newPassword1: '',
-            newPassword2: '',
-            passScore: 0,
-            passScoreText: '',
-            isFormValid: false,
-            showSettings: false,
-            descriptionTextBoxReadOnly: true,
-            radioButton: 'posts',
-            rules: {
-                required: v => !!v || "Required",
-                min: v => v.length >= 8 || "Min 8 characters",
-            },
-        }
+      return {
+        radioButton: 'posts',
+        followingUser: false,
+        privateUser: true
+      }
     },
 
     methods: {
@@ -151,6 +143,9 @@ export default {
                         });
                 });
         },
+        toggleFollow(follow) {
+          this.followingUser = follow
+        }
     },
     mounted() {
         // this.getUserInfo(); // TODO UNCOMMENT THIS
@@ -167,6 +162,7 @@ export default {
         align-content: center;
         /* text-align: center; */
         background: #efeeee;
+        min-height: 100vh;
         height: auto;
     }
 
@@ -231,6 +227,12 @@ export default {
       text-align: center;
       padding: 14px;
       text-decoration: none;
+    }
+
+    .private-account {
+      text-align: -webkit-center;
+      padding-top: 50px;
+      height: 100px;
     }
 
 </style>

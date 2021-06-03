@@ -9,8 +9,8 @@
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
 
-    <v-btn class="follow-button" v-if="!userFollowed" @click="userFollowed = !userFollowed">Follow</v-btn>
-    <v-btn class="unfollow-button" v-else @click="userFollowed = !userFollowed">Unfollow</v-btn>
+    <v-btn class="follow-button" v-if="!following" @click="emitToggleFollowing()">Follow</v-btn>
+    <v-btn class="unfollow-button" v-else @click="emitToggleFollowing()">Unfollow</v-btn>
 
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
@@ -45,8 +45,35 @@ export default {
   data: function () {
     return {
       showProfileImageDialog: false,
-      userFollowed: false,
+      following: false,
     }
+  },
+  mounted() {
+    this.following = this.followingProp
+  },
+  props: {
+    followingProp: {
+      type: Boolean,
+      required: true
+    },
+    username: {
+      type: String,
+      required: true
+    },
+    imageSrc: {
+      type: String,
+      required: false
+    }
+  },
+  computed: {
+    // followData: {
+    //   get: function () {
+    //     return this.following;
+    //   },
+    //   set: function (newFollowValue) {
+    //     this.following = newFollowValue;
+    //   }
+    // },
   },
   methods: {
     onSelectedFile(event) {
@@ -54,6 +81,10 @@ export default {
       this.profilePicture = event.target.files[0]
       console.log(this.profilePicture)
     },
+    emitToggleFollowing() {
+      this.following = !this.following;
+      this.$emit('toggle-following', this.following);
+    }
   }
 }
 </script>

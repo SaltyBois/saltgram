@@ -12,6 +12,9 @@
         <v-btn class="primary my-2"
                @click="option = 2"
                v-bind:class="option === 2 ? 'primary' : 'accent'">Switch to professional Account</v-btn>
+        <v-btn class="primary my-2"
+               @click="option = 3"
+               v-bind:class="option === 3 ? 'primary' : 'success'">Close friends</v-btn>
       </div>
       <div class="components-div">
 
@@ -20,6 +23,8 @@
         <ChangePassword v-if="option === 1"/>
 
         <ProfessionalAccount v-if="option === 2"/>
+
+        <CloseFriends v-if="option === 3"/>
 
       </div>
     </div>
@@ -31,10 +36,11 @@ import TopBar from "@/components/TopBar";
 import EditProfile from "@/components/user_settings_components/EditProfile";
 import ChangePassword from "@/components/user_settings_components/ChangePassword";
 import ProfessionalAccount from "@/components/user_settings_components/ProfessionalAccount";
+import CloseFriends from "@/components/user_settings_components/CloseFriends";
 
 export default {
   name: "UserSettings",
-  components: {TopBar, EditProfile, ChangePassword, ProfessionalAccount},
+  components: {TopBar, EditProfile, ChangePassword, ProfessionalAccount, CloseFriends},
   data: function() {
     return {
       option: 0,
