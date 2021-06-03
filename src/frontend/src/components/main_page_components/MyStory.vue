@@ -21,7 +21,7 @@ export default {
     }
   },
   mounted() {
-    console.log(this.$refs.storyView.$data.visible)
+    // console.log(this.$refs.storyView.$data.visible)
   }
 }
 </script>

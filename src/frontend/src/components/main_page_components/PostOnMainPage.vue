@@ -13,10 +13,24 @@
         <b>...</b>
       </div>
     </div>
-    <div class="post-content">
-      <v-img  class="post-content-media"
-              src="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab"
+    <div class="post-content" style="border: 2px yellow solid">
+      <div class="left-btn" v-if="iteratorContent !== 0" @click="iteratorContent -= 1; console.log(this.deleteThisPlease[this.iteratorContent])">
+        <i class="fa fa-sign-out ml-2 mt-3" style="transform: scale(1.4) rotate(180deg);"/>
+      </div>
+      <div class="right-btn" v-if="iteratorContent !== deleteThisPlease.length - 1" @click="iteratorContent += 1; console.log(this.deleteThisPlease[this.iteratorContent])">
+        <i class="fa fa-sign-out mt-2 ml-1" style="transform: scale(1.4)" />
+      </div>
+      <v-img  v-for="index in deleteThisPlease.length"
+              :key="index"
+              v-bind:style="index === iteratorContent ? 'border: red 2px solid;' : 'border: red 2px solid; display: none'"
+              :src="deleteThisPlease[index]"
               alt="Post content"/>
+<!--      <div class="post-content">-->
+<!--        <v-img  class="post-content-media"-->
+<!--                src="https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg"-->
+<!--                alt="Post content"/>-->
+<!--      </div>-->
+
     </div>
     <div class="post-interactions">
       <div class="post-interactions-left-side">
@@ -48,12 +62,8 @@
     </div>
     <div class="post-comment-section">
       <div class="all-comments" >
-        <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-          FIRST COMMENT
-        </p>
-        <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-          Second COMMENT
-        </p>
+
+        <CommentOnPostView v-for="index in 2" :key="index" style="min-height: 10px; height: auto; max-height: 20px;"/>
         <p style="text-align: left; font-size: 10pt; margin-bottom: auto; cursor: pointer" @click="showPostFun">
           View all <b>32</b> comments
         </p>
@@ -113,12 +123,13 @@
 <script>
 import EmojiPicker from 'vue-emoji-picker'
 import PostView from "@/components/PostView";
+import CommentOnPostView from "@/components/CommentOnPostView";
 
 
 export default {
   name: "PostOnMainPage",
   components: {
-    EmojiPicker, PostView
+    EmojiPicker, PostView, CommentOnPostView
   },
   props: {
 
@@ -135,13 +146,19 @@ export default {
     }
   },
   mounted() {
-
+    this.iteratorContent = 0
+    console.log(this.iteratorContent)
   },
   data: function () {
     return {
       input: '',
       search: '',
-      showPost: false
+      showPost: false,
+      iteratorContent: 0,
+      deleteThisPlease: [
+        'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
+        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg'
+      ]
     }
   }
 }
@@ -302,6 +319,37 @@ export default {
   border-style: solid;
   border-width: 1px;
   text-align: -webkit-center;
+}
+
+.left-btn, .right-btn {
+  position: relative;
+  right: 70%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px black solid;
+  background-color: black;
+  color: #FFFFFF;
+  text-align: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: 0.3s;
+}
+
+.left-btn:hover, .right-btn:hover {
+  opacity: 0.75;
+  transform: scale(1.3);
+  transition: 0.3s;
+}
+
+.right-btn {
+  position: relative;
+  left: 70%;
+  top: 40%;
+  /*left: 92%;*/
+  transform: rotate(0deg);
 }
 
 </style>

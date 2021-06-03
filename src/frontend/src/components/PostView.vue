@@ -14,7 +14,6 @@
                 v-if="show"
                 column>
         <!--    TODO(MILE): POST-->
-<!--        <div id="posts-div">-->
           <div class="post-card">
             <div class="post-header">
               <div class="post-header-left-side">
@@ -41,16 +40,10 @@
                       <b>USERNAME</b>
                       Lorem Ipsum is simply dummy text of the printing and typesetting industry.
                     </p>
-
                   </div>
                 </div>
                 <div class="post-comment-section">
-                  <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-                    FIRST COMMENT
-                  </p>
-                  <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-                    Second COMMENT
-                  </p>
+                  <CommentOnPostView v-for="index in 10" :key="index"/>
 
                 </div>
                 <!--  TODO(Mile): Emojis need to be included GENERICALLY  -->
@@ -63,9 +56,6 @@
                       </div>
                       <div style="width: 50px; height: 50px; text-align: -webkit-center;">
                         <i class="fa fa-thumbs-o-up dislike" aria-hidden="true"/>
-                      </div>
-                      <div style="width: 50px; height: 50px; text-align: -webkit-center">
-                        <i class="fa fa fa-comment-o like" aria-hidden="true"/>
                       </div>
                     </div>
                     <div class="post-interactions-right-side">
@@ -127,15 +117,17 @@
               </v-layout>
             </div>
           </div>
-<!--        </div>-->
       </v-layout>
     </transition>
   </div>
 </template>
 
 <script>
+import CommentOnPostView from "@/components/CommentOnPostView";
+
 export default {
   name: "PostView",
+  components: { CommentOnPostView },
   props: {
       mediaPath: {
         required: true,
@@ -203,6 +195,7 @@ export default {
   background-color: white;
   width: 98%;
   height: auto;
+  max-height: 100%;
 
   border: #323232 solid 1px;
 
@@ -271,11 +264,6 @@ export default {
   cursor: pointer;
 }
 
-.all-comments {
-
-}
-
-
 .post-content {
   width: 30vw;
   height: 30vw;
@@ -295,7 +283,9 @@ export default {
 }
 
 .post-comment-section {
+  max-height: 30vh;
   height: 60%;
+  max-width: 60vw;
   padding: 5px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -309,6 +299,7 @@ export default {
   /*min-height: 60px;*/
   /*max-height: 60px;*/
   height: auto;
+  min-height: 40%;
 
   border-top: black 1px solid;
 
