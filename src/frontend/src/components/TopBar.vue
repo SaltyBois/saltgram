@@ -32,14 +32,16 @@
           <i class="fa fa-plus-square icons" />
         </v-btn>
         <v-btn  id="right-side-button2"
-                @click="$router.push('/notifications')"
+                @click="$router.push('/notifications'); numberOfNewNotifications = 0"
                 depressed>
-          <i class="fa fa-heart icons heart" />
+          <i v-bind:class="numberOfNewNotifications !== 0 ? 'fa fa-heart icons heart' : 'fa fa-heart icons'"/>
+          <div v-if="numberOfNewNotifications" class="number-of-notifications"><b>{{numberOfNewNotifications}}</b></div>
         </v-btn>
         <v-btn  id="right-side-button3"
                 @click="$router.push('/inbox')"
                 depressed>
           <i class="fa fa-commenting icons" />
+          <div v-if="numberOfNewChats" class="number-of-chats"><b>{{numberOfNewChats}}</b></div>
         </v-btn>
         <v-btn  id="right-side-button4"
                 depressed
@@ -102,7 +104,13 @@ export default {
     return {
       profileDropDownMenuActive: false,
       showProfileSettingsDialog: false,
+      numberOfNewNotifications: 100,
+      numberOfNewChats: 20
     }
+  },
+  mounted() {
+    if (this.$router.currentRoute.path.includes('/notifications')) this.numberOfNewNotifications = 0
+    if (this.$router.currentRoute.path.includes('/inbox')) this.numberOfNewChats = 0
   },
   methods: {
     logout: function() {
@@ -242,24 +250,6 @@ export default {
   height: 100%;
 }
 
-.modal2 {
-  position: absolute;
-  top: 400%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 100;
-  border-style: solid;
-  border-color: black;
-  border-width: 2px;
-
-  width: 100%;
-  max-width: 400px;
-  background-color: #FFF;
-  border-radius: 16px;
-
-  padding: 25px;
-}
-
 .dropdown-menu {
   position: absolute;
   top: 105%;
@@ -313,8 +303,15 @@ export default {
 }
 
 .icons {
-  transform: scale(2);
+  transform: scale(2.5);
+  transition: 0.2s;
+  text-align: -webkit-center;
 }
+
+/*.icons:hover {*/
+/*  transform: scale(2.7);*/
+/*  transition: 0.2s;*/
+/*}*/
 
 .post-header-profile {
   width: 30px;
@@ -332,7 +329,40 @@ export default {
 }
 
 .heart {
-  color: red;
+  color: #ff0051;
+  transition: 0.2s;
+}
+
+.number-of-notifications {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 20px;
+  font-size: 18px;
+  color: black;
+  text-align: -webkit-center;
+  letter-spacing: 0px;
+  transition: 0.2s;
+}
+
+.number-of-chats {
+  position: absolute;
+
+  bottom: 10px;
+  left: 30px;
+  width: 29px;
+  height: 29px;
+  background-color: #14b1ff;
+  border-radius: 50%;
+  border: solid 2px white ;
+  font-size: 18px;
+  color: black;
+  text-align: -webkit-center;
+  letter-spacing: 0px;
+  transition: 0.2s;
+  padding-right: 1px;
+  padding-top: 2px;
+
 }
 
 </style>
