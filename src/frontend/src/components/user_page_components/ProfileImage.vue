@@ -21,8 +21,24 @@
                 v-if="showProfileImageDialog"
                 justify-center
                 column>
-        <v-btn class="primary"
+        <v-btn class="primary mb-2"
+               v-if="myProfile"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
+        <v-btn v-if="!myProfile" @click="showDialog = false" class="mute-button my-2">
+          Show story
+        </v-btn>
+        <v-btn v-if="!muted && !myProfile" @click="showDialog = false" class="other-buttons my-2">
+          Mute
+        </v-btn>
+        <v-btn v-if="muted && !myProfile" @click="showDialog = false" class="mute-button my-2">
+          Unmute
+        </v-btn>
+        <v-btn class="other-buttons my-2"
+               v-if="!myProfile"
+               @click="showDialog = false">Report</v-btn>
+        <v-btn class="other-buttons my-2"
+               v-if="!myProfile"
+               @click="showDialog = false">Block @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
         <v-btn @click="showProfileImageDialog = false" class="accent">
@@ -46,6 +62,8 @@ export default {
     return {
       showProfileImageDialog: false,
       following: false,
+      muted: false,
+      myProfile: false
     }
   },
   mounted() {
@@ -178,6 +196,20 @@ export default {
 }
 
 .unfollow-button {
+  color: #ff2626;
+  border-color: #ff2626;
+}
+
+.mute-button, .other-buttons  {
+  background-color: transparent;
+  color: #016ddb;
+  border-color: #016ddb;
+  border-style: solid;
+  border-width: 1px;
+  text-align: -webkit-center;
+}
+
+.other-buttons {
   color: #ff2626;
   border-color: #ff2626;
 }

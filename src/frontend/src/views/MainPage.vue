@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #efeeee; height: 100%">
+  <div class="background-div">
     <button class="go-up-button" @click="scrollUp">
       <i class="fa fa-level-up" style="transform: scale(2)"/>
     </button>
@@ -53,7 +53,7 @@
       <div id="suggestions-div"
            style="background-color: transparent;">
 
-        <UserProfileHead/>
+        <UserProfileHead />
 
         <div id="suggestions-info"
              style="background-color: transparent">
@@ -129,6 +129,14 @@ export default {
 </script>
 
 <style scoped>
+
+  .background-div {
+    background-color: #e9e9e9;
+    min-height: auto;
+    height: 500vh;
+
+  }
+
   #main-div {
     display: flex;
     margin: 0 10%;
@@ -147,6 +155,7 @@ export default {
     display: flex;
     height: 150px;
     flex-direction: row;
+
   }
 
   #posts-div {
@@ -157,6 +166,8 @@ export default {
   }
 
   #suggestions-div {
+    /*position: flex;*/
+    left: 70%;
     display: flex;
     flex-direction: column;
     width: 30%;

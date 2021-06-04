@@ -6,12 +6,12 @@
               @click="$router.push('/user')"
               alt="Profile picture"/>
       <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
-      <p2 style="margin-left: 5px; margin-right: 5px">liked your post </p2>
+      <p style="margin-left: 5px; margin-right: 5px; margin-top: 15px">liked your post </p>
       <v-img  class="post-header-profile"
               src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
               @click="$router.push('/user')"
               alt="Profile picture"/>
-      <p4 style="color: #858585">1h ago</p4>
+      <p style="color: #858585; margin-top: 15px">1h ago</p>
     </div>
   </div>
 </template>

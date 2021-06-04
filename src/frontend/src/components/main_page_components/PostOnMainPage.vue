@@ -10,20 +10,33 @@
         <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
       </div>
       <div class="post-header-right-side">
-        <b>...</b>
+        <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
+        <PostInfo username="Username1" ref="postInfo"/>
       </div>
     </div>
-    <div class="post-content" style="border: 2px yellow solid">
-      <div class="left-btn" v-if="iteratorContent !== 0" @click="iteratorContent -= 1; console.log(this.deleteThisPlease[this.iteratorContent])">
+
+    <transition name="fade" appear>
+      <div class="left-btn" v-if="iteratorContent > 0" @click="decrease()">
         <i class="fa fa-sign-out ml-2 mt-3" style="transform: scale(1.4) rotate(180deg);"/>
       </div>
-      <div class="right-btn" v-if="iteratorContent !== deleteThisPlease.length - 1" @click="iteratorContent += 1; console.log(this.deleteThisPlease[this.iteratorContent])">
+    </transition>
+    <div class="top-right-album" v-if="contentPlaceHolder.length !== 1" >
+      <b class="top-right-album-letters">{{iteratorContent + 1}}/{{contentPlaceHolder.length}}</b>
+    </div>
+    <transition name="fade" appear>
+      <div class="right-btn" v-if="iteratorContent < contentPlaceHolder.length - 1" @click="increase()">
         <i class="fa fa-sign-out mt-2 ml-1" style="transform: scale(1.4)" />
       </div>
-      <v-img  v-for="index in deleteThisPlease.length"
+    </transition>
+
+
+    <div class="post-content">
+
+      <v-img  v-for="(item, index) in contentPlaceHolder.length"
               :key="index"
-              v-bind:style="index === iteratorContent ? 'border: red 2px solid;' : 'border: red 2px solid; display: none'"
-              :src="deleteThisPlease[index]"
+              class="post-content-media"
+              v-bind:style="index === iteratorContent ? '' : 'display: none'"
+              :src="contentPlaceHolder[index]"
               alt="Post content"/>
 <!--      <div class="post-content">-->
 <!--        <v-img  class="post-content-media"-->
@@ -76,39 +89,6 @@
     <!--  TODO(Mile): Emojis need to be included GENERICALLY  -->
     <div class="post-footer">
       <div style="float: left; height: available; display: flex; flex-direction: row; width: 80%">
-        <EmojiPicker @emoji="append" :search="search">
-          <div
-              class="emoji-invoker"
-              slot="emoji-invoker"
-              slot-scope="{ events: { click: clickEvent } }"
-              @click.stop="clickEvent">
-            <svg height="24" viewBox="0 0 24 24" width="24" style="margin-top: 10px" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 0h24v24H0z" fill="none"/>
-              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-            </svg>
-          </div>
-
-          <div slot="emoji-picker" slot-scope="{ emojis, insert }" style="z-index: 10;">
-            <div class="emoji-picker" >
-              <div class="emoji-picker__search">
-                <input type="text" v-model="search" v-focus>
-              </div>
-              <div>
-                <div v-for="(emojiGroup, category) in emojis" :key="category">
-                  <h5>{{ category }}</h5>
-                  <div class="emojis">
-                          <span
-                              v-for="(emoji, emojiName) in emojiGroup"
-                              :key="emojiName"
-                              @click="insert(emoji)"
-                              :title="emojiName"
-                          >{{ emoji }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </EmojiPicker>
         <v-text-field label="Add a comment" style="width: available; padding: 5px" />
       </div>
       <div style="float: right; height: available; display: inline-block; ">
@@ -121,15 +101,15 @@
 </template>
 
 <script>
-import EmojiPicker from 'vue-emoji-picker'
 import PostView from "@/components/PostView";
 import CommentOnPostView from "@/components/CommentOnPostView";
+import PostInfo from "@/components/PostInfo";
 
 
 export default {
   name: "PostOnMainPage",
   components: {
-    EmojiPicker, PostView, CommentOnPostView
+    PostView, CommentOnPostView, PostInfo
   },
   props: {
 
@@ -143,11 +123,16 @@ export default {
     },
     showPostFun() {
       this.$refs.postView.$data.show = !this.$refs.postView.$data.show
+    },
+    decrease() {
+      if (this.iteratorContent > 0) this.iteratorContent -= 1;
+    },
+    increase() {
+      if (this.iteratorContent + 1 < this.contentPlaceHolder.length) this.iteratorContent += 1;
     }
   },
   mounted() {
     this.iteratorContent = 0
-    console.log(this.iteratorContent)
   },
   data: function () {
     return {
@@ -155,9 +140,11 @@ export default {
       search: '',
       showPost: false,
       iteratorContent: 0,
-      deleteThisPlease: [
+      contentPlaceHolder: [
         'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
-        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg'
+        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
+        'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
+        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg'
       ]
     }
   }
@@ -322,9 +309,10 @@ export default {
 }
 
 .left-btn, .right-btn {
-  position: relative;
-  right: 70%;
-  top: 50%;
+  float: left;
+  z-index: 3;
+  margin-top: 25%;
+  margin-left: 30px;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -335,21 +323,50 @@ export default {
   justify-content: center;
   cursor: pointer;
   opacity: 0.3;
-  transition: 0.3s;
 }
 
 .left-btn:hover, .right-btn:hover {
-  opacity: 0.75;
+  opacity: 0.9;
   transform: scale(1.3);
   transition: 0.3s;
 }
 
+
 .right-btn {
-  position: relative;
-  left: 70%;
-  top: 40%;
-  /*left: 92%;*/
+  float: right;
+  margin-left: 0;
+  margin-right: 30px;
   transform: rotate(0deg);
+}
+
+.top-right-album {
+  float: right;
+  margin-right: 3px;
+  margin-top: 3px;
+  background-color: black;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding-top: 8px;
+  padding-right: 1px;
+  opacity: 0.9;
+  transform: rotate(0deg);
+}
+
+.top-right-album-letters {
+  transition: slide 0.3s;
+
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity .3s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 
 </style>

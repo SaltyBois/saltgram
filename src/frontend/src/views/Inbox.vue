@@ -10,7 +10,8 @@
             <h2 style="float:left;">Username</h2>
           </div>
           <div class="new-message">
-            <i class="fa fa-envelope-o new-message-button"/>
+            <i class="fa fa-envelope-o new-message-button" @click="$refs.chatNew.$data.showDialog = true"/>
+            <ChatNew ref="chatNew" />
           </div>
         </div>
         <div class="inbox-list-conversations">
@@ -27,8 +28,10 @@
           <ChatProfile/>
 
           <div style="height: 60px; text-align: right">
-            <i class="fa fa-info info-button" />
+            <i class="fa fa-info info-button" @click="$refs.chatInfo.$data.showDialog = true"/>
           </div>
+
+          <ChatInformation ref="chatInfo" username="Username1234"/>
 
         </div>
         <div class="inbox-content-body" ref="chatBox">
@@ -66,11 +69,13 @@ import SentMessage from "@/components/inbox_components/SentMessage";
 import ReceivedImageMessage from "@/components/inbox_components/ReceivedImageMessage";
 import SentImageMessage from "@/components/inbox_components/SentImageMessage";
 import ChatInput from "@/components/inbox_components/ChatInput";
+import ChatInformation from "@/components/inbox_components/ChatInformation";
+import ChatNew from "@/components/inbox_components/ChatNew";
 
 export default {
 name: "Inbox",
   components: {TopBar, EmojiPicker, ImageMessage, ViewedChat, UnviewedChat, ChatProfile, ReceivedMessage, SentMessage,
-               ReceivedImageMessage, SentImageMessage, ChatInput},
+               ReceivedImageMessage, SentImageMessage, ChatInput, ChatInformation, ChatNew},
   methods: {
   },
   mounted() {

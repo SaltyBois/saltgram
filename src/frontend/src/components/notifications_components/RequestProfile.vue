@@ -6,14 +6,14 @@
               @click="$router.push('/user')"
               alt="Profile picture"/>
       <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
-      <p2 style="margin-left: 5px; margin-right: 5px">has sent You a follow request</p2>
+      <p style="margin-left: 5px; margin-right: 5px; margin-top: 15px">has sent You a follow request</p>
       <v-btn class="add-button mx-2">
         Accept
       </v-btn>
       <v-btn class="ignore-button mx-2">
         Ignore
       </v-btn>
-      <p4 style="color: #858585">1h ago</p4>
+      <p style="color: #858585; margin-top: 15px">1h ago</p>
     </div>
   </div>
 </template>

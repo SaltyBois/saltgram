@@ -24,13 +24,39 @@
                 <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
               </div>
               <div class="post-header-right-side">
-                <b>...</b>
+                <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
+                <PostInfo username="Username1" ref="postInfo"/>
               </div>
             </div>
-            <div style="display: flex; justify-content: space-between">
-              <v-layout class="post-content" align-center justify-center style="background-color: transparent">
-                <v-img  class="post-content-media"
-                        :src="mediaPath"
+            <div style="display: flex; justify-content: space-between;">
+              <v-layout class="post-content" align-center justify-center style="display: block; object-fit: contain">
+                <transition name="fade" appear>
+<!--                  v-if="iteratorContent > 0"-->
+                  <div class="left-btn"  @click="decrease()">
+                    <i class="fa fa-sign-out ml-2 mt-3" style="transform: scale(1.4) rotate(180deg);"/>
+                  </div>
+                </transition>
+                <div class="top-right-album" v-if="contentPlaceHolder.length !== 1" >
+                  <b class="top-right-album-letters">{{iteratorContent + 1}}/{{contentPlaceHolder.length}}</b>
+                </div>
+                <transition name="fade" appear>
+<!--                  v-if="iteratorContent < contentPlaceHolder.length - 1"-->
+                  <div class="right-btn" @click="increase()">
+                    <i class="fa fa-sign-out mt-2 ml-1" style="transform: scale(1.4)" />
+                  </div>
+                </transition>
+
+<!--                <div class="top-right-album" v-if="contentPlaceHolder.length !== 1" >-->
+<!--                  <b class="top-right-album-letters">{{iteratorContent + 1}}/{{contentPlaceHolder.length}}</b>-->
+<!--                </div>-->
+<!--                <v-img  class="post-content-media"-->
+<!--                        :src="mediaPath"-->
+<!--                        alt="Post content"/>-->
+                <v-img  v-for="(item, index) in contentPlaceHolder.length"
+                        :key="index"
+                        class="post-content-media"
+                        v-bind:style="index === iteratorContent ? '' : 'display: none'"
+                        :src="contentPlaceHolder[index]"
                         alt="Post content"/>
               </v-layout>
               <v-layout style="display: flex; flex-direction: column;" >
@@ -75,39 +101,6 @@
                   </div>
 
                   <div style="float: left; height: available; display: flex; flex-direction: row; width: 80%; margin-bottom: 10px">
-                    <EmojiPicker @emoji="append" :search="search">
-                      <div
-                          class="emoji-invoker"
-                          slot="emoji-invoker"
-                          slot-scope="{ events: { click: clickEvent } }"
-                          @click.stop="clickEvent">
-                        <svg height="24" viewBox="0 0 24 24" width="24" style="margin-top: 10px" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M0 0h24v24H0z" fill="none"/>
-                          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                        </svg>
-                      </div>
-
-                      <div slot="emoji-picker" slot-scope="{ emojis, insert }" style="z-index: 10;">
-                        <div class="emoji-picker" >
-                          <div class="emoji-picker__search">
-                            <input type="text" v-model="search" v-focus>
-                          </div>
-                          <div>
-                            <div v-for="(emojiGroup, category) in emojis" :key="category">
-                              <h5>{{ category }}</h5>
-                              <div class="emojis">
-                          <span
-                              v-for="(emoji, emojiName) in emojiGroup"
-                              :key="emojiName"
-                              @click="insert(emoji)"
-                              :title="emojiName"
-                          >{{ emoji }}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </EmojiPicker>
                     <v-text-field label="Add a comment" style="width: available; padding: 5px" />
                     <v-btn class="post-button" style="margin: 5px; width: 75px">
                       post
@@ -124,10 +117,11 @@
 
 <script>
 import CommentOnPostView from "@/components/CommentOnPostView";
+import PostInfo from "@/components/PostInfo";
 
 export default {
   name: "PostView",
-  components: { CommentOnPostView },
+  components: { CommentOnPostView, PostInfo },
   props: {
       mediaPath: {
         required: true,
@@ -137,12 +131,31 @@ export default {
   methods: {
     toggleParrent() {
       this.show = !this.show
+    },
+    decrease() {
+      if (this.iteratorContent > 0) this.iteratorContent -= 1;
+      console.log(this.iteratorContent)
+    },
+    increase() {
+      if (this.iteratorContent + 1 < this.contentPlaceHolder.length) this.iteratorContent += 1;
+      console.log(this.iteratorContent)
     }
+  },
+  mounted() {
+    this.iteratorContent = 0
   },
   data: function () {
     return {
       show: false,
       search: '',
+      iteratorContent: 0,
+      contentPlaceHolder: [
+        'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
+        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
+        'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
+        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg',
+        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg'
+      ]
     }
   }
 }
@@ -230,11 +243,24 @@ export default {
 }
 
 .post-content-media {
-  width: 30vw;
-  height: 30vh;
+  justify-self: center;
+  margin-top: 2.5%;
+  max-height: 95%;
+  max-width: 95%;
+  /*padding-top: 10px;*/
+  /*margin-top: 10%;*/
+  background-color: red;
+  /*width: 30vw;*/
+  /*height: 30vh;*/
+  /*min-width: 60%;*/
 
-  max-width:90%;
-  max-height:90%;
+
+
+  /*min-width: 50%;*/
+  min-height: available;
+
+  /*max-width: 30vh;*/
+  /*max-height: 50vh;*/
 
 }
 
@@ -268,7 +294,7 @@ export default {
   width: 30vw;
   height: 30vw;
 
-  object-fit: cover;
+  /*object-fit: cover;*/
 
   border-right: black 1px solid;
 }
@@ -296,82 +322,9 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  /*min-height: 60px;*/
-  /*max-height: 60px;*/
   height: auto;
   min-height: 40%;
-
   border-top: black 1px solid;
-
-  /*margin-bottom: 200px;*/
-
-  /*display: flex;*/
-  /*flex-direction: row;*/
-}
-
-.emoji-invoker {
-  position: relative;
-  top: 0;
-  left: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.emoji-invoker:hover {
-  transform: scale(1.1);
-}
-.emoji-invoker > svg {
-  fill: black;
-}
-
-.emoji-picker {
-  position: relative;
-  border: 1px solid #707070;
-  width: 250px;
-  height: 200px;
-  overflow: scroll;
-  padding: 0;
-  box-sizing: border-box;
-  border-radius: 5%;
-  background: #fff;
-  box-shadow: 1px 1px 8px #c7dbe6;
-}
-.emoji-picker__search {
-  display: flex;
-}
-.emoji-picker__search > input {
-  flex: 1;
-  border-radius: 10rem;
-  border: 1px solid #ccc;
-  padding: 0.5rem 1rem;
-  outline: none;
-}
-.emoji-picker h5 {
-  margin-bottom: 0;
-  color: #b1b1b1;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  cursor: default;
-}
-.emoji-picker .emojis {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
-.emoji-picker .emojis:after {
-  content: "";
-  flex: auto;
-}
-.emoji-picker .emojis span {
-  padding: 0.2rem;
-  cursor: pointer;
-  border-radius: 5px;
-}
-.emoji-picker .emojis span:hover {
-  background: #ececec;
-  cursor: pointer;
 }
 
 .post-header-profile {
@@ -415,6 +368,54 @@ export default {
   border-radius: 16px;
 
   padding: 5px;
+}
+
+.left-btn, .right-btn {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  /*margin-top: 10%;*/
+  margin-left: 1%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px black solid;
+  background-color: black;
+  color: #FFFFFF;
+  text-align: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.left-btn:hover, .right-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.3);
+  transition: 0.3s;
+}
+
+
+.right-btn {
+  float: right;
+  margin-left: 27.5%;
+  margin-right: 0;
+}
+
+.top-right-album {
+  position: absolute;
+  z-index: 3;
+  /*float: right;*/
+  left: 29.5%;
+  margin-right: 3px;
+  margin-top: 3px;
+  background-color: black;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding-top: 8px;
+  /*padding-right: 1px;*/
+  opacity: 0.6;
 }
 
 </style>
