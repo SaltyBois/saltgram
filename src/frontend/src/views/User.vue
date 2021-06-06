@@ -200,8 +200,6 @@ export default {
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(clamp(100%/(var(--n) + 1) + 0.1%,(var(--w) - 100vw)*1000,100%/(var(--m) + 1) + 0.1%),1fr)); /*this */
       gap:10px;
-
-      transition: 0.3s;
     }
 
     #radio-button-layout {

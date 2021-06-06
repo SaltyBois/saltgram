@@ -30,34 +30,17 @@
             </div>
             <div style="display: flex; justify-content: space-between;">
               <v-layout class="post-content" align-center justify-center style="display: block; object-fit: contain">
-                <transition name="fade" appear>
-<!--                  v-if="iteratorContent > 0"-->
-                  <div class="left-btn"  @click="decrease()">
-                    <i class="fa fa-sign-out ml-2 mt-3" style="transform: scale(1.4) rotate(180deg);"/>
-                  </div>
-                </transition>
-                <div class="top-right-album" v-if="contentPlaceHolder.length !== 1" >
-                  <b class="top-right-album-letters">{{iteratorContent + 1}}/{{contentPlaceHolder.length}}</b>
-                </div>
-                <transition name="fade" appear>
-<!--                  v-if="iteratorContent < contentPlaceHolder.length - 1"-->
-                  <div class="right-btn" @click="increase()">
-                    <i class="fa fa-sign-out mt-2 ml-1" style="transform: scale(1.4)" />
-                  </div>
-                </transition>
-
-<!--                <div class="top-right-album" v-if="contentPlaceHolder.length !== 1" >-->
-<!--                  <b class="top-right-album-letters">{{iteratorContent + 1}}/{{contentPlaceHolder.length}}</b>-->
-<!--                </div>-->
-<!--                <v-img  class="post-content-media"-->
-<!--                        :src="mediaPath"-->
-<!--                        alt="Post content"/>-->
-                <v-img  v-for="(item, index) in contentPlaceHolder.length"
-                        :key="index"
-                        class="post-content-media"
-                        v-bind:style="index === iteratorContent ? '' : 'display: none'"
-                        :src="contentPlaceHolder[index]"
-                        alt="Post content"/>
+                <v-carousel class="post-content-media" :continuous="false">
+                  <v-carousel-item v-for="(item, index) in contentPlaceHolder.length" :key="index">
+                    <v-img contain
+                           v-if="contentPlaceHolder[index].endsWith('.jpg') || contentPlaceHolder[index].endsWith('.png') || contentPlaceHolder[index].endsWith('.jpeg')"
+                           :src="contentPlaceHolder[index]"/>
+                    <video controls
+                           loop
+                           v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
+                           :src="contentPlaceHolder[index]"/>
+                  </v-carousel-item>
+                </v-carousel>
               </v-layout>
               <v-layout style="display: flex; flex-direction: column;" >
                 <div class="post-description">
@@ -154,7 +137,8 @@ export default {
         'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
         'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
         'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg',
-        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg'
+        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg',
+        'https://www.w3schools.com/html/movie.mp4'
       ]
     }
   }
@@ -193,18 +177,7 @@ export default {
   transform: translateY(-50%) translateX(100vw);
 }
 
-#posts-div {
-  display: flex;
-  height: auto;
-  min-width: 90%;
-  max-width: 90%;
-  max-height: 700px;
-  flex-direction: column;
-  text-align: -webkit-center;
-}
-
 .post-card {
-  /*margin: 10px 10px;*/
   background-color: white;
   width: 98%;
   height: auto;
@@ -226,7 +199,7 @@ export default {
   border-bottom-color: #373737;
 }
 
-.post-header-left-side, .post-header-right-side, .post-interactions-left-side, .post-interactions-right-side .post-footer-right-side {
+.post-header-left-side, .post-header-right-side, .post-interactions-left-side, .post-interactions-right-side {
   direction: ltr;
   flex-direction: row;
   text-align: -webkit-center;
@@ -236,7 +209,7 @@ export default {
   justify-content: center
 }
 
-.post-header-right-side, .post-interactions-right-side, .post-footer-right-side {
+.post-header-right-side, .post-interactions-right-side {
   float: right;
   width: 50px;
   height: 50px;
@@ -247,21 +220,7 @@ export default {
   margin-top: 2.5%;
   max-height: 95%;
   max-width: 95%;
-  /*padding-top: 10px;*/
-  /*margin-top: 10%;*/
-  background-color: red;
-  /*width: 30vw;*/
-  /*height: 30vh;*/
-  /*min-width: 60%;*/
-
-
-
-  /*min-width: 50%;*/
   min-height: available;
-
-  /*max-width: 30vh;*/
-  /*max-height: 50vh;*/
-
 }
 
 .like, .dislike {
@@ -368,54 +327,6 @@ export default {
   border-radius: 16px;
 
   padding: 5px;
-}
-
-.left-btn, .right-btn {
-  position: absolute;
-  top: 50%;
-  z-index: 3;
-  /*margin-top: 10%;*/
-  margin-left: 1%;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px black solid;
-  background-color: black;
-  color: #FFFFFF;
-  text-align: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0.6;
-}
-
-.left-btn:hover, .right-btn:hover {
-  opacity: 0.9;
-  transform: scale(1.3);
-  transition: 0.3s;
-}
-
-
-.right-btn {
-  float: right;
-  margin-left: 27.5%;
-  margin-right: 0;
-}
-
-.top-right-album {
-  position: absolute;
-  z-index: 3;
-  /*float: right;*/
-  left: 29.5%;
-  margin-right: 3px;
-  margin-top: 3px;
-  background-color: black;
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  padding-top: 8px;
-  /*padding-right: 1px;*/
-  opacity: 0.6;
 }
 
 </style>

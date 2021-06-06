@@ -15,30 +15,28 @@
                 justify-center
                 align-center
                 column>
-        <div class="circle">
-          <b style="font-size: 19px">{{timerSeconds}}</b>
-        </div>
-        <div class="circle-top-right">
-          <div class="mt-3">
-            <b style="font-size: 14px" >1/1</b>
-          </div>
-        </div>
-        <div class="left-btn">
-          <i class="fa fa-sign-out ml-2 mt-3" style="transform: scale(1.4)"/>
-        </div>
-        <v-img class="image" :src="imageSrc" />
+        <v-hover v-slot="{ hover }">
+          <v-carousel class="post-content-media" :cycle="!hover" :interval="10000" :continuous="false">
+            <v-carousel-item v-for="(item, index) in contentPlaceHolder.length" :key="index">
+              <v-img contain
+                     v-if="contentPlaceHolder[index].endsWith('.jpg') || contentPlaceHolder[index].endsWith('.png') || contentPlaceHolder[index].endsWith('.jpeg')"
+                     :src="contentPlaceHolder[index]"/>
+              <video autoplay
+                     playsinline
+                     v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
+                     :src="contentPlaceHolder[index]"/>
+            </v-carousel-item>
+            <div class="close-friends-div" :v-if="true">
+              <h3>
+                CLOSE FRIENDS
+              </h3>
+            </div>
+          </v-carousel>
+        </v-hover>
         <div class="viewers">
           <h3>
             Seen by 503
           </h3>
-        </div>
-        <div class="close-friends-div">
-          <h3>
-            CLOSE FRIENDS
-          </h3>
-        </div>
-        <div class="right-btn">
-          <i class="fa fa-sign-out mt-2 ml-1" style="transform: scale(1.4)" />
         </div>
       </v-layout>
     </transition>
@@ -52,6 +50,14 @@ export default {
     return {
       visible: false,
       timerSeconds: 10,
+      contentPlaceHolder: [
+        'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
+        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
+        'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
+        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg',
+        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg',
+        'https://www.w3schools.com/html/movie.mp4'
+      ]
     }
   },
   props: {
@@ -64,21 +70,21 @@ export default {
     toggleView() {
       this.visible = !this.visible
       if (this.visible) {
-        this.timerSeconds = 10
-        this.countDownTimer()
+        // this.timerSeconds = 10
+        // this.countDownTimer()
       }
     },
-    countDownTimer() {
-      if(this.timerSeconds > 0) {
-        setTimeout(() => {
-          this.timerSeconds -= 1
-          this.countDownTimer()
-        }, 1000)
-      }
-      else {
-        this.visible = false;
-      }
-    }
+    // countDownTimer() {
+    //   if(this.timerSeconds > 0) {
+    //     setTimeout(() => {
+    //       this.timerSeconds -= 1
+    //       this.countDownTimer()
+    //     }, 1000)
+    //   }
+    //   else {
+    //     this.visible = false;
+    //   }
+    // }
   },
   computed() {
     this.countDownTimer()
@@ -211,8 +217,8 @@ export default {
 
 .viewers {
   position: absolute;
-  left: 15%;
-  top: 90%;
+  left: 33%;
+  top: 93%;
   width: 200px;
   height: auto;
   background-color: #FFFFFF;
@@ -235,8 +241,8 @@ export default {
 
 .close-friends-div {
   position: absolute;
-  top: 5%;
-  right: 12%;
+  top: 2%;
+  right: 2%;
   width: 200px;
   height: auto;
   background-color: #36c400;

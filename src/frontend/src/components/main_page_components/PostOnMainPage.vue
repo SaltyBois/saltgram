@@ -15,29 +15,26 @@
       </div>
     </div>
 
-    <transition name="fade" appear>
-      <div class="left-btn" v-if="iteratorContent > 0" @click="decrease()">
-        <i class="fa fa-sign-out ml-2 mt-3" style="transform: scale(1.4) rotate(180deg);"/>
-      </div>
-    </transition>
-    <div class="top-right-album" v-if="contentPlaceHolder.length !== 1" >
-      <b class="top-right-album-letters">{{iteratorContent + 1}}/{{contentPlaceHolder.length}}</b>
-    </div>
-    <transition name="fade" appear>
-      <div class="right-btn" v-if="iteratorContent < contentPlaceHolder.length - 1" @click="increase()">
-        <i class="fa fa-sign-out mt-2 ml-1" style="transform: scale(1.4)" />
-      </div>
-    </transition>
-
 
     <div class="post-content">
 
-      <v-img  v-for="(item, index) in contentPlaceHolder.length"
-              :key="index"
-              class="post-content-media"
-              v-bind:style="index === iteratorContent ? '' : 'display: none'"
-              :src="contentPlaceHolder[index]"
-              alt="Post content"/>
+      <v-carousel class="post-content-media" :continuous="false" >
+        <v-carousel-item v-for="(item, index) in contentPlaceHolder.length" :key="index">
+          <v-img contain
+                 v-if="contentPlaceHolder[index].endsWith('.jpg') || contentPlaceHolder[index].endsWith('.png') || contentPlaceHolder[index].endsWith('.jpeg')"
+                 :src="contentPlaceHolder[index]"/>
+          <video controls
+                 loop
+                 v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
+                 :src="contentPlaceHolder[index]"/>
+        </v-carousel-item>
+      </v-carousel>
+<!--      <v-img  v-for="(item, index) in contentPlaceHolder.length"-->
+<!--              :key="index"-->
+<!--              class="post-content-media"-->
+<!--              v-bind:style="index === iteratorContent ? '' : 'display: none'"-->
+<!--              :src="contentPlaceHolder[index]"-->
+<!--              alt="Post content"/>-->
 <!--      <div class="post-content">-->
 <!--        <v-img  class="post-content-media"-->
 <!--                src="https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg"-->
@@ -144,7 +141,9 @@ export default {
         'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
         'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
         'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
-        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg'
+        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg',
+        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg',
+        'https://www.w3schools.com/html/movie.mp4'
       ]
     }
   }
