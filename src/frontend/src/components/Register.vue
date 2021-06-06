@@ -1,16 +1,16 @@
 <template>
     <div id="register-container">
-        <div v-if="emailSent" id="register-and-logo">
+        <div v-if="emailSent" class="register-and-logo">
             <p id="email-icon"><i class="fa fa-envelope-o"></i></p>
             <p>Your activation email has been sent!</p>
         </div>
         <div v-else>
-            <div v-if="processing" id="register-and-logo">
+            <div v-if="processing" class="register-and-logo">
                 <v-progress-circular
                 indeterminate
                 color="primary"/>
             </div>
-            <div v-else id="register-and-logo">
+            <div v-else class="register-and-logo">
                 <h1 id="title">Saltgram</h1>
                 <v-form id="register" v-model="isFormValid">
                     <v-text-field 
@@ -55,6 +55,16 @@
                     size="invisible"
                     :sitekey="sitekey">
                     </vue-recaptcha>
+                    <v-text-field
+                    label="Phone Number"
+                    hint="start with + please"/>
+                    <v-select
+                    :items="genderRules"
+                    label="Gender"/>
+                    <v-date-picker />
+                    <v-text-field
+                    label="Web Site"
+                    hint="You can enter it without 'www.'"/>
                     <v-btn :disabled="!isFormValid" class="accent" @click="registerUser">Sign up</v-btn>
                 </v-form>
             </div>
@@ -88,7 +98,8 @@ export default {
                 required: v => !!v || "Required",
                 min: v => v.length >= 8 || "Min 8 characters",
                 email: v => !v || /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid',
-            }
+            },
+            genderRules: [ 'Male', 'Female']
         }
     },
 
@@ -170,7 +181,7 @@ export default {
         text-align: center;
     }
 
-    #register-and-logo {
+    .register-and-logo {
         min-width: 25rem;
         border: 1px solid #eee;
         padding: 1rem 2rem;
