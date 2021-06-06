@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import axios from 'axios'
-// import store from '../main.js'
+import store from '../main.js'
 
 Vue.use(VueRouter)
 
@@ -97,19 +97,19 @@ const router = new VueRouter({
 })
 
 // TODO(Jovan): Authentication
-// router.beforeEach((to, from, next) => {
-//   next(to);          // TODO(MILE): COMMENT THIS AFTER DEVELOPMENT PHASE AND UNCOMMENT BELOW
-//   // console.log("Looking for jwt: ", store.state["jws"])
-//   // let jws = store.state["jws"];
-//   // axios.put("auth", to.path, {headers: {"Authorization" : "Bearer " + jws}})
-//   //   .then(r => {
-//   //     console.log(r);
-//   //     next();
-//   //   })
-//   //   .catch(r => {
-//   //     console.log(r);
-//   //     next({name: "Home"})
-//   //   })
-// });
+router.beforeEach((to, from, next) => {
+  // next(to);          // TODO(MILE): COMMENT THIS AFTER DEVELOPMENT PHASE AND UNCOMMENT BELOW
+  console.log("Looking for jwt: ", store.state["jws"])
+  let jws = store.state["jws"];
+  axios.put("auth", to.path, {headers: {"Authorization" : "Bearer " + jws}})
+    .then(r => {
+      console.log(r);
+      next();
+    })
+    .catch(r => {
+      console.log(r);
+      next({name: "Home"})
+    })
+});
 
 export default router
