@@ -7,7 +7,7 @@ type Content struct {
 	db *data.DBConn
 }
 
-func NewUsers(l *log.Logger, db *data.DBConn) *Content {
+func NewContent(l *log.Logger, db *data.DBConn) *Content {
 	return &Content{
 		l:  l,
 		db: db,
