@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc"
@@ -20,6 +22,22 @@ type Service struct {
 type TLS struct {
 	TC *tls.Config
 	C  credentials.TransportCredentials
+}
+
+func GetEnvOrDefault(key, fallback string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return fallback
+	}
+	return value
+}
+
+func GetEnvOrDefaultInt(key string, fallback int) int {
+	value, err := strconv.ParseInt(os.Getenv(key), 10, 32)
+	if err != nil {
+		return fallback
+	}
+	return int(value)
 }
 
 func NewService(l *log.Logger) *Service {
@@ -53,7 +71,8 @@ func (t *TLS) Init(localCrtPath, localKeyPath, rootPEMPath string) error {
 }
 
 func (s *Service) NewServer() *grpc.Server {
-	return grpc.NewServer(grpc.Creds(s.TLS.C))
+	// return grpc.NewServer(grpc.Creds(s.TLS.C))
+	return grpc.NewServer()
 }
 
 func (s *Service) GetConnection(addr string) (*grpc.ClientConn, error) {

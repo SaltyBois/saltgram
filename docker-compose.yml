@@ -19,11 +19,13 @@ services:
     environment:
       - SALT_API_PORT=443
       - SALT_AUTH_PORT=${SALT_AUTH_PORT}
+      - SALT_AUTH_ADDR=auth
       - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_USERS_ADDR=users
       - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
+      - SALT_EMAIL_ADDR=email
       - SALT_WEB_PORT=${SALT_WEB_PORT}
   authdb:
-    container_name: auth_db
     image: postgres
       #volumes:
       #- ./data/authdb:/var/lib/postgresql/data
@@ -32,14 +34,40 @@ services:
       - POSTGRES_USER=saltauth
       - POSTGRES_PASSWORD=saltauth
     ports:
-      - "9090:5432"
+      - "9090:9090"
+    command: -p 9090
   auth:
     build: src/auth/
     image: auth
     ports:
-      - "${SALT_AUTH_PORT}:443"
+      - "${SALT_AUTH_PORT}:${SALT_AUTH_PORT}"
     environment:
-      - SALT_AUTH_PORT=443
+      - SALT_AUTH_PORT=${SALT_AUTH_PORT}
       - SALT_USERS_PORT=${SALT_AUTH_PORT}
+      - SALT_USERS_ADDR=users
+      - AUTHDB_HOST=authdb
+      - AUTHDB_PORT=9090
+  usersdb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltusersdb
+      - POSTGRES_USER=saltusers
+      - POSTGRES_PASSWORD=saltusers
+    ports:
+      - "9091:9091"
+    command: -p 9091
+  users:
+    build: src/users
+    image: users
+    ports:
+      - "${SALT_USERS_PORT}:${SALT_USERS_PORT}"
+    environment:
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_AUTH_PORT=${SALT_AUTH_PORT}
+      - SALT_AUTH_ADDR=auth
+      - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
+      - SALT_EMAIL_ADDR=email
+      - USERSDB_HOST=usersdb
+      - USERSDB_PORT=9091
 
 
