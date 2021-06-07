@@ -115,10 +115,22 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		HashedPassword: r.Password,
 		Role:           "user", // TODO(Jovan): For now
 	}
+
 	err = u.db.AddUser(&user)
 	if err != nil {
 		u.l.Printf("[ERROR] adding user: %v\n", err)
 		return &prusers.RegisterResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	profile := data.Profile{
+		Username: r.Username,
+		Taggable: false,
+		Public:   false,
+	}
+
+	err = u.db.AddProfile(&profile)
+	if err != nil {
+		u.l.Printf("[ERROR] adding profile: %v\n", err)
 	}
 
 	// NOTE(Jovan): Saving refresh token

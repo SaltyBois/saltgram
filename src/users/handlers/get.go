@@ -82,3 +82,14 @@ func (u *Users) GetAll(db *data.DBConn) func(http.ResponseWriter, *http.Request)
 		}
 	}
 }
+
+func (u *Users) GetAllProfiles(db *data.DBConn) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u.l.Println("Handling GET Proflie")
+		pl := db.GetProfiles()
+		err := data.ToJSON(pl, w)
+		if err != nil {
+			http.Error(w, "Unable to marshal JSON", http.StatusInternalServerError)
+		}
+	}
+}

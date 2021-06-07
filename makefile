@@ -31,8 +31,7 @@ email:
 	cd $(EMAILDIR) && go run main.go
 
 frontend: front_build
-	# cd $(FRONTDIR) && npm run serve
-	# cd $(FRONTDIR) && npm run build
+	cd $(FRONTDIR) && npm run build
 	cd $(WEBSERVERDIR) && go run main.go
 
 front_build: 

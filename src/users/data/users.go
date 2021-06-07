@@ -15,7 +15,7 @@ type User struct {
 	// ID             uint64    `json:"id"`
 	Email          string    `json:"email" gorm:"primaryKey" validate:"required"`
 	FullName       string    `json:"fullName" validate:"required"`
-	Username       string    `json:"username" validate:"required"`
+	Username       string    `json:"username" validate:"required" gorm:"unique"`
 	HashedPassword string    `json:"password" validate:"required"`
 	ReCaptcha      ReCaptcha `json:"reCaptcha" gorm:"embedded" validate:"required"`
 	Role           string    `json:"role"`
@@ -26,6 +26,12 @@ type User struct {
 	UpdatedOn string `json:"-"`
 	DeletedOn string `json:"-"`
 }
+
+/*type Folowing struct {
+	ProfileId 		uint
+	Profile			Profile 	`gorm:"foreignKey:Username, references:Username" `
+	Profiles 		[]Profile
+}*/
 
 func (u *User) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
