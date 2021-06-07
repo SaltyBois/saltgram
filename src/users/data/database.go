@@ -30,4 +30,5 @@ func (db *DBConn) ConnectToDb() error {
 func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&User{})
 	db.DB.AutoMigrate(&Profile{})
+	db.DB.AutoMigrate(&FollowRequest{})
 }

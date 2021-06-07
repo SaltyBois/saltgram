@@ -1,10 +1,18 @@
 package data
 
 type Profile struct {
-	Username string `json:"username validate:required"`
-	User     User   `gorm:"foreignKey:Username; references:Username" `
-	Public   bool   `json:"-"`
-	Taggable bool   `json:"-"`
+	Username  string     `json:"username" validate:"required" gorm:"primaryKey"`
+	User      User       `gorm:"foreignKey:Username; references:Username" `
+	Public    bool       `json:"-"`
+	Taggable  bool       `json:"-"`
+	Followers []*Profile `gorm:"many2many:profile_followers"`
+}
+
+type FollowRequest struct {
+	ToFollow        string
+	Profile         Profile `gorm:"foreignKey:ToFollow"`
+	Follower        string
+	FollowerProfile Profile `gorm:"foreignKey:Follower"`
 }
 
 func (db *DBConn) GetProfiles() []*Profile {
@@ -14,10 +22,14 @@ func (db *DBConn) GetProfiles() []*Profile {
 }
 
 func (db *DBConn) AddProfile(p *Profile) error {
+	// err := p.User.GenerateSaltAndHashedPassword()
+	// if err != nil {
+	// 	return err
+	// }
 	return db.DB.Create(p).Error
 }
 
-func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
+func GetProfileByUsername(db *DBConn, username string) (*Profile, error) {
 	profile := Profile{}
 	err := db.DB.First(&profile, username).Error
 	return &profile, err

@@ -51,6 +51,7 @@ func main() {
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {

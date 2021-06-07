@@ -168,3 +168,17 @@ func (u *Users) CheckEmail(ctx context.Context, r *prusers.CheckEmailRequest) (*
 		Verified: data.IsEmailVerified(u.db, r.Username),
 	}, nil
 }
+
+func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequest) (*prusers.ProfileResponse, error) {
+	profile, err := data.GetProfileByUsername(u.db, r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.ProfileResponse{}, err
+	}
+	return &prusers.ProfileResponse{
+		Username: profile.Username,
+		Public:   profile.Public,
+		Taggable: profile.Taggable,
+	}, nil
+
+}

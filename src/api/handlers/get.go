@@ -9,6 +9,7 @@ import (
 	"saltgram/protos/users/prusers"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 )
 
 func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
@@ -88,4 +89,24 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
+}
+
+func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	profileUsername, err := vars["username"]
+	if !err {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	profile, er := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{Username: profileUsername})
+	if er != nil {
+		u.l.Println("[ERROR] fetching profile")
+		http.Error(w, "Profile not found", http.StatusNotFound)
+		return
+	}
+
+	saltdata.ToJSON(profile, w)
+
 }

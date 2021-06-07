@@ -10,6 +10,12 @@ service Users {
     rpc ResetPassword(UserResetRequest) returns(UserResetResponse);
     rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
     rpc GetRole(RoleRequest) returns (RoleResponse);
+    rpc GetProfileByUsername(ProfileRequest) returns (ProfileResponse);
+    rpc ChangeProfilePublic(ChangePublicRequest) returns (ChangePublicResponse);
+    rpc ChangeProfileTaggable(ChangeTaggableRequest) returns (ChangeTaggableResponse);
+    rpc Follow(FollowRequest) returns (FollowRespose);
+    rpc UnFollow(FollowRequest) returns (FollowRespose);
+    rpc GetFollowers(FollowerRequest) returns(stream FollowersResponse);
 }
 
 message RoleRequest {
@@ -84,3 +90,47 @@ message CheckEmailRequest {
 message CheckEmailResponse {
     bool verified = 1;
 }
+
+message ProfileRequest {
+    string username = 1;
+}
+
+message ProfileResponse {
+    string username = 1;
+    bool public = 2;
+    bool taggable = 3;
+}
+
+message ChangePublicRequest {
+    string username = 1;
+    bool public = 2;
+}
+
+message ChangePublicResponse {}
+
+message ChangeTaggableRequest {
+    string username = 1;
+    bool public = 2;
+}
+
+message ChangeTaggableResponse {}
+
+message FollowRequest {
+    string username = 1;
+    string toFollow = 2;
+}
+
+message FollowRespose {
+    string response = 1;
+}
+
+message FollowerRequest {
+    string username = 1;
+}
+
+message FollowersResponse {
+    string username = 1;
+    bool  public = 2;
+    bool taggable = 3; 
+}
+

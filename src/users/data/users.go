@@ -27,12 +27,6 @@ type User struct {
 	DeletedOn string `json:"-"`
 }
 
-/*type Folowing struct {
-	ProfileId 		uint
-	Profile			Profile 	`gorm:"foreignKey:Username, references:Username" `
-	Profiles 		[]Profile
-}*/
-
 func (u *User) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
 	validate := validator.New()
