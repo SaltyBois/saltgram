@@ -92,16 +92,48 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user := claims.Username
+
 	vars := mux.Vars(r)
-	profileUsername, err := vars["username"]
-	if !err {
+	profileUsername, er := vars["username"]
+	if !er {
 		u.l.Println("[ERROR] parsing URL, no username in URL")
 		http.Error(w, "Error parsing URL", http.StatusBadRequest)
 		return
 	}
 
-	profile, er := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{Username: profileUsername})
-	if er != nil {
+	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user, Username: profileUsername})
+	if err != nil {
 		u.l.Println("[ERROR] fetching profile")
 		http.Error(w, "Profile not found", http.StatusNotFound)
 		return

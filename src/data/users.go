@@ -10,8 +10,18 @@ type UserDTO struct {
 	ReCaptcha ReCaptcha `json:"reCaptcha" validate:"required"`
 }
 
+type FollowDTO struct {
+	ProfileRequest  string `json:"username" validate:"required"`
+	ProfileToFollow string `json:"profile" validate:"required"`
+}
+
 func (u *UserDTO) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
 	validate := validator.New()
 	return validate.Struct(u)
+}
+
+func (f *FollowDTO) Validate() error {
+	validate := validator.New()
+	return validate.Struct(f)
 }

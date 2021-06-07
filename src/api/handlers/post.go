@@ -260,3 +260,29 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 
 	saltdata.ToJSON(res, w)
 }
+
+func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
+	dto := saltdata.FollowDTO{}
+	err := saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.Follow(context.Background(), &prusers.FollowRequest{Username: dto.ProfileRequest, ToFollow: dto.ProfileToFollow})
+	if err != nil {
+		u.l.Printf("[ERROR] following profile: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Following %s"))
+
+}

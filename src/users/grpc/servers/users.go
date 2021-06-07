@@ -175,10 +175,59 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.ProfileResponse{}, err
 	}
+
+	isFollowing, err := data.CheckIfFollowing(u.db, r.User, r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting followers")
+		return &prusers.ProfileResponse{}, err
+	}
+
+	following, err := data.GetFollowingCount(u.db, r.Username)
+	if err != nil {
+		return &prusers.ProfileResponse{}, err
+	}
+
+	followers, err := data.GetFollowerCount(u.db, r.Username)
+	if err != nil {
+		return &prusers.ProfileResponse{}, err
+	}
+
 	return &prusers.ProfileResponse{
-		Username: profile.Username,
-		Public:   profile.Public,
-		Taggable: profile.Taggable,
+		Username:    profile.Username,
+		Followers:   followers,
+		Following:   following,
+		FullName:    profile.User.FullName,
+		Description: profile.Description,
+		IsFollowing: isFollowing,
+		IsPrivate:   profile.Public,
 	}, nil
+
+}
+
+func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.FollowRespose, error) {
+	profile, err := data.GetProfileByUsername(u.db, r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.FollowRespose{}, err
+	}
+	profileToFollow, err := data.GetProfileByUsername(u.db, r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile to follow: %v\n", err)
+		return &prusers.FollowRespose{}, err
+	}
+
+	isFollowing, err := data.CheckIfFollowing(u.db, profile.Username, profileToFollow.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting followers")
+		return &prusers.FollowRespose{}, err
+	}
+
+	if isFollowing {
+		u.l.Printf("[WARNING] Already following")
+		return &prusers.FollowRespose{}, nil
+	}
+
+	data.SetFollow(u.db, profile, profileToFollow)
+	return nil, nil
 
 }

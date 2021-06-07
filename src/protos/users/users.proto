@@ -92,13 +92,18 @@ message CheckEmailResponse {
 }
 
 message ProfileRequest {
-    string username = 1;
+    string user = 1;
+    string username = 2;
 }
 
 message ProfileResponse {
     string username = 1;
-    bool public = 2;
-    bool taggable = 3;
+    int64 followers = 2;
+    int64 following = 3;
+    string fullName = 4;
+    string description = 5;
+    bool isFollowing = 6;
+    bool isPrivate = 7;
 }
 
 message ChangePublicRequest {
@@ -120,9 +125,7 @@ message FollowRequest {
     string toFollow = 2;
 }
 
-message FollowRespose {
-    string response = 1;
-}
+message FollowRespose {}
 
 message FollowerRequest {
     string username = 1;
