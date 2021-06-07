@@ -1,7 +1,7 @@
 package data
 
 type Comment struct {
-	ID string `jsnon: "id" gorm:"primaryKey" validate:"required"`
+	ID string `json: "id" gorm:"primaryKey" validate:"required"`
 	Content string `json:"content" validate:"required"`
 	Likes int64 `json:"likes" validate:"required"`
 	Dislikes int64 `json:"dislikes" validate:"required"`
