@@ -28,9 +28,21 @@ axios.defaults.baseURL = process.env.VUE_APP_API_ENDPOINT;
 const store = new Vuex.Store({
   state: {
     jws: "",
-  },
+  }
 });
 export default store;
+
+Vue.mixin({
+  methods: {
+    getAHeader: function () {
+      return {'Authorization': 'Bearer ' + store.state.jws};
+    },
+    refreshToken: async function () {
+      // TODO(Jovan): KEEP IN STORE! // {headers: {"Authorization": "Bearer " + store.state}} // this.this.getAHeader()
+      return axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + store.state.jws}});
+    },
+  }
+})
 
 new Vue({
   router,

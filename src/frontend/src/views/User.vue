@@ -105,17 +105,14 @@ export default {
         privateUser: true
       }
     },
-
     methods: {
-
-        refreshToken: async function() {
-            let jws = this.$store.state.jws
-            if (!jws) {
-                this.$router.push("/")
-            }
-
-            return this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
-        },
+        // refreshToken: async function() {
+        //     let jws = this.$store.state.jws
+        //     if (!jws) {
+        //         this.$router.push("/")
+        //     }
+        //     return this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
+        // },
 
         getUserInfo: function() {
             let jws = this.$store.state.jws
@@ -125,20 +122,20 @@ export default {
 
             this.axios.get("users", {headers:{"Authorization": "Bearer " + jws}})
                 .then(r => {
-                    console.log(r);
+                    console.log('Successfully Authenticated user: ',r);
                     this.user = r.data;
                 })
-                .catch(r => {
-                    console.log(r);
+                .catch(() => {
+                    console.log('Failed to Auth user');
                     // NOTE(Jovan): Try to refresh
-                    this.this.refreshToken()
+                    this.refreshToken()
                         .then(r => {
-                            console.log(r);
+                            console.log('Successfully refreshed token', r);
                             this.$store.state.jws = r.data;
-                            this.$router.go()
+                            this.$router.go();
                         })
-                        .catch(r => {
-                            console.log(r);
+                        .catch(() => {
+                            console.log('Failed to refresh token');
                             this.$router.push("/");
                         });
                 });
@@ -148,7 +145,7 @@ export default {
         }
     },
     mounted() {
-        // this.getUserInfo(); // TODO UNCOMMENT THIS
+         this.getUserInfo(); // TODO UNCOMMENT THIS
     },
 }
 </script>
