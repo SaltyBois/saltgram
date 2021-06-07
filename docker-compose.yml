@@ -9,3 +9,5 @@ services:
     image: webserver
     ports:
       - "${SALT_WEB_PORT}:443"
+    environment:
+      - SALT_WEB_PORT=443
