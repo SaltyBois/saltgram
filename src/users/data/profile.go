@@ -1,5 +1,11 @@
 package data
 
+const (
+	PENDING  = "PENDING"
+	ACCEPTED = "ACCEPTED"
+	DENIED   = "DENIED"
+)
+
 type Profile struct {
 	Username    string     `json:"username" validate:"required" gorm:"primaryKey"`
 	User        User       `gorm:"foreignKey:Username; references:Username" `
@@ -14,6 +20,7 @@ type FollowRequest struct {
 	Profile         Profile `gorm:"foreignKey:ToFollow"`
 	Follower        string
 	FollowerProfile Profile `gorm:"foreignKey:Follower"`
+	Status          string
 }
 
 func (db *DBConn) GetProfiles() []*Profile {
@@ -67,4 +74,13 @@ func GetFollowingCount(db *DBConn, username string) (int64, error) {
 func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
 	db.DB.Model(&profileToFollow).Association("Followers").Append(&profile)
 	return db.DB.Save(&profileToFollow).Error
+}
+
+func CreateFollowRequest(db *DBConn, profile *Profile, profileToFollow *Profile) error {
+	request := FollowRequest{
+		Profile:         *profileToFollow,
+		FollowerProfile: *profile,
+		Status:          PENDING,
+	}
+	return db.DB.Create(&request).Error
 }

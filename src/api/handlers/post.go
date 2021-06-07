@@ -262,8 +262,39 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	profileRequest := claims.Username
+
 	dto := saltdata.FollowDTO{}
-	err := saltdata.FromJSON(&dto, r.Body)
+	err = saltdata.FromJSON(&dto, r.Body)
 	if err != nil {
 		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -276,7 +307,7 @@ func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = u.uc.Follow(context.Background(), &prusers.FollowRequest{Username: dto.ProfileRequest, ToFollow: dto.ProfileToFollow})
+	_, err = u.uc.Follow(context.Background(), &prusers.FollowRequest{Username: profileRequest, ToFollow: dto.ProfileToFollow})
 	if err != nil {
 		u.l.Printf("[ERROR] following profile: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)

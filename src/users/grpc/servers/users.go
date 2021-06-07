@@ -199,7 +199,7 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		FullName:    profile.User.FullName,
 		Description: profile.Description,
 		IsFollowing: isFollowing,
-		IsPrivate:   profile.Public,
+		IsPublic:    profile.Public,
 	}, nil
 
 }
@@ -227,7 +227,16 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		return &prusers.FollowRespose{}, nil
 	}
 
-	data.SetFollow(u.db, profile, profileToFollow)
-	return nil, nil
+	if !profileToFollow.Public {
+		err = data.CreateFollowRequest(u.db, profile, profileToFollow)
+		if err != nil {
+			u.l.Printf("[ERROR] creating following request")
+			return &prusers.FollowRespose{}, err
+		}
+		return &prusers.FollowRespose{}, nil
 
+	}
+
+	data.SetFollow(u.db, profile, profileToFollow)
+	return &prusers.FollowRespose{}, nil
 }

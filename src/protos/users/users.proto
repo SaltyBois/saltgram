@@ -103,7 +103,7 @@ message ProfileResponse {
     string fullName = 4;
     string description = 5;
     bool isFollowing = 6;
-    bool isPrivate = 7;
+    bool isPublic = 7;
 }
 
 message ChangePublicRequest {

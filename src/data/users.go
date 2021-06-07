@@ -11,7 +11,6 @@ type UserDTO struct {
 }
 
 type FollowDTO struct {
-	ProfileRequest  string `json:"username" validate:"required"`
 	ProfileToFollow string `json:"profile" validate:"required"`
 }
 
