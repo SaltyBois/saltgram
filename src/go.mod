@@ -21,6 +21,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/roberthodgen/spa-server v0.0.0-20171007154335-bb87b4ff3253 // indirect
 	github.com/securego/gosec/v2 v2.7.0 // indirect
+	gitlab.com/pantomath-io/demo-grpc v0.0.0-20171010145848-6dd27f9b2ed4 // indirect
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
@@ -28,6 +29,7 @@ require (
 	google.golang.org/api v0.44.0 // indirect
 	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46
 	google.golang.org/grpc v1.37.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect

@@ -1,6 +1,10 @@
 package servers
 
-import "log"
+import
+(
+	"log"
+	"saltgram/content/data"
+)
 
 type Content struct {
 	l  *log.Logger

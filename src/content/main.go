@@ -5,7 +5,11 @@ import (
 	"log"
 	"net"
 	"os"
+	"saltgram/content/grpc/servers"
+	"saltgram/protos/content/prcontent"
 
+
+	"google.golang.org/grpc/reflection"
 	"saltgram/internal"
 	"saltgram/content/data"
 )
@@ -23,7 +27,7 @@ func main() {
 		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
 	}
 
-	gContentServer := servers.NewContent(l, db)
+	gContentServer := servers.NewContent(l, &db)
 	grpcServer := s.NewServer()
 	prcontent.RegisterContentServer(grpcServer, gContentServer)
 	reflection.Register(grpcServer)
