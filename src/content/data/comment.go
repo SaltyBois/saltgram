@@ -6,18 +6,16 @@ type Comment struct {
 	Likes int64 `json:"likes" validate:"required"`
 	Dislikes int64 `json:"dislikes" validate:"required"`
 	Comments []*Comment `gorm:"many2many:comment_replies"`
+	Post Post `validate:"required"`
 }
 
 func (db *DBConn) Add(comment *Comment) error {
 	return db.DB.Create(comment).Error
 }
 
-func (db *DBConn) Get(id string) (*Comment, error) {
+func (db *DBConn) GetCommentByPostId(id string) (*Comment, error) {
 	comment := Comment{}
-	err := db.DB.First(&comment).Error
-	if err != nil {
-		return nil, err
-	}
-	return &comment, nil
+	err := db.DB.Where("post.id = ?", id).First(&comment).Error
+	return &comment, err
 }
 

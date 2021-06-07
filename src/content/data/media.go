@@ -10,7 +10,8 @@ type Media struct {
 }
 
 type SharedMedia struct {
-	//Media []*Media
+	//Profile Profile
+	Media []*Media
 }
 
 type Story struct {
@@ -21,4 +22,20 @@ type Story struct {
 type Post struct {
 	SharedMedia SharedMedia `validate:"required"`
 	Public bool `json:"-"`
+}
+
+/*func (db *DBConn) GetSharedMediaByUsername(username string) (*SharedMedia, error) {
+	sharedMedia := SharedMedia{}
+	err := db.DB.Where("username = ?", username).First(&sharedMedia).Error
+	return &sharedMedia, err
+}*/
+
+func (db *DBConn) GetSharedMediaByProfile(username string) (*SharedMedia, error) {
+	sharedMedia := SharedMedia{}
+	err := db.DB.Where("username = ?", username).First(&sharedMedia).Error
+	return &sharedMedia, err
+}
+
+func (db *DBConn) AddSharedMedia(s *SharedMedia) error {
+	return db.DB.Create(SharedMedia{}).Error
 }
