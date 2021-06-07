@@ -28,5 +28,11 @@ func (db *DBConn) ConnectToDb() error {
 }
 
 func (db *DBConn) MigradeData() {
-
+	db.DB.AutoMigrate(&Media{})
+	db.DB.AutoMigrate(&SharedMedia{})
+	db.DB.AutoMigrate(&Post{})
+	db.DB.AutoMigrate(&Story{})
+	db.DB.AutoMigrate(&Comment{})
+	db.DB.AutoMigrate(&Location{})
+	db.DB.AutoMigrate(&Reaction{})
 }

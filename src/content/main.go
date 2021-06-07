@@ -1,10 +1,11 @@
-package content
+package main
 
 import (
 	"log"
 	"os"
 
 	"saltgram/internal"
+	"saltgram/content/data"
 )
 
 func main() {

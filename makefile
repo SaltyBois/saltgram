@@ -9,14 +9,15 @@ APIDIR = src/api
 AUTHDIR = src/auth
 USERSDIR = src/users
 EMAILDIR = src/email
+CONTENTDIR = src/content
 
-.PHONY: node_modules test tidy protos api auth users
+.PHONY: node_modules test tidy protos api auth users content
 
 protos:
 	cd $(MAINDIR) && protoc -I protos/ protos/*/*.proto --go_out=protos/ --go-grpc_out=protos/
 
 backend:
-	make -j 4 api auth users email
+	make -j 5 api auth users email content
 
 api:
 	cd $(APIDIR) && go run main.go
@@ -29,6 +30,9 @@ users:
 
 email:
 	cd $(EMAILDIR) && go run main.go
+
+content:
+	cd $(CONTENTDIR) && go run main.go
 
 frontend: front_build
 	# cd $(FRONTDIR) && npm run serve
