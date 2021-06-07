@@ -1,0 +1,11 @@
+services:
+  dependencies:
+    build: 
+      context: .
+      dockerfile: dependencies.Dockerfile
+    image: dependencies
+  webserver:
+    build: src/webserver/
+    image: webserver
+    ports:
+      - "${SALT_WEB_PORT}:443"
