@@ -115,31 +115,14 @@ export default {
         // },
 
         getUserInfo: function() {
-            let jws = this.$store.state.jws
-            if (!jws) {
-                this.$router.push("/");
-            }
-
-            this.axios.get("users", {headers:{"Authorization": "Bearer " + jws}})
-                .then(r => {
-                    console.log('Successfully Authenticated user: ',r);
-                    this.user = r.data;
-                })
-                .catch(() => {
-                    console.log('Failed to Auth user');
-                    // NOTE(Jovan): Try to refresh
-                    this.refreshToken()
-                        .then(r => {
-                            console.log('Successfully refreshed token', r);
-                            this.$store.state.jws = r.data;
-                            this.$router.go();
-                        })
-                        .catch(() => {
-                            console.log('Failed to refresh token');
-                            this.$router.push("/");
-                        });
-                });
+            this.refreshToken(this.getAHeader())
+                .then(rr => {
+                    this.$store.state.jws = rr.data;
+                    this.axios.get("users", {headers: this.getAHeader()})
+                        .then(r => this.user = r.data);
+                }).catch(() => this.$router.push('/'));
         },
+
         toggleFollow(follow) {
           this.followingUser = follow
         }
