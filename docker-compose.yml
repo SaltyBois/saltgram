@@ -11,3 +11,35 @@ services:
       - "${SALT_WEB_PORT}:443"
     environment:
       - SALT_WEB_PORT=443
+  api:
+    build: src/api/
+    image: api
+    ports:
+      - "${SALT_API_PORT}:443"
+    environment:
+      - SALT_API_PORT=443
+      - SALT_AUTH_PORT=${SALT_AUTH_PORT}
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
+      - SALT_WEB_PORT=${SALT_WEB_PORT}
+  authdb:
+    container_name: auth_db
+    image: postgres
+      #volumes:
+      #- ./data/authdb:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=saltauthdb
+      - POSTGRES_USER=saltauth
+      - POSTGRES_PASSWORD=saltauth
+    ports:
+      - "9090:5432"
+  auth:
+    build: src/auth/
+    image: auth
+    ports:
+      - "${SALT_AUTH_PORT}:443"
+    environment:
+      - SALT_AUTH_PORT=443
+      - SALT_USERS_PORT=${SALT_AUTH_PORT}
+
+
