@@ -100,6 +100,16 @@
         </div>
       </div>
     </div>
+    <div class="item-container mb-10">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 50%;">
+          <v-btn class="mx-2" v-bind:class="!privateProfile ? 'primary' : 'accent'" @click="privateProfile = false"><i class="fa fa-unlock mr-1"/>Public profile</v-btn>
+        </div>
+        <div style="width: 50%;">
+          <v-btn class="mx-2" v-bind:class="privateProfile ? 'primary' : 'accent'" @click="privateProfile = true"><i class="fa fa-lock mr-1"/>Private profile</v-btn>
+        </div>
+      </div>
+    </div>
     <div class="item-container ">
       <v-btn class="primary mb-5">Confirm changes</v-btn>
     </div>
@@ -116,7 +126,8 @@ export default {
     return {
       profileImage: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg',
       showContent: false,
-      genderRoles: [ 'Male', 'Female' ]
+      genderRoles: [ 'Male', 'Female' ],
+      privateProfile: false
     }
   },
   methods: {

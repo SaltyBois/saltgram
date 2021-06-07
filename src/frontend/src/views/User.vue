@@ -7,7 +7,7 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage :following-prop="followingUser" username="Username" image-src="Insert image source" @toggle-following="toggleFollow"/>
+          <ProfileImage :following-prop="followingUser" username="Kristijan" image-src="Insert image source" @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
