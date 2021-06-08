@@ -7,7 +7,7 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage :following-prop="followingUser" username="Username" image-src="Insert image source" @toggle-following="toggleFollow"/>
+          <ProfileImage :following-prop="followingUser" username="Kristijan" image-src="Insert image source" @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -105,50 +105,30 @@ export default {
         privateUser: true
       }
     },
-
     methods: {
-
-        refreshToken: async function() {
-            let jws = this.$store.state.jws
-            if (!jws) {
-                this.$router.push("/")
-            }
-
-            return this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
-        },
+        // refreshToken: async function() {
+        //     let jws = this.$store.state.jws
+        //     if (!jws) {
+        //         this.$router.push("/")
+        //     }
+        //     return this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
+        // },
 
         getUserInfo: function() {
-            let jws = this.$store.state.jws
-            if (!jws) {
-                this.$router.push("/");
-            }
-
-            this.axios.get("users", {headers:{"Authorization": "Bearer " + jws}})
-                .then(r => {
-                    console.log(r);
-                    this.user = r.data;
-                })
-                .catch(r => {
-                    console.log(r);
-                    // NOTE(Jovan): Try to refresh
-                    this.this.refreshToken()
-                        .then(r => {
-                            console.log(r);
-                            this.$store.state.jws = r.data;
-                            this.$router.go()
-                        })
-                        .catch(r => {
-                            console.log(r);
-                            this.$router.push("/");
-                        });
-                });
+            this.refreshToken(this.getAHeader())
+                .then(rr => {
+                    this.$store.state.jws = rr.data;
+                    this.axios.get("users", {headers: this.getAHeader()})
+                        .then(r => this.user = r.data);
+                }).catch(() => this.$router.push('/'));
         },
+
         toggleFollow(follow) {
           this.followingUser = follow
         }
     },
     mounted() {
-        // this.getUserInfo(); // TODO UNCOMMENT THIS
+         this.getUserInfo(); // TODO UNCOMMENT THIS
     },
 }
 </script>
