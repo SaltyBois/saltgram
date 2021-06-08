@@ -170,9 +170,17 @@ func (u *Users) CheckEmail(ctx context.Context, r *prusers.CheckEmailRequest) (*
 }
 
 func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequest) (*prusers.ProfileResponse, error) {
+	//var response = &prusers.ProfileResponse{}
+
 	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.ProfileResponse{}, err
+	}
+
+	user, err := u.db.GetUserByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting user: %v\n", err)
 		return &prusers.ProfileResponse{}, err
 	}
 
@@ -192,16 +200,23 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
+	// response.Username = profile.Username
+	// response.Followers = followers
+	// response.Following = following
+	// response.FullName = user.FullName
+	// response.Description = profile.Description
+	// response.IsFollowing = isFollowing
+	// response.IsPublic = profile.Public
+
 	return &prusers.ProfileResponse{
 		Username:    profile.Username,
 		Followers:   followers,
 		Following:   following,
-		FullName:    profile.User.FullName,
+		FullName:    user.FullName,
 		Description: profile.Description,
 		IsFollowing: isFollowing,
 		IsPublic:    profile.Public,
 	}, nil
-
 }
 
 func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.FollowRespose, error) {

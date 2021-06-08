@@ -7,7 +7,7 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage :following-prop="followingUser" username="Kristijan" image-src="Insert image source" @toggle-following="toggleFollow"/>
+          <ProfileImage :following-prop="followingUser" :username="this.profile.username" image-src="Insert image source" @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -100,9 +100,18 @@ export default {
     },
     data: function() {
       return {
+        profile : {
+
+        },
         radioButton: 'posts',
-        followingUser: false,
-        privateUser: true
+        // followingUser: false,
+        // privateUser: true,
+        // isMyProfile: false,
+        // description: '',
+        // fullName: '',
+        // followers: '',
+        // following: '',
+        // username: '',
       }
     },
     methods: {
@@ -119,8 +128,36 @@ export default {
                 .then(rr => {
                     this.$store.state.jws = rr.data;
                     this.axios.get("users", {headers: this.getAHeader()})
-                        .then(r => this.user = r.data);
+                        .then(r =>{ 
+                          this.user = r.data
+                          this.getUser();
+                          });
+                      
                 }).catch(() => this.$router.push('/'));
+        },
+
+        getUser: function() {
+            if(this.user.username != this.$route.params.username ) {
+                this.isMyProfile = false
+            } else {
+              this.isMyProfile = true
+            }
+
+            this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
+            .then(r => {
+              console.log(r.data);
+              this.profile.privateUser = !r.data.isPublic;
+              this.profile.followingUser = r.data.isFollowing;
+              this.profile.username = r.username;
+              this.profile.followers = r.followers;
+              this.profile.following = r.following;
+              this.profile.fullName = r.fullName;
+              this.profile.description = r.description;
+              console.log(this.profile);
+            }).catch(r => {
+              console.log(r.data)
+              this.$router.push('/');
+            })
         },
 
         toggleFollow(follow) {

@@ -77,11 +77,12 @@ export default {
       this.axios.post("auth/login", this.user)
         .then(r => {
           console.log(r);
+          var username = r.data.username
           this.axios.post("auth/jwt", r.data)
             .then(r => {
               this.$store.state.jws = r.data;
               console.log("Saved jwt ", this.$store.state.jws);
-              this.$router.push("/user");
+              this.$router.push("/" + username);
             })
             .catch(r => {
               console.log(r);

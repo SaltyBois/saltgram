@@ -1,7 +1,7 @@
 <template>
   <v-layout align-center column style="width: 40%;">
     <h2 style="text-align: center; margin-top: 10px">
-      USERNAME
+      {{this.username}}
       <i class="fa fa-check-square verified-icon ml-5"/>
     </h2>
     <v-img  id="profile-image"
@@ -63,7 +63,8 @@ export default {
       showProfileImageDialog: false,
       following: false,
       muted: false,
-      myProfile: false
+      myProfile: false,
+      profile: ''
     }
   },
   mounted() {
@@ -100,6 +101,14 @@ export default {
       console.log(this.profilePicture)
     },
     emitToggleFollowing() {
+      this.profile = this.username;
+      this.axios.post("users/create/follow", this.profile, {headers: this.getAHeader()})
+        .then(r => {
+          console.log(r);
+        })
+        .catch(r => {
+          console.log(r)
+        })
       this.following = !this.following;
       this.$emit('toggle-following', this.following);
     }

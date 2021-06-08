@@ -20,7 +20,7 @@ const routes = [
     // },
   },
  {
-   path: '/user',
+   path: '/:username',
    name: 'User',
    component: () => import(/* webpackChunkName: "user" */ '../views/User.vue')
  },

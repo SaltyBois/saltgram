@@ -13,7 +13,7 @@ type Profile struct {
 	Username    string `json:"username" gorm:"unique"`
 	User        User
 	Public      bool       `json:"isPublic"`
-	Taggable    bool       `json:"-"`
+	Taggable    bool       `json:"isTaggable"`
 	Description string     `json:"description"`
 	Following   []*Profile `gorm:"many2many:profile_following;"`
 	Profiles    []FollowRequest

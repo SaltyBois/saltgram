@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -139,6 +140,8 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Profile not found", http.StatusNotFound)
 		return
 	}
+
+	fmt.Println(profile.Description)
 
 	saltdata.ToJSON(profile, w)
 
