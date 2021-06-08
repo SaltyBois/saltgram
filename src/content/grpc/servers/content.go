@@ -1,7 +1,6 @@
 package servers
 
-import
-(
+import (
 	"log"
 	"saltgram/content/data"
 	"saltgram/protos/content/prcontent"

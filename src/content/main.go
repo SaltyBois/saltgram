@@ -8,10 +8,10 @@ import (
 	"saltgram/content/grpc/servers"
 	"saltgram/protos/content/prcontent"
 
+	"saltgram/content/data"
+	"saltgram/internal"
 
 	"google.golang.org/grpc/reflection"
-	"saltgram/internal"
-	"saltgram/content/data"
 )
 
 func main() {

@@ -1,5 +1,9 @@
 package data
 
+import (
+	udata "saltgram/users/data"
+)
+
 type ReactionType int
 
 const (
@@ -10,12 +14,14 @@ const (
 type Reaction struct {
 	ID           uint64       `json:"id"`
 	ReactionType ReactionType `validate:"required"`
+	User         udata.User   `json:"user"`
+	UserID       string       `json:"userId"`
 	Post         Post         `json:"post"`
 	PostID       uint64       `json:"postId"`
 }
 
-func (db *DBConn) GetReactionByPostId(id string) (*Reaction, error) {
+func (db *DBConn) GetReactionByPostId(id uint64) (*Reaction, error) {
 	reaction := Reaction{}
-	err := db.DB.Where("post.id = ?", id).First(&reaction).Error
+	err := db.DB.Where("post_id = ?", id).First(&reaction).Error
 	return &reaction, err
 }
