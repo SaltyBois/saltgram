@@ -71,8 +71,7 @@ func (t *TLS) Init(localCrtPath, localKeyPath, rootPEMPath string) error {
 }
 
 func (s *Service) NewServer() *grpc.Server {
-	// return grpc.NewServer(grpc.Creds(s.TLS.C))
-	return grpc.NewServer()
+	return grpc.NewServer(grpc.Creds(s.TLS.C))
 }
 
 func (s *Service) GetConnection(addr string) (*grpc.ClientConn, error) {

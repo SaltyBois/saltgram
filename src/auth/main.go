@@ -32,7 +32,7 @@ func main() {
 	}
 
 	grpcServer := s.NewServer()
-	usersConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
+	usersConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing users connection: %v\n", err)
 	}
