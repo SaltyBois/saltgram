@@ -19,7 +19,7 @@ func main() {
 	l.Printf("Starting Content microservice on port: %s\n", os.Getenv("SALT_CONTENT_PORT"))
 	s := internal.NewService(l)
 
-	db := data.DBConn{}
+	db := data.NewDBConn(l)
 	db.ConnectToDb()
 	db.MigradeData()
 	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
@@ -27,7 +27,7 @@ func main() {
 		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
 	}
 
-	gContentServer := servers.NewContent(l, &db)
+	gContentServer := servers.NewContent(l, db)
 	grpcServer := s.NewServer()
 	prcontent.RegisterContentServer(grpcServer, gContentServer)
 	reflection.Register(grpcServer)

@@ -1,16 +1,14 @@
 package data
 
-import udata "saltgram/users/data"
-
 type Comment struct {
-	ID       uint64     `json:"id" validate:"required"`
-	Content  string     `json:"content" validate:"required"`
-	Likes    int64      `json:"likes" validate:"required"`
-	Dislikes int64      `json:"dislikes" validate:"required"`
-	User     udata.User `json:"user"`
-	UserID   uint64     `json:"userId"`
-	PostID   uint64     `json:"postId"`
-	Post     Post       `json:"post" validate:"required"`
+	ID       uint64 `json:"id" validate:"required"`
+	Content  string `json:"content" validate:"required"`
+	Likes    int64  `json:"likes" validate:"required"`
+	Dislikes int64  `json:"dislikes" validate:"required"`
+	User     User   `json:"user"`
+	UserID   string `json:"userId"`
+	PostID   uint64 `json:"postId"`
+	Post     Post   `json:"post" validate:"required"`
 }
 
 func (db *DBConn) Add(comment *Comment) error {

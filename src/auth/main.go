@@ -19,7 +19,7 @@ func main() {
 	l := log.New(os.Stdout, "saltgram-auth", log.LstdFlags)
 	l.Printf("Starting Auth microservice on port: %s\n", os.Getenv("SALT_AUTH_PORT"))
 	s := internal.NewService(l)
-	db := data.DBConn{}
+	db := data.NewDBConn(l)
 	db.ConnectToDb()
 	db.MigradeData()
 	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
@@ -32,14 +32,14 @@ func main() {
 	}
 
 	grpcServer := s.NewServer()
-	usersConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
+	usersConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing users connection: %v\n", err)
 	}
 	defer usersConnection.Close()
 
 	usersClient := prusers.NewUsersClient(usersConnection)
-	gAuthServer := servers.NewAuth(l, authEnforcer, &db, usersClient)
+	gAuthServer := servers.NewAuth(l, authEnforcer, db, usersClient)
 	prauth.RegisterAuthServer(grpcServer, gAuthServer)
 	reflection.Register(grpcServer)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SALT_AUTH_PORT")))

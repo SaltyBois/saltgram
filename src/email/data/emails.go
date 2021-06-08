@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"os"
+	"saltgram/internal"
 	"strings"
 	"time"
 
@@ -151,9 +152,9 @@ func getUuid() string {
 }
 
 func generateActivationURL(token string) string {
-	return fmt.Sprintf("https://localhost:%s/email/activate/%s", os.Getenv("SALT_WEB_PORT"), token)
+	return fmt.Sprintf("https://localhost:%s/email/activate/%s", internal.GetEnvOrDefault("SALT_WEB_PORT", "8080"), token)
 }
 
 func generatePasswordResetURL(token string) string {
-	return fmt.Sprintf("https://localhost:%s/email/reset/%s", os.Getenv("SALT_WEB_PORT"), token)
+	return fmt.Sprintf("https://localhost:%s/email/reset/%s", internal.GetEnvOrDefault("SALT_WEB_PORT", "8080"), token)
 }
