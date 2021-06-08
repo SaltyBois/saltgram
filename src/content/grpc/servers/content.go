@@ -4,9 +4,11 @@ import
 (
 	"log"
 	"saltgram/content/data"
+	"saltgram/protos/content/prcontent"
 )
 
 type Content struct {
+	prcontent.UnimplementedContentServer
 	l  *log.Logger
 	db *data.DBConn
 }

@@ -8,9 +8,10 @@ const (
 )
 
 type Reaction struct {
+	ID           uint64       `json:"id"`
 	ReactionType ReactionType `validate:"required"`
-	//Profile Profile
-	Post Post
+	Post         Post         `json:"post"`
+	PostID       uint64       `json:"postId"`
 }
 
 func (db *DBConn) GetReactionByPostId(id string) (*Reaction, error) {

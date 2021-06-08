@@ -32,7 +32,6 @@ func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&SharedMedia{})
 	db.DB.AutoMigrate(&Post{})
 	db.DB.AutoMigrate(&Story{})
-	db.DB.AutoMigrate(&Comment{})
-	db.DB.AutoMigrate(&Location{})
 	db.DB.AutoMigrate(&Reaction{})
+	db.DB.AutoMigrate(&Comment{})
 }

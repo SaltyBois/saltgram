@@ -1,38 +1,48 @@
 package data
 
+import udata "saltgram/users/data"
+
 type Media struct {
-	ID string `gorm:"primaryKey"`
-	Filename string `json:"filename" validate:"required"`
-	Tags []string `json:"tags" validate:"required"`
-	Description string `json:"description" validate:"required"`
-	AddedOn string `-`
-	Location Location `gorm:"foreignKey:Id; references:Id" `
+	ID            uint64   `json:"id"`
+	SharedMediaID uint64   `json:"sharedMediaId"`
+	Filename      string   `json:"filename" validate:"required"`
+	Tags          []Tag    `gorm:"many2many:media_tags" json:"tags" validate:"required"`
+	Description   string   `json:"description" validate:"required"`
+	AddedOn       string   `json:"addedOn"`
+	Location      Location `gorm:"embedded"`
+}
+
+type Tag struct {
+	ID    uint64 `json:"id"`
+	Value string `json:"value" validate:"required"`
 }
 
 type SharedMedia struct {
-	//Profile Profile
-	Media []*Media
+	ID    uint64   `json:"id"`
+	Media []*Media `json:"media"`
 }
 
 type Story struct {
-	SharedMedia SharedMedia `validate:"required"`
-	CloseFriends bool `json:"-"`
+	ID            uint64      `json:"id"`
+	User          udata.User  `json:"user"`
+	UserID        string      `json:"userId"`
+	SharedMedia   SharedMedia `json:"sharedMedia"`
+	SharedMediaID uint64      `json:"sharedMediaId"`
+	CloseFriends  bool        `json:"closeFriends"`
 }
 
 type Post struct {
-	SharedMedia SharedMedia `validate:"required"`
-	Public bool `json:"-"`
+	ID            uint64      `json:"id"`
+	User          udata.User  `json:"user"`
+	UserID        string      `json:"userId"`
+	SharedMedia   SharedMedia `validate:"required"`
+	SharedMediaID uint64      `json:"sharedMediaId"`
+	Public        bool        `json:"-"`
 }
 
-/*func (db *DBConn) GetSharedMediaByUsername(username string) (*SharedMedia, error) {
+func (db *DBConn) GetSharedMediaByProfile(id string) (*SharedMedia, error) {
 	sharedMedia := SharedMedia{}
-	err := db.DB.Where("username = ?", username).First(&sharedMedia).Error
-	return &sharedMedia, err
-}*/
-
-func (db *DBConn) GetSharedMediaByProfile(username string) (*SharedMedia, error) {
-	sharedMedia := SharedMedia{}
-	err := db.DB.Where("username = ?", username).First(&sharedMedia).Error
+	err := db.DB.Where("user_id = ?", id).First(&sharedMedia).Error
 	return &sharedMedia, err
 }
 
