@@ -64,7 +64,7 @@ build:
 	cd $(MAINDIR) && go build -v
 
 kill:
-	npx kill-port $(SALT_WEB_PORT) &
+	#npx kill-port $(SALT_WEB_PORT) &
 	npx kill-port $(SALT_API_PORT) &
 	npx kill-port $(SALT_AUTH_PORT) &
 	npx kill-port $(SALT_USERS_PORT) &

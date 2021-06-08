@@ -65,6 +65,8 @@
                     <v-text-field
                     label="Web Site"
                     hint="You can enter it without 'www.'"/>
+                    <v-btn class="mt-3 mb-3" v-bind:class="!privateProfile ? 'primary' : ''" @click="privateProfile = false"><i class="fa fa-unlock mr-1"/>Public profile</v-btn>
+                    <v-btn class="mb-10" v-bind:class="privateProfile ? 'primary' : ''" @click="privateProfile = true"><i class="fa fa-lock mr-1"/>Private profile</v-btn>
                     <v-btn :disabled="!isFormValid" class="accent" @click="registerUser">Sign up</v-btn>
                 </v-form>
             </div>
@@ -99,7 +101,8 @@ export default {
                 min: v => v.length >= 8 || "Min 8 characters",
                 email: v => !v || /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'E-mail must be valid',
             },
-            genderRules: [ 'Male', 'Female']
+            genderRules: [ 'Male', 'Female' ],
+            privateProfile: false,
         }
     },
 
