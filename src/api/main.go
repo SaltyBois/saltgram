@@ -12,6 +12,7 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+	//"saltgram/protos/content/prcontent"
 	"time"
 
 	"github.com/rs/cors"
@@ -63,6 +64,16 @@ func main() {
 	emailRouter.HandleFunc("/activate/{token}", emailHandler.Activate).Methods(http.MethodPut)
 	emailRouter.HandleFunc("/forgot", emailHandler.ForgotPassword).Methods(http.MethodPost)
 	emailRouter.HandleFunc("/reset/{token}", emailHandler.ConfirmReset).Methods(http.MethodPut)
+
+	contentConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_CONTENT_PORT")))
+	if err != nil {
+		l.Fatalf("[ERROR] dialing content connection: %v\n", err)
+	}
+	defer contentConnection.Close()
+	//contentClient := prcontent.NewContentClient(contentConnection)
+	//contentHandler := handlers.NewContent(l, contentClient)
+	//contentRouter := s.S.PathPrefix("/content").Subrouter()
+
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
