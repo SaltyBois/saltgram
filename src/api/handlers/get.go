@@ -9,8 +9,10 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 )
 
 func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
@@ -131,6 +133,38 @@ func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stream, err := s.cc.GetSharedMedia(context.Background(), &prcontent.SharedMediaRequest{UserId: user.Id})
+	if err != nil {
+		s.l.Println("[ERROR] fetching shared medias")
+		http.Error(w, "Followers shared media error", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		sharedMedia, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Println("[ERROR] fetching sharedMedias")
+			http.Error(w, "Error couldn't fetch sharedMedias", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(sharedMedia, w)
+	}
+	w.Write([]byte("}"))
+}
+
+func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("[ERROR] converting id")
+		return
+	}
+
+	stream, err := s.cc.GetSharedMedia(context.Background(), &prcontent.SharedMediaRequest{UserId: id})
 	if err != nil {
 		s.l.Println("[ERROR] fetching shared medias")
 		http.Error(w, "Followers shared media error", http.StatusInternalServerError)
