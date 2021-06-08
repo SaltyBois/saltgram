@@ -53,6 +53,7 @@ func main() {
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/create/follow", usersHandler.Follow).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/get/followers/{username}", usersHandler.GetFollowers).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {

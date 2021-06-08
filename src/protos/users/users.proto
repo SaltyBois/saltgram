@@ -15,7 +15,7 @@ service Users {
     rpc ChangeProfileTaggable(ChangeTaggableRequest) returns (ChangeTaggableResponse);
     rpc Follow(FollowRequest) returns (FollowRespose);
     rpc UnFollow(FollowRequest) returns (FollowRespose);
-    rpc GetFollowers(FollowerRequest) returns(stream FollowersResponse);
+    rpc GetFollowers(FollowerRequest) returns(stream ProfileFollower);
 }
 
 message RoleRequest {
@@ -135,5 +135,10 @@ message FollowersResponse {
     string username = 1;
     bool  public = 2;
     bool taggable = 3; 
+}
+
+message ProfileFollower {
+    string username = 1;
+    string fullName = 2;
 }
 

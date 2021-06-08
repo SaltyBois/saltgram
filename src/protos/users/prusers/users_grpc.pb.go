@@ -175,7 +175,7 @@ func (c *usersClient) GetFollowers(ctx context.Context, in *FollowerRequest, opt
 }
 
 type Users_GetFollowersClient interface {
-	Recv() (*FollowersResponse, error)
+	Recv() (*ProfileFollower, error)
 	grpc.ClientStream
 }
 
@@ -183,8 +183,8 @@ type usersGetFollowersClient struct {
 	grpc.ClientStream
 }
 
-func (x *usersGetFollowersClient) Recv() (*FollowersResponse, error) {
-	m := new(FollowersResponse)
+func (x *usersGetFollowersClient) Recv() (*ProfileFollower, error) {
+	m := new(ProfileFollower)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -514,7 +514,7 @@ func _Users_GetFollowers_Handler(srv interface{}, stream grpc.ServerStream) erro
 }
 
 type Users_GetFollowersServer interface {
-	Send(*FollowersResponse) error
+	Send(*ProfileFollower) error
 	grpc.ServerStream
 }
 
@@ -522,7 +522,7 @@ type usersGetFollowersServer struct {
 	grpc.ServerStream
 }
 
-func (x *usersGetFollowersServer) Send(m *FollowersResponse) error {
+func (x *usersGetFollowersServer) Send(m *ProfileFollower) error {
 	return x.ServerStream.SendMsg(m)
 }
 

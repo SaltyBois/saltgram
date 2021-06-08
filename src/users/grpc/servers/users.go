@@ -240,3 +240,20 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 	data.SetFollow(u.db, profile, profileToFollow)
 	return &prusers.FollowRespose{}, nil
 }
+
+func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {
+	followers, err := data.GetFollowers(u.db, r.Username)
+	if err != nil {
+		return err
+	}
+	for _, profile := range followers {
+		err = stream.Send(&prusers.ProfileFollower{
+			Username: profile.Username,
+			FullName: profile.FullName,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

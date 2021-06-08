@@ -7,7 +7,7 @@ const (
 )
 
 type Profile struct {
-	Username    string     `json:"username" validate:"required" gorm:"primaryKey"`
+	Username    string     `json:"username" validate:"required"`
 	User        User       `gorm:"foreignKey:Username; references:Username" `
 	Public      bool       `json:"isPublic"`
 	Taggable    bool       `json:"-"`
@@ -21,6 +21,11 @@ type FollowRequest struct {
 	Follower        string
 	FollowerProfile Profile `gorm:"foreignKey:Follower"`
 	Status          string
+}
+
+type ProfileFollowerDTO struct {
+	Username string
+	FullName string
 }
 
 func (db *DBConn) GetProfiles() []*Profile {
@@ -83,4 +88,24 @@ func CreateFollowRequest(db *DBConn, profile *Profile, profileToFollow *Profile)
 		Status:          PENDING,
 	}
 	return db.DB.Create(&request).Error
+}
+
+func GetFollowers(db *DBConn, username string) ([]ProfileFollowerDTO, error) {
+
+	var followers []ProfileFollowerDTO
+	//err := db.DB.Preload("Followers").Where("follower_username = ?", username).Find(&followers).Error
+	err := db.DB.Raw("SELECT p.username, u.full_name FROM profiles p INNER JOIN users u on p.username = u.username WHERE p.username IN (SELECT profile_username FROM profile_followers WHERE follower_username = ?)", username).Scan(&followers).Error
+	if err != nil {
+		return nil, err
+	}
+	return followers, nil
+}
+
+func GetFollowing(db *DBConn, username string) ([]Profile, error) {
+	var following []Profile
+	err := db.DB.Preload("Followers").Where("profile_username = ?", username).Find(&following).Error
+	if err != nil {
+		return nil, err
+	}
+	return following, nil
 }
