@@ -25,6 +25,11 @@ services:
       - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
       - SALT_EMAIL_ADDR=email
       - SALT_WEB_PORT=${SALT_WEB_PORT}
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcred
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
+      - RECAPTCHA_PROJECT=${RECAPTCHA_PROJECT}
+    secrets:
+      - gcred
   authdb:
     image: postgres
       #volumes:
@@ -47,6 +52,11 @@ services:
       - SALT_USERS_ADDR=users
       - AUTHDB_HOST=authdb
       - AUTHDB_PORT=9090
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcred
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
+      - RECAPTCHA_PROJECT=${RECAPTCHA_PROJECT}
+    secrets:
+      - gcred
   usersdb:
     image: postgres
     environment:
@@ -89,5 +99,9 @@ services:
       - SALT_USERS_ADDR=users
       - EMAILDB_HOST=emaildb
       - EMAILDB_PORT=9092
+      - SALT_WEB_PORT=${SALT_WEB_PORT}
+      - TIME_LAYOUT=${TIME_LAYOUT}
 
-
+secrets:
+  gcred:
+    file: ./saltgram-c0751de619fa.json

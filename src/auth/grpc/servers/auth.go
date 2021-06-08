@@ -212,13 +212,13 @@ func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.Login
 	}
 
 	if !res.Verified {
-		a.l.Println("[ERROR] bad request")
+		a.l.Println("[ERROR] mail not verified")
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	pres, err := a.uc.CheckPassword(context.Background(), &prusers.CheckPasswordRequest{Username: r.Username, Password: r.Password})
 	if err != nil {
-		a.l.Println("[ERROR] bad request")
+        a.l.Printf("[ERROR] validating password: %v\n", err)
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
