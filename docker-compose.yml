@@ -43,7 +43,7 @@ services:
       - "${SALT_AUTH_PORT}:${SALT_AUTH_PORT}"
     environment:
       - SALT_AUTH_PORT=${SALT_AUTH_PORT}
-      - SALT_USERS_PORT=${SALT_AUTH_PORT}
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
       - SALT_USERS_ADDR=users
       - AUTHDB_HOST=authdb
       - AUTHDB_PORT=9090
@@ -69,5 +69,25 @@ services:
       - SALT_EMAIL_ADDR=email
       - USERSDB_HOST=usersdb
       - USERSDB_PORT=9091
+  emaildb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltemaildb
+      - POSTGRES_USER=saltemail
+      - POSTGRES_PASSWORD=saltemail
+    ports:
+      - "9092:9092"
+    command: -p 9092
+  email:
+    build: src/email
+    image: email
+    ports:
+      - "${SALT_EMAIL_PORT}:${SALT_EMAIL_PORT}"
+    environment:
+      - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_USERS_ADDR=users
+      - EMAILDB_HOST=emaildb
+      - EMAILDB_PORT=9092
 
 
