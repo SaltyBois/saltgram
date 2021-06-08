@@ -24,6 +24,8 @@ services:
       - SALT_USERS_ADDR=users
       - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
       - SALT_EMAIL_ADDR=email
+      - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
+      - SALT_CONTENT_ADDR=contents
       - SALT_WEB_PORT=${SALT_WEB_PORT}
       - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcred
       - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
@@ -101,6 +103,27 @@ services:
       - EMAILDB_PORT=9092
       - SALT_WEB_PORT=${SALT_WEB_PORT}
       - TIME_LAYOUT=${TIME_LAYOUT}
+  contentsdb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltcontentsdb
+      - POSTGRES_USER=saltcontents
+      - POSTGRES_PASSWORD=saltcontents
+    ports:
+      - "9093:9093"
+    command: -p 9093
+
+  contents:
+    build: src/content
+    image: contents
+    ports:
+      - "${SALT_CONTENT_PORT}:${SALT_CONTENT_PORT}"
+    depends_on:
+      - "users"
+    environment:
+      - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
+      - CONTENTSDB_HOST=contentsdb
+      - CONTENTSDB_PORT=9093
 
 secrets:
   gcred:

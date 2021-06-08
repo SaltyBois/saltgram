@@ -12,6 +12,7 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+
 	//"saltgram/protos/content/prcontent"
 	"time"
 
@@ -65,7 +66,7 @@ func main() {
 	emailRouter.HandleFunc("/forgot", emailHandler.ForgotPassword).Methods(http.MethodPost)
 	emailRouter.HandleFunc("/reset/{token}", emailHandler.ConfirmReset).Methods(http.MethodPut)
 
-	contentConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_CONTENT_PORT")))
+	contentConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_CONTENT_ADDR", "localhost"), os.Getenv("SALT_CONTENT_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing content connection: %v\n", err)
 	}

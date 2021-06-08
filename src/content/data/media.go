@@ -1,7 +1,5 @@
 package data
 
-import udata "saltgram/users/data"
-
 type Media struct {
 	ID            uint64   `json:"id"`
 	SharedMediaID uint64   `json:"sharedMediaId"`
@@ -24,7 +22,7 @@ type SharedMedia struct {
 
 type Story struct {
 	ID            uint64      `json:"id"`
-	User          udata.User  `json:"user"`
+	User          User  `json:"user"`
 	UserID        string      `json:"userId"`
 	SharedMedia   SharedMedia `json:"sharedMedia"`
 	SharedMediaID uint64      `json:"sharedMediaId"`
@@ -33,7 +31,7 @@ type Story struct {
 
 type Post struct {
 	ID            uint64      `json:"id"`
-	User          udata.User  `json:"user"`
+	User          User  `json:"user"`
 	UserID        string      `json:"userId"`
 	SharedMedia   SharedMedia `validate:"required"`
 	SharedMediaID uint64      `json:"sharedMediaId"`

@@ -1,9 +1,5 @@
 package data
 
-import (
-	udata "saltgram/users/data"
-)
-
 type ReactionType int
 
 const (
@@ -14,7 +10,7 @@ const (
 type Reaction struct {
 	ID           uint64       `json:"id"`
 	ReactionType ReactionType `validate:"required"`
-	User         udata.User   `json:"user"`
+	User         User   `json:"user"`
 	UserID       string       `json:"userId"`
 	Post         Post         `json:"post"`
 	PostID       uint64       `json:"postId"`
