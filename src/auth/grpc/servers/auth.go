@@ -85,6 +85,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 	)
 
 	if err != nil {
+		fmt.Printf("JOVAN1 %v", err)
 		a.l.Printf("[ERROR] parsing refresh claims: %v", err)
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
@@ -92,6 +93,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 	claims, ok := rToken.Claims.(*saltdata.RefreshClaims)
 
 	if !ok {
+		fmt.Printf("JOVAN2 %v", err)
 		a.l.Println("[ERROR] unable to parse claims")
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
@@ -99,6 +101,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 	refreshToken, err := data.GetRefreshToken(a.db, claims.Username)
 
 	if err != nil {
+		fmt.Printf("JOVAN3 %v", err)
 		a.l.Println("[ERROR] can't find refresh token")
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
@@ -108,6 +111,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 		Token:    refreshToken,
 	}
 	if err := rt.Verify(a.db); err != nil {
+		fmt.Printf("JOVAN4 %v", err)
 		a.l.Println("[ERROR] refresh token no longer valid")
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
@@ -124,6 +128,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 	jwsClaims, ok := jwtOld.Claims.(*saltdata.AccessClaims)
 
 	if !ok {
+		fmt.Printf("JOVAN5 %v", err)
 		a.l.Println("[ERROR] unable to parse claims")
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
@@ -135,6 +140,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 
 	jwsNew, err := jwtNew.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	if err != nil {
+		fmt.Printf("JOVAN6 %v", err)
 		a.l.Printf("[ERROR] failed signing JWT: %v", err)
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}

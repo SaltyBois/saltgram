@@ -6,3 +6,7 @@ p, anon, /email*, *
 p, anon, /forgotpassword, *
 
 p, user, /user*, *
+p, user, /main*, *
+p, user, /inbox*, *
+p, user, /notifications*, *
+p, user, /newContent*, *
