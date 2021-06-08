@@ -10,12 +10,15 @@ service Users {
     rpc ResetPassword(UserResetRequest) returns(UserResetResponse);
     rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
     rpc GetRole(RoleRequest) returns (RoleResponse);
+    rpc UpdateUsername(UsernameRequest) returns (UsernameResponse);
+    rpc UpdateProfile(UpdateRequest) returns (UpdateResponse);
     rpc GetProfileByUsername(ProfileRequest) returns (ProfileResponse);
     rpc ChangeProfilePublic(ChangePublicRequest) returns (ChangePublicResponse);
     rpc ChangeProfileTaggable(ChangeTaggableRequest) returns (ChangeTaggableResponse);
     rpc Follow(FollowRequest) returns (FollowRespose);
     rpc UnFollow(FollowRequest) returns (FollowRespose);
     rpc GetFollowers(FollowerRequest) returns(stream ProfileFollower);
+    rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
 }
 
 message RoleRequest {
@@ -25,6 +28,24 @@ message RoleRequest {
 message RoleResponse {
     string role = 1;
 }
+
+message UsernameRequest {
+    string olldUsername = 1;
+    string newUsername = 2;
+}
+
+message UsernameResponse {}
+
+message UpdateRequest {
+    string oldUsername = 1;
+    string newUsername = 2;
+    string email = 3;
+    string fullName = 4;
+    bool public = 5;
+    bool taggable = 6;
+}
+
+message UpdateResponse {}
 
 message UserResetRequest {
     string email = 1;
@@ -139,6 +160,5 @@ message FollowersResponse {
 
 message ProfileFollower {
     string username = 1;
-    string fullName = 2;
 }
 

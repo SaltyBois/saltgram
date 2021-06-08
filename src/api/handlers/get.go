@@ -159,7 +159,7 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("["))
+	w.Write([]byte("{"))
 	for {
 		profile, err := stream.Recv()
 		if err == io.EOF {
@@ -172,5 +172,36 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 		}
 		saltdata.ToJSON(profile, w)
 	}
-	w.Write([]byte("]"))
+	w.Write([]byte("}"))
+}
+
+func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	username, er := vars["username"]
+	if !er {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := u.uc.GetFollowers(context.Background(), &prusers.FollowerRequest{Username: username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching followers")
+		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching followers")
+			http.Error(w, "Error couldn't fetch followers", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(profile, w)
+	}
+	w.Write([]byte("}"))
 }

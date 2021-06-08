@@ -1,28 +1,33 @@
 package data
 
+type RequestStatus string
+
 const (
-	PENDING  = "PENDING"
-	ACCEPTED = "ACCEPTED"
-	DENIED   = "DENIED"
+	PENDING RequestStatus = "PENDING"
+	ACCEPTED
+	DENIED
 )
 
 type Profile struct {
-	Username    string     `json:"username" validate:"required"`
-	User        User       `gorm:"foreignKey:Username; references:Username" `
+	UserID      uint64 `gorm:"primaryKey"`
+	Username    string `json:"username" gorm:"unique"`
+	User        User
 	Public      bool       `json:"isPublic"`
 	Taggable    bool       `json:"-"`
 	Description string     `json:"description"`
-	Followers   []*Profile `gorm:"many2many:profile_followers"`
+	Following   []*Profile `gorm:"many2many:profile_following;"`
+	Profiles    []FollowRequest
+	Requests    []FollowRequest
 }
 
 type FollowRequest struct {
-	ToFollow        string
-	Profile         Profile `gorm:"foreignKey:ToFollow"`
-	Follower        string
-	FollowerProfile Profile `gorm:"foreignKey:Follower"`
-	Status          string
+	ID            uint64        `json:"-"`
+	ProfileID     uint64        `json:"profileId"`
+	RequestID     uint64        `json:"followerId"`
+	RequestStatus RequestStatus `json:"stats"`
 }
 
+//TODO(Marko add profliPicture?)
 type ProfileFollowerDTO struct {
 	Username string
 	FullName string
@@ -42,15 +47,20 @@ func (db *DBConn) AddProfile(p *Profile) error {
 	return db.DB.Create(p).Error
 }
 
-func GetProfileByUsername(db *DBConn, username string) (*Profile, error) {
+func (db *DBConn) UpdateProfile(p *Profile) error {
+	return db.DB.Save(&p).Error
+}
+
+func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
 	profile := Profile{}
 	err := db.DB.Where("username = ?", username).First(&profile).Error
 	return &profile, err
 }
 
-func CheckIfFollowing(db *DBConn, profile string, username string) (bool, error) {
+func CheckIfFollowing(db *DBConn, profile_username string, following_user_id uint64) (bool, error) {
 	var count int64
-	err := db.DB.Table("profile_followers").Where("profile_username = ? AND follower_username = ?", profile, username).Count(&count).Error
+	// err := db.DB.Table("profile_followers").Where("profile_username = ? AND follower_username = ?", profile, username).Count(&count).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ? AND following_user_id = ? ", profile_username, following_user_id).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
@@ -60,7 +70,8 @@ func CheckIfFollowing(db *DBConn, profile string, username string) (bool, error)
 
 func GetFollowerCount(db *DBConn, username string) (int64, error) {
 	var count int64
-	err := db.DB.Table("profile_followers").Where("follower_username = ?", username).Count(&count).Error
+	// err := db.DB.Table("profile_followers").Where("follower_username = ?", username).Count(&count).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
@@ -69,7 +80,8 @@ func GetFollowerCount(db *DBConn, username string) (int64, error) {
 
 func GetFollowingCount(db *DBConn, username string) (int64, error) {
 	var count int64
-	err := db.DB.Table("profile_followers").Where("profile_username = ?", username).Count(&count).Error
+	// err := db.DB.Table("profile_followers").Where("profile_username = ?", username).Count(&count).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
@@ -77,24 +89,20 @@ func GetFollowingCount(db *DBConn, username string) (int64, error) {
 }
 
 func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
-	db.DB.Model(&profileToFollow).Association("Followers").Append(&profile)
-	return db.DB.Save(&profileToFollow).Error
+	db.DB.Model(&profile).Association("Following").Append(&profileToFollow)
+	return db.DB.Save(&profile).Error
 }
 
-func CreateFollowRequest(db *DBConn, profile *Profile, profileToFollow *Profile) error {
-	request := FollowRequest{
-		Profile:         *profileToFollow,
-		FollowerProfile: *profile,
-		Status:          PENDING,
-	}
-	return db.DB.Create(&request).Error
+func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
+	db.DB.Model(&profile).Association("Requests").Append(&request)
+	return db.DB.Save(&request).Error
 }
 
-func GetFollowers(db *DBConn, username string) ([]ProfileFollowerDTO, error) {
+func GetFollowers(db *DBConn, username string) ([]Profile, error) {
 
-	var followers []ProfileFollowerDTO
+	var followers []Profile
 	//err := db.DB.Preload("Followers").Where("follower_username = ?", username).Find(&followers).Error
-	err := db.DB.Raw("SELECT p.username, u.full_name FROM profiles p INNER JOIN users u on p.username = u.username WHERE p.username IN (SELECT profile_username FROM profile_followers WHERE follower_username = ?)", username).Scan(&followers).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Scan(&followers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +111,7 @@ func GetFollowers(db *DBConn, username string) ([]ProfileFollowerDTO, error) {
 
 func GetFollowing(db *DBConn, username string) ([]Profile, error) {
 	var following []Profile
-	err := db.DB.Preload("Followers").Where("profile_username = ?", username).Find(&following).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Scan(&following).Error
 	if err != nil {
 		return nil, err
 	}

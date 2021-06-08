@@ -170,13 +170,13 @@ func (u *Users) CheckEmail(ctx context.Context, r *prusers.CheckEmailRequest) (*
 }
 
 func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequest) (*prusers.ProfileResponse, error) {
-	profile, err := data.GetProfileByUsername(u.db, r.Username)
+	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.ProfileResponse{}, err
 	}
 
-	isFollowing, err := data.CheckIfFollowing(u.db, r.User, r.Username)
+	isFollowing, err := data.CheckIfFollowing(u.db, r.User, profile.UserID)
 	if err != nil {
 		u.l.Printf("[ERROR] geting followers")
 		return &prusers.ProfileResponse{}, err
@@ -205,18 +205,18 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 }
 
 func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.FollowRespose, error) {
-	profile, err := data.GetProfileByUsername(u.db, r.Username)
+	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.FollowRespose{}, err
 	}
-	profileToFollow, err := data.GetProfileByUsername(u.db, r.Username)
+	profileToFollow, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile to follow: %v\n", err)
 		return &prusers.FollowRespose{}, err
 	}
 
-	isFollowing, err := data.CheckIfFollowing(u.db, profile.Username, profileToFollow.Username)
+	isFollowing, err := data.CheckIfFollowing(u.db, profile.Username, profileToFollow.UserID)
 	if err != nil {
 		u.l.Printf("[ERROR] geting followers")
 		return &prusers.FollowRespose{}, err
@@ -228,7 +228,7 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 	}
 
 	if !profileToFollow.Public {
-		err = data.CreateFollowRequest(u.db, profile, profileToFollow)
+		err = data.CreateFollowRequest(u.db, profileToFollow, profile)
 		if err != nil {
 			u.l.Printf("[ERROR] creating following request")
 			return &prusers.FollowRespose{}, err
@@ -249,11 +249,61 @@ func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_Ge
 	for _, profile := range followers {
 		err = stream.Send(&prusers.ProfileFollower{
 			Username: profile.Username,
-			FullName: profile.FullName,
 		})
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (u *Users) GetFollowing(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {
+	followers, err := data.GetFollowing(u.db, r.Username)
+	if err != nil {
+		return err
+	}
+	for _, profile := range followers {
+		err = stream.Send(&prusers.ProfileFollower{
+			Username: profile.Username,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*prusers.UpdateResponse, error) {
+	user, err := u.db.GetUserByUsername(r.OldUsername)
+	if err != nil {
+		u.l.Printf("[ERROR] geting user: %v\n", err)
+		return &prusers.UpdateResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.OldUsername)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UpdateResponse{}, err
+	}
+
+	user.Username = r.NewUsername
+	user.Email = r.Email
+	user.FullName = r.FullName
+	profile.Username = r.NewUsername
+	profile.Public = r.Public
+	profile.Taggable = r.Taggable
+
+	err = u.db.UpdateUser(user)
+	if err != nil {
+		u.l.Printf("[ERROR] failed to update user%v\n", err)
+		return &prusers.UpdateResponse{}, err
+	}
+	err = u.db.UpdateProfile(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] failed to update profile%v\n", err)
+		return &prusers.UpdateResponse{}, err
+	}
+
+	return &prusers.UpdateResponse{}, nil
+
 }
