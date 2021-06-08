@@ -15,7 +15,7 @@ type Reaction struct {
 	ID           uint64       `json:"id"`
 	ReactionType ReactionType `validate:"required"`
 	User         udata.User   `json:"user"`
-	UserID       string       `json:"userId"`
+	UserID       uint64       `json:"userId"`
 	Post         Post         `json:"post"`
 	PostID       uint64       `json:"postId"`
 }

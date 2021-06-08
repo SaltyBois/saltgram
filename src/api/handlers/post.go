@@ -8,6 +8,7 @@ import (
 	"os"
 	saltdata "saltgram/data"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"time"
@@ -259,4 +260,83 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	saltdata.ToJSON(res, w)
+}
+
+func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Println("[ERROR] fetching user", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.SharedMediaDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Printf("[ERROR] adding shared media: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	media := []*prcontent.Media{}
+	for _, m := range dto.Media {
+		tags := []*prcontent.Tag{}
+		for _, t := range m.Tags {
+			tags = append(tags, &prcontent.Tag{
+				Value: t.Value,
+				Id:    t.ID,
+			})
+		}
+		media = append(media, &prcontent.Media{
+			UserId:      user.Id,
+			Filename:    m.Filename,
+			Tags:        tags,
+			Description: m.Description,
+			Location: &prcontent.Location{
+				Country: m.Location.Country,
+				State:   m.Location.State,
+				ZipCode: m.Location.ZipCode,
+				Street:  m.Location.Street,
+			},
+			AddedOn: m.AddedOn,
+		})
+	}
+
+	_, err = c.cc.AddSharedMedia(context.Background(), &prcontent.AddSharedMediaRequest{Media: media})
+
+	if err != nil {
+		c.l.Printf("[ERROR] adding shared media: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
 }

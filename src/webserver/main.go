@@ -33,7 +33,7 @@ func getTLSConfig() (*tls.Config, error) {
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		ServerName:   "localhost",
-		MinVersion: tls.VersionTLS13,
+		MinVersion:   tls.VersionTLS13,
 	}, nil
 }
 
