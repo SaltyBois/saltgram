@@ -18,7 +18,7 @@ func main() {
 	l := log.New(os.Stdout, "saltgram-email", log.LstdFlags)
 	l.Printf("Starting Email microservice on port: %s\n", os.Getenv("SALT_EMAIL_PORT"))
 	s := internal.NewService(l)
-	db := data.DBConn{}
+	db := data.NewDBConn(l)
 	db.ConnectToDb()
 	db.MigradeData()
 	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
@@ -26,14 +26,14 @@ func main() {
 		l.Fatalf("[ERROR] configuring tls: %v\n", err)
 	}
 
-	uconn, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
+	uconn, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing users connection: %v\n", err)
 	}
 	defer uconn.Close()
 
 	uc := prusers.NewUsersClient(uconn)
-	emailServer := servers.NewEmail(l, &db, uc)
+	emailServer := servers.NewEmail(l, db, uc)
 	grpcServer := s.NewServer()
 	premail.RegisterEmailServer(grpcServer, emailServer)
 	reflection.Register(grpcServer)

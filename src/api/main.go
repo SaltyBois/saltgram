@@ -12,6 +12,7 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+
 	//"saltgram/protos/content/prcontent"
 	"time"
 
@@ -27,7 +28,7 @@ func main() {
 		l.Fatalf("[ERROR] configuring tls: %v\n", err)
 	}
 
-	authConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_AUTH_PORT")))
+	authConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_AUTH_ADDR", "localhost"), os.Getenv("SALT_AUTH_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing auth connection: %v\n", err)
 	}
@@ -40,7 +41,7 @@ func main() {
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 	authRouter.HandleFunc("", authHandler.CheckPermissions).Methods(http.MethodPut)
 
-	usersConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
+	usersConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing users connection: %v\n", err)
 	}
@@ -53,7 +54,7 @@ func main() {
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
 
-	emailConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_EMAIL_PORT")))
+	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing email connection")
 	}
@@ -65,7 +66,7 @@ func main() {
 	emailRouter.HandleFunc("/forgot", emailHandler.ForgotPassword).Methods(http.MethodPost)
 	emailRouter.HandleFunc("/reset/{token}", emailHandler.ConfirmReset).Methods(http.MethodPut)
 
-	contentConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_CONTENT_PORT")))
+	contentConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_CONTENT_ADDR", "localhost"), os.Getenv("SALT_CONTENT_PORT")))
 	if err != nil {
 		l.Fatalf("[ERROR] dialing content connection: %v\n", err)
 	}
