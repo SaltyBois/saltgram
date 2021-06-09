@@ -2,13 +2,17 @@ package handlers
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 )
 
 func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
@@ -88,4 +92,96 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
+}
+
+func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		s.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		s.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		s.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := s.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		s.l.Println("[ERROR] fetching user", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	stream, err := s.cc.GetSharedMedia(context.Background(), &prcontent.SharedMediaRequest{UserId: user.Id})
+	if err != nil {
+		s.l.Println("[ERROR] fetching shared medias")
+		http.Error(w, "Followers shared media error", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		sharedMedia, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Println("[ERROR] fetching sharedMedias")
+			http.Error(w, "Error couldn't fetch sharedMedias", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(sharedMedia, w)
+	}
+	w.Write([]byte("}"))
+}
+
+func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("[ERROR] converting id")
+		return
+	}
+
+	stream, err := s.cc.GetSharedMedia(context.Background(), &prcontent.SharedMediaRequest{UserId: id})
+	if err != nil {
+		s.l.Println("[ERROR] fetching shared medias")
+		http.Error(w, "Followers shared media error", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		sharedMedia, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Println("[ERROR] fetching sharedMedias")
+			http.Error(w, "Error couldn't fetch sharedMedias", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(sharedMedia, w)
+	}
+	w.Write([]byte("}"))
 }

@@ -10,10 +10,9 @@ import (
 	"saltgram/api/handlers"
 	"saltgram/internal"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
-
-	//"saltgram/protos/content/prcontent"
 	"time"
 
 	"github.com/rs/cors"
@@ -71,10 +70,12 @@ func main() {
 		l.Fatalf("[ERROR] dialing content connection: %v\n", err)
 	}
 	defer contentConnection.Close()
-	//contentClient := prcontent.NewContentClient(contentConnection)
-	//contentHandler := handlers.NewContent(l, contentClient)
-	//contentRouter := s.S.PathPrefix("/content").Subrouter()
-
+	contentClient := prcontent.NewContentClient(contentConnection)
+	contentHandler := handlers.NewContent(l, contentClient, usersClient)
+	contentRouter := s.S.PathPrefix("/content").Subrouter()
+	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
