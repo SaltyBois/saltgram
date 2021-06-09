@@ -53,6 +53,55 @@ func (s *Content) getSharedMedia(r *prcontent.SharedMediaRequest, stream prconte
 	return nil
 }
 
+func (c *Content) getProflePicture(ctx context.Context, r *prcontent.GetProfilePictureRequest) (*prcontent.GetProfilePictureResponse, error) {
+	profilePicture, err := c.db.GetProfilePictureByUser(r.UserId)
+	if err != nil {
+		return &prcontent.GetProfilePictureResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.GetProfilePictureResponse{
+
+		Media: &prcontent.Media{
+			Filename:    profilePicture.Media.Filename,
+			Description: profilePicture.Media.Description,
+			AddedOn:     profilePicture.Media.AddedOn,
+			Location: &prcontent.Location{
+				Country: profilePicture.Media.Location.Country,
+				State:   profilePicture.Media.Location.State,
+				ZipCode: profilePicture.Media.Location.ZipCode,
+				Street:  profilePicture.Media.Location.Street,
+			},
+		},
+		UserId: profilePicture.UserID,
+		Id:     profilePicture.ID,
+	}, nil
+}
+
+func (c *Content) AddProflePicture(ctx context.Context, r *prcontent.AddProfilePictureRequest) (*prcontent.AddProfilePictureResponse, error) {
+
+	profilePicture := data.ProfilePicture{
+		UserID: r.UserId,
+		Media: data.Media{
+			Filename:    r.Media.Filename,
+			Description: r.Media.Description,
+			AddedOn:     r.Media.AddedOn,
+			Location: data.Location{
+				Country: r.Media.Location.Country,
+				State:   r.Media.Location.State,
+				ZipCode: r.Media.Location.ZipCode,
+				Street:  r.Media.Location.Street,
+			},
+		},
+	}
+
+	err := c.db.AddProfilePicture(&profilePicture)
+	if err != nil {
+		c.l.Println("[ERROR] adding profile picture ", err)
+	}
+
+	return &prcontent.AddProfilePictureResponse{}, nil
+}
+
 func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {
 
 	media := []*data.Media{}

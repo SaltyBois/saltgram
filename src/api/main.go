@@ -76,6 +76,8 @@ func main() {
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/profilepicture/{id}", contentHandler.GetProfilePictureByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

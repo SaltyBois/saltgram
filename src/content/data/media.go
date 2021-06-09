@@ -23,7 +23,7 @@ type SharedMedia struct {
 type Story struct {
 	ID            uint64      `json:"id"`
 	User          User        `json:"user"`
-	UserID        string      `json:"userId"`
+	UserID        uint64      `json:"userId"`
 	SharedMedia   SharedMedia `json:"sharedMedia"`
 	SharedMediaID uint64      `json:"sharedMediaId"`
 	CloseFriends  bool        `json:"closeFriends"`
@@ -32,9 +32,17 @@ type Story struct {
 type Post struct {
 	ID            uint64      `json:"id"`
 	User          User        `json:"user"`
-	UserID        string      `json:"userId"`
+	UserID        uint64      `json:"userId"`
 	SharedMedia   SharedMedia `validate:"required"`
 	SharedMediaID uint64      `json:"sharedMediaId"`
+}
+
+type ProfilePicture struct {
+	ID      uint64 `json:"id"`
+	User    User   `json:"user"`
+	UserID  uint64 `json:"userId"`
+	Media   Media  `validate:"required"`
+	MediaID uint64 `json:"mediaId"`
 }
 
 func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
@@ -44,7 +52,7 @@ func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
 }
 
 func (db *DBConn) AddSharedMedia(s *SharedMedia) error {
-	return db.DB.Create(SharedMedia{}).Error
+	return db.DB.Create(s).Error
 }
 
 func (db *DBConn) GetStoryByUser(id uint64) (*[]Story, error) {
@@ -54,7 +62,7 @@ func (db *DBConn) GetStoryByUser(id uint64) (*[]Story, error) {
 }
 
 func (db *DBConn) AddStory(s *Story) error {
-	return db.DB.Create(Story{}).Error
+	return db.DB.Create(s).Error
 }
 func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	post := []Post{}
@@ -62,6 +70,16 @@ func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	return &post, err
 }
 
-func (db *DBConn) AddPost(s *Post) error {
-	return db.DB.Create(Post{}).Error
+func (db *DBConn) AddPost(p *Post) error {
+	return db.DB.Create(p).Error
+}
+
+func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
+	post := ProfilePicture{}
+	err := db.DB.Where("user_id = ?", id).Find(&post).Error
+	return &post, err
+}
+
+func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
+	return db.DB.Create(pp).Error
 }

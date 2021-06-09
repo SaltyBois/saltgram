@@ -185,3 +185,30 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte("}"))
 }
+
+func (c *Content) GetProfilePictureByUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		c.l.Println("[ERROR] converting id")
+		return
+	}
+
+	profilePicture, err := c.cc.GetProfilePicture(context.Background(), &prcontent.GetProfilePictureRequest{UserId: id})
+	if err != nil {
+		c.l.Println("[ERROR] fetching profile picture", err)
+		http.Error(w, "pp not found", http.StatusNotFound)
+		return
+	}
+
+	err = saltdata.ToJSON(profilePicture, w)
+	if err != nil {
+		c.l.Println("[ERROR] serializing pp ", err)
+		http.Error(w, "Error serializing pp", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+
+}

@@ -340,3 +340,80 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Println("[ERROR] fetching user", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.ProfilePictureDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Printf("[ERROR] deserializing profile picture data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		c.l.Printf("[ERROR] validating profile picture data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.AddProfilePicture(context.Background(), &prcontent.AddProfilePictureRequest{
+		UserId: user.Id,
+		Media: &prcontent.Media{
+			UserId:      user.Id,
+			Filename:    dto.Media.Filename,
+			Description: dto.Media.Description,
+			Location: &prcontent.Location{
+				Country: dto.Media.Location.Country,
+				State:   dto.Media.Location.State,
+				ZipCode: dto.Media.Location.ZipCode,
+				Street:  dto.Media.Location.Street,
+			},
+			AddedOn: dto.Media.AddedOn,
+		},
+	})
+
+	if err != nil {
+		c.l.Printf("[ERROR] registering profile picture: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Activation email sent"))
+}
