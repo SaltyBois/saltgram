@@ -2,4 +2,46 @@ syntax = "proto3";
 option go_package = "./content/prcontent";
 
 service Content {
+    rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
+    rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
 }
+
+message SharedMediaRequest {
+    uint64 userId = 1;
+}
+
+message SharedMediaResponse {
+    repeated Media media = 1;
+}
+
+message Media {
+    uint64 userId = 1;
+    string filename = 2;
+    string description = 3;
+    string addedOn = 4;
+    Location location = 5;
+    repeated Tag tags = 6;
+}
+
+message Tag {
+    string value = 1;
+    uint64 id = 2;
+}
+
+message Location {
+    string Country = 1;
+	string State = 2;
+    string ZipCode = 3;
+	string Street = 4;
+}
+
+message AddSharedMediaRequest {
+    repeated Media media = 1;
+}
+
+message AddSharedMediaResponse {}
+
+
+
+
+

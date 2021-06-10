@@ -10,7 +10,7 @@ const (
 type Reaction struct {
 	ID           uint64       `json:"id"`
 	ReactionType ReactionType `validate:"required"`
-	User         User   `json:"user"`
+	User         User         `json:"user"`
 	UserID       string       `json:"userId"`
 	Post         Post         `json:"post"`
 	PostID       uint64       `json:"postId"`
