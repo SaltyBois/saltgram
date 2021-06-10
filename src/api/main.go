@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"saltgram/api/handlers"
 	"saltgram/internal"
+	"saltgram/pki"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
@@ -21,10 +22,16 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram-api-gateway", log.LstdFlags)
 	l.Printf("Starting API Gateway on port: %s\n", os.Getenv("SALT_API_PORT"))
-	s := internal.NewService(l)
-	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("api-gateway")
 	if err != nil {
-		l.Fatalf("[ERROR] configuring tls: %v\n", err)
+		l.Fatalf("[ERROR] registering service for pki: %v\n", err)
+	}
+	s := internal.NewService(l)
+	
+	err = s.Init("saltgram-api-gateway", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
+	if err != nil {
+		l.Fatalf("[ERROR] failed to init api service: %v\n", err)
 	}
 
 	authConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_AUTH_ADDR", "localhost"), os.Getenv("SALT_AUTH_PORT")))
