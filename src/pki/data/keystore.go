@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ROOT_DIR = filepath.FromSlash(internal.GetEnvOrDefault("KEYSTORE_ROOT_DIR", "keystore/"))
+	ROOT_DIR = filepath.FromSlash(internal.GetEnvOrDefault("KEYSTORE_ROOT_DIR", "../keystore/"))
 	FILE_EXT = ".pfx"
 )
 

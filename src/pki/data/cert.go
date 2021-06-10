@@ -62,6 +62,7 @@ func Init(db *DBConn) (*Certificate, error) {
 			ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 			KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 			BasicConstraintsValid: true,
+			DNSNames: []string{"localhost"},
 		}
 
 		cert, err = GenRootCA(rootTemplate)
@@ -88,6 +89,7 @@ func RegisterService(db *DBConn, subject pkix.Name) (*Certificate, error) {
 		IsCA: false,
 		KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
 		BasicConstraintsValid: false,
+		DNSNames: []string{"localhost"},
 	}
 
 	cert, err := GenCert(db, template, LookupDTO{

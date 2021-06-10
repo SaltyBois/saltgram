@@ -4,6 +4,16 @@ services:
       context: .
       dockerfile: dependencies.Dockerfile
     image: dependencies
+  pkidb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltpkidb
+      - POSTGRES_USER=saltpki
+      - POSTGRES_PASSWORD=saltpki
+    ports:
+      - "9094:9094"
+    command: -p 9094
+
   webserver:
     build: src/webserver/
     image: webserver
@@ -11,6 +21,8 @@ services:
       - "${SALT_WEB_PORT}:443"
     environment:
       - SALT_WEB_PORT=443
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
   api:
     build: src/api/
     image: api
@@ -27,6 +39,8 @@ services:
       - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
       - SALT_CONTENT_ADDR=contents
       - SALT_WEB_PORT=${SALT_WEB_PORT}
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
       - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcred
       - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
       - RECAPTCHA_PROJECT=${RECAPTCHA_PROJECT}
@@ -57,6 +71,8 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcred
       - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
       - RECAPTCHA_PROJECT=${RECAPTCHA_PROJECT}
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
     secrets:
       - gcred
   usersdb:
@@ -81,6 +97,8 @@ services:
       - SALT_EMAIL_ADDR=email
       - USERSDB_HOST=usersdb
       - USERSDB_PORT=9091
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
   emaildb:
     image: postgres
     environment:
@@ -103,6 +121,8 @@ services:
       - EMAILDB_PORT=9092
       - SALT_WEB_PORT=${SALT_WEB_PORT}
       - TIME_LAYOUT=${TIME_LAYOUT}
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
   contentsdb:
     image: postgres
     environment:
@@ -124,6 +144,8 @@ services:
       - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
       - CONTENTSDB_HOST=contentsdb
       - CONTENTSDB_PORT=9093
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
 
 secrets:
   gcred:

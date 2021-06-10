@@ -9,7 +9,6 @@ FROM golang:1.16-alpine3.13 AS dependencies
 COPY --from=frontend /go/src/saltgram/frontend /go/src/saltgram/frontend
 COPY src/go.mod /go/src/saltgram
 COPY src/go.sum /go/src/saltgram
-COPY certs /go/src/certs
 COPY src/data /go/src/saltgram/data
 COPY src/internal /go/src/saltgram/internal
 COPY src/protos /go/src/saltgram/protos
