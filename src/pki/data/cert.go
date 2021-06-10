@@ -23,6 +23,8 @@ type Certificate struct {
 	CertChain  []*x509.Certificate `json:"certChain"`
 	PrivateKey *rsa.PrivateKey     `json:"-"`
 	Type       CertType            `json:"type"`
+	CertPEM    []byte
+	PrivateKeyPEM []byte
 }
 
 type ArchivedCert struct {
@@ -35,9 +37,9 @@ type LookupDTO struct {
 	SerialNumber string `json:"serialNumber"`
 }
 
-func Init(db *DBConn) error {
+func Init(db *DBConn) (*Certificate, error) {
 	InitKeystore()
-	_, err := LoadCert(LookupDTO{
+	cert, err := LoadCert(LookupDTO{
 		SubjectName: ROOT_CN,
 	})
 	if err != nil {
@@ -62,18 +64,18 @@ func Init(db *DBConn) error {
 			BasicConstraintsValid: true,
 		}
 
-		rootCA, err := GenRootCA(rootTemplate)
+		cert, err = GenRootCA(rootTemplate)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		err = rootCA.Save()
+		err = cert.Save()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return cert, nil
 }
 
 func RegisterService(db *DBConn, subject pkix.Name) error {
@@ -270,6 +272,14 @@ func (cert *Certificate) loadCertAndKey(filename string) error {
 	cert.CertChain = cChain
 	cert.Type = GetType(cert.Cert)
 
+	cert.CertPEM = pem.EncodeToMemory(&pem.Block{
+		Type: "CERTIFICATE",
+		Bytes: c.Raw,
+	})
+	cert.PrivateKeyPEM = pem.EncodeToMemory(&pem.Block{
+		Type: "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	})
 	return nil
 }
 

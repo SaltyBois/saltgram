@@ -1,0 +1,18 @@
+syntax = "proto3";
+option go_package = "./pki/prpki";
+
+service PKI {
+    rpc RegisterService(PKIRegisterRequest) returns (PKIRegisterResponse);
+}
+
+message PKIRegisterRequest {
+    string commonName = 1;
+    repeated string organization = 2;
+    repeated string country = 3;
+    repeated string province = 4;
+    repeated string locality = 5;
+    repeated string streetAddress = 6;
+    repeated string postalCode = 7;
+}
+
+message PKIRegisterResponse {}
