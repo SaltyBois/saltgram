@@ -187,10 +187,10 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stream, err := u.uc.GetFollowers(context.Background(), &prusers.FollowerRequest{Username: username})
+	stream, err := u.uc.GerFollowing(context.Background(), &prusers.FollowerRequest{Username: username})
 	if err != nil {
-		u.l.Println("[ERROR] fetching followers")
-		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
+		u.l.Println("[ERROR] fetching following")
+		http.Error(w, "Following fetching error", http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte("{"))
@@ -200,8 +200,8 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		if err != nil {
-			u.l.Println("[ERROR] fetching followers")
-			http.Error(w, "Error couldn't fetch followers", http.StatusInternalServerError)
+			u.l.Println("[ERROR] fetching following")
+			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
 			return
 		}
 		saltdata.ToJSON(profile, w)

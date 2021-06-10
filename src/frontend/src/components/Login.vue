@@ -21,6 +21,7 @@
           :append-icon="showPassword ? 'fa-eye' : 'fa-eye-slash'"
           :type="showPassword ? 'text' : 'password'"
           @click:append="showPassword = !showPassword"
+          v-on:keydown="loginEnter"
           required/>
            <vue-recaptcha
               ref="recaptcha"
@@ -65,6 +66,10 @@ export default {
     login: function() {
       this.$refs.recaptcha.execute();
     },
+    loginEnter: function(e) {
+      if (e.keyCode === 13) // ENTER KEY
+      this.$refs.recaptcha.execute();
+    },
 
     onCaptchaVerified: function(token) {
       this.error = "";
@@ -82,7 +87,7 @@ export default {
             .then(r => {
               this.$store.state.jws = r.data;
               console.log("Saved jwt ", this.$store.state.jws);
-              this.$router.push("/" + username);
+              this.$router.push("/user/" + username);
             })
             .catch(r => {
               console.log(r);

@@ -56,6 +56,10 @@
                     :sitekey="sitekey">
                     </vue-recaptcha>
                     <v-text-field
+                    label="Add Description"
+                    hint="start with + please"
+                    v-model="description"/>
+                    <v-text-field
                     label="Phone Number"
                     hint="start with + please"/>
                     <v-select
@@ -103,6 +107,7 @@ export default {
             },
             genderRules: [ 'Male', 'Female' ],
             privateProfile: false,
+            description: ''
         }
     },
 
