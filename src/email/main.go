@@ -8,6 +8,7 @@ import (
 	"saltgram/email/data"
 	"saltgram/email/grpc/servers"
 	"saltgram/internal"
+	"saltgram/pki"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 
@@ -17,14 +18,16 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram-email", log.LstdFlags)
 	l.Printf("Starting Email microservice on port: %s\n", os.Getenv("SALT_EMAIL_PORT"))
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("saltgram-email")
+	if err != nil {
+		l.Fatalf("[ERROR] while registering pki: %v\n", err)
+	}
 	s := internal.NewService(l)
+	err = s.Init("saltgram-email", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
 	db := data.NewDBConn(l)
 	db.ConnectToDb()
 	db.MigradeData()
-	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
-	if err != nil {
-		l.Fatalf("[ERROR] configuring tls: %v\n", err)
-	}
 
 	uconn, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {

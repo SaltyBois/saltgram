@@ -78,13 +78,13 @@ func Init(db *DBConn) (*Certificate, error) {
 	return cert, nil
 }
 
-func RegisterService(db *DBConn, subject pkix.Name) error {
+func RegisterService(db *DBConn, subject pkix.Name) (*Certificate, error) {
 	serialNumber := GetRandomSerial()
 	template := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: subject,
 		NotBefore: time.Now(),
-		NotAfter: time.Now().AddDate(5, 0, 0),
+		NotAfter: time.Now().AddDate(1, 0, 0),
 		IsCA: false,
 		KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
 		BasicConstraintsValid: false,
@@ -95,13 +95,18 @@ func RegisterService(db *DBConn, subject pkix.Name) error {
 		SerialNumber: "",
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := cert.Save(); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	cert, err = LoadCert(LookupDTO{SubjectName: subject.CommonName})
+	if err != nil {
+		return nil, err
+	}
+	return cert, nil
 }
 
 func GenRootCA(rootTemplate *x509.Certificate) (*Certificate, error) {

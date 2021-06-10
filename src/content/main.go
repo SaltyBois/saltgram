@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"saltgram/content/grpc/servers"
+	"saltgram/pki"
 	"saltgram/protos/content/prcontent"
 
 	"saltgram/content/data"
@@ -17,15 +18,19 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram-contents", log.LstdFlags)
 	l.Printf("Starting Content microservice on port: %s\n", os.Getenv("SALT_CONTENT_PORT"))
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("saltgram-contents")
+	if err != nil {
+		l.Fatalf("[ERROR] while registering pki: %v\n", err)
+	}
 	s := internal.NewService(l)
-
+	err = s.Init("saltgram-contents", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
+	if err != nil {
+		l.Fatalf("[ERROR] while initializing saltgram-contents: %v\n", err)
+	}
 	db := data.NewDBConn(l)
 	db.ConnectToDb()
 	db.MigradeData()
-	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
-	if err != nil {
-		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
-	}
 
 	gContentServer := servers.NewContent(l, db)
 	grpcServer := s.NewServer()

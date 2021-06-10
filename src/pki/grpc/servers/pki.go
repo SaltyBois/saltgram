@@ -22,7 +22,7 @@ func NewPKI(l *log.Logger, db *data.DBConn) *PKI {
 }
 
 func (p *PKI) RegisterService(ctx context.Context, r *prpki.PKIRegisterRequest) (*prpki.PKIRegisterResponse, error) {
-	err := data.RegisterService(p.db, pkix.Name{
+	_, err := data.RegisterService(p.db, pkix.Name{
 		CommonName: r.CommonName,
 		Organization: r.Organization,
 		Country: r.Country,

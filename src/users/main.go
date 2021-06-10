@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"saltgram/internal"
+	"saltgram/pki"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
@@ -18,15 +19,19 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram-users", log.LstdFlags)
 	l.Printf("Starting Users microservice on port: %s\n", os.Getenv("SALT_USERS_PORT"))
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("saltgram-users")
+	if err != nil {
+		l.Fatalf("[ERROR] while registering to PKI: %v\n", err)
+	}
 	s := internal.NewService(l)
-
+	err = s.Init("saltgram-users", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
+	if err != nil {
+		l.Fatalf("[ERROR] initializing users service: %v\n", err)
+	}
 	db := data.NewDBConn(l)
 	db.ConnectToDb()
 	db.MigradeData()
-	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
-	if err != nil {
-		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
-	}
 
 	aconn, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_AUTH_ADDR", "localhost"), os.Getenv("SALT_AUTH_PORT")))
 	if err != nil {

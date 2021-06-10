@@ -8,6 +8,7 @@ import (
 	"saltgram/auth/data"
 	"saltgram/auth/grpc/servers"
 	"saltgram/internal"
+	"saltgram/pki"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/users/prusers"
 
@@ -18,17 +19,22 @@ import (
 func main() {
 	l := log.New(os.Stdout, "saltgram-auth", log.LstdFlags)
 	l.Printf("Starting Auth microservice on port: %s\n", os.Getenv("SALT_AUTH_PORT"))
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("saltgram-auth")
+	if err != nil {
+		l.Fatalf("[ERROR] failed to register to PKI")
+	}
 	s := internal.NewService(l)
+	err = s.Init("saltgram-auth", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
+	if err != nil {
+		l.Fatalf("[ERROR] failed to init auth service: %v\n", err)
+	}
 	db := data.NewDBConn(l)
 	db.ConnectToDb()
 	db.MigradeData()
 	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
 	if err != nil {
 		l.Printf("[ERROR] creating auth enforcer: %v\n", err)
-	}
-	err = s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
-	if err != nil {
-		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
 	}
 
 	grpcServer := s.NewServer()
