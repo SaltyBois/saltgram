@@ -7,6 +7,7 @@ type UserDTO struct {
 	FullName  string    `json:"fullName" validate:"required"`
 	Username  string    `json:"username" validate:"required"`
 	Password  string    `json:"password" validate:"required"`
+	Description string	`json:"description" validate:"required"`
 	ReCaptcha ReCaptcha `json:"reCaptcha" validate:"required"`
 }
 

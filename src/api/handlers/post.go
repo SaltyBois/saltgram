@@ -185,6 +185,7 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 		FullName: dto.FullName,
 		Email:    dto.Email,
 		Password: dto.Password,
+		Description: dto.Description,
 		ReCaptcha: &prusers.UserReCaptcha{
 			Token:  dto.ReCaptcha.Token,
 			Action: dto.ReCaptcha.Action,

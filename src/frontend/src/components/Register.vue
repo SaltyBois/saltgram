@@ -55,9 +55,10 @@
                     size="invisible"
                     :sitekey="sitekey">
                     </vue-recaptcha>
-                    <v-text-field
+                    <v-textarea
+                    no-resize
+                    style="width: 100%; height: 200px"
                     label="Add Description"
-                    hint="start with + please"
                     v-model="description"/>
                     <v-text-field
                     label="Phone Number"
@@ -132,6 +133,7 @@ export default {
                 fullName: this.fullName,
                 email: this.email,
                 password: this.password1,
+                description: this.description,
                 reCaptcha: {
                     token: token,
                     action: "register",
@@ -190,6 +192,8 @@ export default {
     }
 
     .register-and-logo {
+        height: 80vh;
+        overflow-y: scroll;
         min-width: 25rem;
         border: 1px solid #eee;
         padding: 1rem 2rem;

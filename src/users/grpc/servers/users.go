@@ -126,6 +126,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		Username: r.Username,
 		Taggable: false,
 		Public:   false,
+		Description: r.Description,
 	}
 
 	err = u.db.AddProfile(&profile)

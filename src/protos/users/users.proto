@@ -92,7 +92,8 @@ message RegisterRequest {
     string fullName = 2;
     string email = 3;
     string password = 4;
-    UserReCaptcha reCaptcha = 5;
+    string description = 5;
+    UserReCaptcha reCaptcha = 6;
 }
 
 message CheckPasswordRequest {
