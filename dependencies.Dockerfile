@@ -13,6 +13,7 @@ COPY certs /go/src/certs
 COPY src/data /go/src/saltgram/data
 COPY src/internal /go/src/saltgram/internal
 COPY src/protos /go/src/saltgram/protos
+COPY src/pki /go/src/saltgram/pki
 COPY ./wait-for-postgres.sh /go/src/saltgram
 WORKDIR /go/src/saltgram
 RUN go get -d -v ./...
