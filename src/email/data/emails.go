@@ -100,6 +100,7 @@ func (e *EmailRequest) IsValid(db *DBConn) error {
 
 func SendActivation(db *DBConn, email string) error {
 	request := NewEmailRequest(email)
+	db.l.Infof("sending activation to %v\n", email)
 	db.Add(request)
 	subject := "Salty Bois: Account Activation"
 	content := fmt.Sprintf("Dear user,\nClick this link to activate your account: \n%s", generateActivationURL(request.Token))
@@ -108,7 +109,7 @@ func SendActivation(db *DBConn, email string) error {
 
 func SendPasswordReset(db *DBConn, email string) error {
 	request := NewEmailRequest(email)
-	fmt.Printf("Adding request: %v\n", request.Token)
+	db.l.Infof("adding request: %v\n", request.Token)
 	db.Add(request)
 	subject := "Salty Bois: Password Reset"
 	content := fmt.Sprintf("Dear user,\nClick this link to reset your password:\n%s\n\n"+

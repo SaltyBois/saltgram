@@ -66,7 +66,7 @@ func (cr *ChangeRequest) Validate() error {
 func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		e.l.Printf("[ERROR] getting email: %v\n", err)
+		e.l.Errorf("failed to get email: %v\n", err)
 		http.Error(w, "No email", http.StatusBadRequest)
 		return
 	}
@@ -74,7 +74,7 @@ func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		_, err = e.ec.RequestReset(context.Background(), &premail.ResetRequest{Email: email})
 		if err != nil {
-			e.l.Printf("[ERROR] sending email request: %v\n", err)
+			e.l.Errorf("failed sending email request: %v\n", err)
 		}
 	}()
 	// NOTE(Jovan): Always send 200 OK as per OWASP
@@ -86,20 +86,20 @@ func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	err := saltdata.FromJSON(&cr, r.Body)
 	if err != nil {
-		u.l.Printf("[ERROR] deserializing ChangeRequest: %v\n", err)
+		u.l.Errorf("failed to deserialize ChangeRequest: %v\n", err)
 		http.Error(w, "Failed to parse request", http.StatusBadRequest)
 		return
 	}
 
 	err = cr.Validate()
 	if err != nil {
-		u.l.Printf("[ERROR] ChangeRequest not valid: %v\n", err)
+		u.l.Errorf("ChangeRequest not valid: %v\n", err)
 		http.Error(w, "Bad change request", http.StatusBadRequest)
 		return
 	}
 	jws, err := getUserJWS(r)
 	if err != nil {
-		u.l.Printf("[ERROR] getting jws: %v\n", err)
+		u.l.Errorf("failed to get jws: %v\n", err)
 		http.Error(w, "Missing jws", http.StatusBadRequest)
 		return
 	}
@@ -113,7 +113,7 @@ func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		u.l.Printf("[ERROR] parsing claims: %v", err)
+		u.l.Errorf("failed parsing claims: %v\n", err)
 		http.Error(w, "Error parsing claims", http.StatusBadRequest)
 		return
 	}
@@ -121,7 +121,7 @@ func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
 	if !ok {
-		u.l.Println("[ERROR] unable to parse claims")
+		u.l.Error("unable to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
 		return
 	}
@@ -133,7 +133,7 @@ func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		u.l.Printf("[ERROR] POST change password request: %v\n", err)
+		u.l.Errorf("failed to change password: %v\n", err)
 		http.Error(w, "Error in POST change password request", http.StatusBadRequest)
 		return
 	}
@@ -143,14 +143,14 @@ func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 func (u *Users) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		u.l.Printf("[ERROR] parsing body: %v\n", err)
+		u.l.Errorf("failure parsing body: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
 	cookie, err := r.Cookie("emailforreset")
 	if err != nil {
-		u.l.Printf("[ERROR] getting cookie: %v", err)
+		u.l.Errorf("failed getting cookie: %v\n", err)
 		http.Error(w, "No reset request cookie", http.StatusBadRequest)
 		return
 	}
@@ -158,7 +158,7 @@ func (u *Users) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	newPassword := string(body)
 	_, err = u.uc.ResetPassword(context.Background(), &prusers.UserResetRequest{Email: cookie.Value, Password: newPassword})
 	if err != nil {
-		u.l.Printf("[ERROR] resetting password: %v\n", err)
+		u.l.Errorf("failed resetting password: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -170,13 +170,13 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	dto := saltdata.UserDTO{}
 	err := saltdata.FromJSON(&dto, r.Body)
 	if err != nil {
-		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		u.l.Errorf("failed deserializing user data: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 	err = dto.Validate()
 	if err != nil {
-		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		u.l.Errorf("failed validating user data: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -193,25 +193,50 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		u.l.Printf("[ERROR] registering user: %v\n", err)
+		u.l.Errorf("failed registering user: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-
+	u.l.Infof("User registered: %v\n", dto.Email)
 	w.Write([]byte("Activation email sent"))
+}
+
+func (a *Auth) Get2FAQR(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		a.l.Errorf("failure reading request body: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	username := string(body)
+	res, err := a.ac.Get2FAQR(context.Background(), &prauth.TwoFARequest{Username: username})
+	if err != nil {
+		a.l.Errorf("failed to get 2FAQR, returned: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+    w.Header().Set("Content-Type", "image/png")
+	_, err = w.Write(res.Png)
+	if err != nil {
+		a.l.Errorf("failed to write png data: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	
 }
 
 func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {
 	user := saltdata.Login{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		a.l.Printf("[ERROR] deserializing user: %v", err)
+		a.l.Errorf("failure deserializing user: %v\n", err)
 		http.Error(w, "Failed to deserialize user", http.StatusBadRequest)
 		return
 	}
 	res, err := a.ac.GetJWT(context.Background(), &prauth.JWTRequest{Username: user.Username, Password: user.Password})
 	if err != nil {
-		a.l.Printf("[ERROR] getting jwt: %v\n", err)
+		a.l.Errorf("failure getting jwt: %v\n", err)
 		http.Error(w, "Faile to get jwt", http.StatusBadRequest)
 		return
 	}
@@ -234,13 +259,13 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	login := saltdata.Login{}
 	err := saltdata.FromJSON(&login, r.Body)
 	if err != nil {
-		a.l.Printf("[ERROR] deserializing body: %v\n", err)
+		a.l.Errorf("failure deserializing body: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 	err = login.Validate()
 	if err != nil {
-		a.l.Printf("[ERROR] validating: %v\n", err)
+		a.l.Errorf("failure validating: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -254,11 +279,12 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		a.l.Printf("[ERROR] calling login: %v\n", err)
+		a.l.Errorf("failure calling login: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
+	a.l.Infof("%v logged in\n", login.Username)
 	saltdata.ToJSON(res, w)
 }
 
@@ -266,7 +292,7 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 
 	jws, err := getUserJWS(r)
 	if err != nil {
-		c.l.Println("[ERROR] JWS not found")
+		c.l.Errorf("JWS not found: %v\n", err)
 		http.Error(w, "JWS not found", http.StatusBadRequest)
 		return
 	}
@@ -280,7 +306,7 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		c.l.Printf("[ERROR] parsing claims: %v", err)
+		c.l.Errorf("failure parsing claims: %v\n", err)
 		http.Error(w, "Error parsing claims", http.StatusBadRequest)
 		return
 	}
@@ -288,14 +314,14 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
 	if !ok {
-		c.l.Println("[ERROR] unable to parse claims")
+		c.l.Error("failed to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
 		return
 	}
 
 	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
 	if err != nil {
-		c.l.Println("[ERROR] fetching user", err)
+		c.l.Errorf("failed fetching user: %v\n", err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
@@ -303,7 +329,7 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 	dto := saltdata.SharedMediaDTO{}
 	err = saltdata.FromJSON(&dto, r.Body)
 	if err != nil {
-		c.l.Printf("[ERROR] adding shared media: %v\n", err)
+		c.l.Errorf("failure adding shared media: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -335,7 +361,7 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 	_, err = c.cc.AddSharedMedia(context.Background(), &prcontent.AddSharedMediaRequest{Media: media})
 
 	if err != nil {
-		c.l.Printf("[ERROR] adding shared media: %v\n", err)
+		c.l.Errorf("failed to add shared media: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}

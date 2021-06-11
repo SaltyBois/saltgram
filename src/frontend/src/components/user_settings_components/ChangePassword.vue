@@ -69,7 +69,7 @@ export default {
   methods: {
     changePassword: function() {
       this.err = "";
-      this.refreshToken()
+      this.refreshToken(this.getAHeader())
           .then((r) => {
             this.$store.state.jws = r.data;
             let changeRequest = {

@@ -2,11 +2,11 @@ package data
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"saltgram/internal"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -21,10 +21,10 @@ var (
 
 type DBConn struct {
 	DB *gorm.DB
-	l *log.Logger
+	l *logrus.Logger
 }
 
-func NewDBConn(l *log.Logger) *DBConn {
+func NewDBConn(l *logrus.Logger) *DBConn {
 	return &DBConn{l: l}
 }
 
@@ -33,13 +33,13 @@ func (db *DBConn) ConnectToDb() error {
 		HOST_DB, USER_DB, PASS_DB, NAME_DB, PORT_DB)
 	dbtmp, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	for err != nil {
-		db.l.Print("Reattempting connection to Content database")
+		db.l.Info("Reattempting connection to Content database")
 		time.Sleep(5000 * time.Duration(time.Millisecond))
 		dbtmp, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	}
 
 	if dbtmp != nil {
-		db.l.Print("Connected to Content db")
+		db.l.Info("Connected to Content db")
 	}
 	db.DB = dbtmp
 	return err
