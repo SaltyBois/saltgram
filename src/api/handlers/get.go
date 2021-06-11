@@ -15,6 +15,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func (a *Auth) Authenticate2FA(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	token := vars["token"]
+	_, err := a.ac.Authenticate2FA(context.Background(), &prauth.Auth2FARequest{Token: token})
+	if err != nil {
+		a.l.Errorf("failed to authenticate 2fa token: %v, error: %v\n", token, err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	w.Write([]byte("Authenticated!"))
+}
+
 func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh")
 	if err != nil {

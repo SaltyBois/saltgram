@@ -46,6 +46,8 @@ func main() {
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
 	authRouter.HandleFunc("", authHandler.CheckPermissions).Methods(http.MethodPut)
+	authRouter.HandleFunc("/2fa", authHandler.Get2FAQR).Methods(http.MethodPost)
+	authRouter.HandleFunc("/2fa/{token}", authHandler.Authenticate2FA).Methods(http.MethodGet)
 
 	usersConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
