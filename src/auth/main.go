@@ -19,6 +19,7 @@ import (
 func main() {
 	l := log.NewLogger("saltgram-auth")
 	l.L.Printf("Starting Auth microservice on port: %s\n", os.Getenv("SALT_AUTH_PORT"))
+
 	pkiHandler := pki.Init()
 	cert, err := pkiHandler.RegisterSaltgramService("saltgram-auth")
 	if err != nil {

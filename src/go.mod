@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.81.0
 	github.com/casbin/casbin/v2 v2.28.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -31,5 +32,6 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.8
+	rsc.io/qr v0.2.0
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78
 )

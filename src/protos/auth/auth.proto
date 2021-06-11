@@ -7,6 +7,22 @@ service Auth {
     rpc GetJWT(JWTRequest) returns (JWTResponse);
     rpc Refresh(RefreshRequest) returns (RefreshResponse);
     rpc CheckPermissions(PermissionRequest) returns (PermissionResponse);
+    rpc Get2FAQR(TwoFARequest) returns (TwoFAResponse);
+    rpc Authenticate2FA(Auth2FARequest) returns (Auth2FAResponse);
+}
+
+message Auth2FARequest {
+    string token = 1;
+}
+
+message Auth2FAResponse {}
+
+message TwoFARequest {
+    string username = 1;
+}
+
+message TwoFAResponse {
+    bytes png = 1;
 }
 
 message PermissionRequest {

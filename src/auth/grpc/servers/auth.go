@@ -35,6 +35,36 @@ func NewAuth(l *logrus.Logger, e *casbin.Enforcer, db *data.DBConn, uc prusers.U
 	}
 }
 
+func (a *Auth) Authenticate2FA(ctx context.Context, r *prauth.Auth2FARequest) (*prauth.Auth2FAResponse, error) {
+	a.l.Infof("authenticating 2FA with token: %v\n", r.Token)
+	ok, err := data.Authenticate2FA(r.Token)
+	if err != nil {
+		a.l.Errorf("failure authenticating 2FA token: %v, error: %v\n", r.Token, err)
+		return &prauth.Auth2FAResponse{}, status.Error(codes.Internal, "Internal server error")
+	}
+
+	if !ok {
+		a.l.Warnf("failure authenticating 2FA token: %v\n", r.Token)
+		return &prauth.Auth2FAResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+	return &prauth.Auth2FAResponse{}, nil
+}
+
+func (a *Auth) Get2FAQR(ctx context.Context, r *prauth.TwoFARequest) (*prauth.TwoFAResponse, error) {
+	a.l.Infof("doing 2FA for: %v\n", r.Username)
+	res, err := a.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: r.Username})
+	if err != nil {
+		a.l.Errorf("failed to get user by username: %v, error %v\n", r.Username, err)
+		return &prauth.TwoFAResponse{Png: nil}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+	png, err := data.Get2FAQR(res.Email)
+	if err != nil {
+		a.l.Errorf("failed to create 2FA QR: %v\n", err)
+		return &prauth.TwoFAResponse{Png: nil}, status.Error(codes.Internal, "Internal server error")
+	}
+	return &prauth.TwoFAResponse{Png: png}, nil
+}
+
 func (a *Auth) CheckPermissions(ctx context.Context, r *prauth.PermissionRequest) (*prauth.PermissionResponse, error) {
 
 	subject := "anon"
