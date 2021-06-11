@@ -1,3 +1,0 @@
-{"data":{},"file":"main.go:45","func":"main.main","level":"info","msg":"Starting webserver on port: 8080","time":"06-11-2021 02:31:32"}
-{"data":{},"file":"main.go:78","func":"main.main","level":"info","msg":"Recieved terminate, graceful shutdown with sigtype: interrupt\n","time":"06-11-2021 02:47:21"}
-{"data":{},"file":"main.go:70","func":"main.main.func1","level":"fatal","msg":"[ERROR] while serving: http: Server closed\n","time":"06-11-2021 02:47:21"}

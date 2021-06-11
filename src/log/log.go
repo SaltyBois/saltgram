@@ -22,18 +22,19 @@ type Logger struct {
 
 func NewLogger(serviceName string) *Logger {
 	logger := &Logger {}
-	err := makeDirectoryIfNotExists(filepath.FromSlash("../log/" + serviceName))
+	err := makeDirectoryIfNotExists(filepath.FromSlash("../log/logs/" + serviceName))
 	if err != nil {
 		logrus.Fatalf("Ironically logrus failed to create dir: %v\n", err)
 	}
-	filename := filepath.FromSlash("../log/" + serviceName + "/" + serviceName + ".log")
+	filename := filepath.FromSlash("../log/logs/" + serviceName + "/" + serviceName + ".log")
 	rotatingHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
 		Filename: filename,
 		MaxSize: 50,
 		MaxBackups: 5,
 		Level: logrus.InfoLevel,
-		Formatter: &logrus.TextFormatter{
+		Formatter: &logrus.JSONFormatter{
 			TimestampFormat: "01-02-2006 15:04:05",
+			DataKey: "data",
 			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 				return f.Function, fmt.Sprintf("%s:%d", formatFilePath(f.File), f.Line)
 		}},
@@ -45,9 +46,9 @@ func NewLogger(serviceName string) *Logger {
 	logger.L.AddHook(rotatingHook)
 	logger.L.SetReportCaller(true)
 	logger.L.SetOutput(os.Stdout)
-	logger.L.SetFormatter(&logrus.JSONFormatter{
+	logger.L.SetFormatter(&logrus.TextFormatter{
 		TimestampFormat: "01-02-2006 15:04:05",
-		DataKey: "data",
+		FullTimestamp: true,
 		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 			return f.Function, fmt.Sprintf("%s:%d", formatFilePath(f.File), f.Line)
 		}})
@@ -57,7 +58,7 @@ func NewLogger(serviceName string) *Logger {
 
 func makeDirectoryIfNotExists(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return os.Mkdir(path, os.ModeDir|0755)
+		return os.MkdirAll(path, os.ModeDir|0755)
 	}
 	return nil
 }

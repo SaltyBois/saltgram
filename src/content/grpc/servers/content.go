@@ -2,30 +2,31 @@ package servers
 
 import (
 	"context"
-	"log"
 	"saltgram/content/data"
 	"saltgram/protos/content/prcontent"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Content struct {
 	prcontent.UnimplementedContentServer
-	l  *log.Logger
+	l  *logrus.Logger
 	db *data.DBConn
 }
 
-func NewContent(l *log.Logger, db *data.DBConn) *Content {
+func NewContent(l *logrus.Logger, db *data.DBConn) *Content {
 	return &Content{
 		l:  l,
 		db: db,
 	}
 }
 
-func (s *Content) getSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
+func (s *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
 	sharedMedias, err := s.db.GetSharedMediaByUser(r.UserId)
 	if err != nil {
+		s.l.Errorf("failure getting user shared media: %v\n", err)
 		return err
 	}
 	for _, sm := range *sharedMedias {
@@ -47,6 +48,7 @@ func (s *Content) getSharedMedia(r *prcontent.SharedMediaRequest, stream prconte
 			Media: media,
 		})
 		if err != nil {
+			s.l.Errorf("failure sending shared media response: %v\n", err)
 			return err
 		}
 	}
@@ -76,7 +78,7 @@ func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMedi
 
 	err := u.db.AddSharedMedia(&sharedMedia)
 	if err != nil {
-		u.l.Printf("[ERROR] adding user: %v\n", err)
+		u.l.Errorf("failure adding user: %v\n", err)
 		return &prcontent.AddSharedMediaResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
