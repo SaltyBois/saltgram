@@ -2,8 +2,7 @@ package pki
 
 import (
 	"crypto/x509/pkix"
-	"log"
-	"os"
+	"saltgram/log"
 	"saltgram/pki/data"
 )
 
@@ -25,13 +24,13 @@ func (p *PKI) RegisterSaltgramService(commonName string) (*data.Certificate, err
 }
 
 func Init() *PKI {
-	l := log.New(os.Stdout, "saltgram-pki", log.LstdFlags)
-	db := data.NewDBConn(l)
+	l := log.NewLogger("saltgram-pki")
+	db := data.NewDBConn(l.L)
 	db.ConnectToDB()
 	db.MigrateData()
 	cert, err := data.Init(db)
 	if err != nil {
-		l.Fatalf("Error initializing keystore: %v\n", err)
+		l.L.Fatalf("failure initializing keystore: %v\n", err)
 	}
 	return &PKI{db: db, RootCA: cert}
 }

@@ -18,14 +18,17 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/roberthodgen/spa-server v0.0.0-20171007154335-bb87b4ff3253
 	github.com/rs/cors v1.7.0
+	github.com/sirupsen/logrus v1.8.1
+	github.com/snowzach/rotatefilehook v0.0.0-20180327172521-2f64f265f58c
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1 // indirect
-	golang.org/x/sys v0.0.0-20210426230700-d19ff857e887 // indirect
+	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139 // indirect
 	google.golang.org/api v0.44.0 // indirect
 	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.8
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78

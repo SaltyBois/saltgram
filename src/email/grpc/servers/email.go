@@ -2,23 +2,23 @@ package servers
 
 import (
 	"context"
-	"log"
 	"saltgram/email/data"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Email struct {
 	premail.UnimplementedEmailServer
-	l  *log.Logger
+	l  *logrus.Logger
 	db *data.DBConn
 	uc prusers.UsersClient
 }
 
-func NewEmail(l *log.Logger, db *data.DBConn, uc prusers.UsersClient) *Email {
+func NewEmail(l *logrus.Logger, db *data.DBConn, uc prusers.UsersClient) *Email {
 	return &Email{l: l, db: db, uc: uc}
 }
 
@@ -26,7 +26,7 @@ func (e *Email) ConfirmReset(ctx context.Context, r *premail.ConfirmRequest) (*p
 
 	email, err := data.ConfirmPasswordReset(e.db, r.Token)
 	if err != nil {
-		e.l.Printf("[ERROR] confirming password reset: %v\n", err)
+		e.l.Errorf("failed to confirm password reset: %v\n", err)
 		return &premail.ConfirmResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -36,7 +36,7 @@ func (e *Email) ConfirmReset(ctx context.Context, r *premail.ConfirmRequest) (*p
 func (e *Email) RequestReset(ctx context.Context, r *premail.ResetRequest) (*premail.ResetResponse, error) {
 	err := data.SendPasswordReset(e.db, r.Email)
 	if err != nil {
-		e.l.Printf("[ERROR] sending email request: %v\n", err)
+		e.l.Errorf("failure sending email request: %v\n", err)
 	}
 	// NOTE(Jovan): Always return 200 OK as per OWASP guidelines
 	return &premail.ResetResponse{}, nil
@@ -45,13 +45,13 @@ func (e *Email) RequestReset(ctx context.Context, r *premail.ResetRequest) (*pre
 func (e *Email) Activate(ctx context.Context, r *premail.ActivateRequest) (*premail.ActivateResponse, error) {
 	email, err := data.ActivateEmail(e.db, r.Token)
 	if err != nil {
-		e.l.Printf("[ERROR] activating email: %v", err)
+		e.l.Errorf("failure activating email: %v", err)
 		return &premail.ActivateResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	_, err = e.uc.VerifyEmail(context.Background(), &prusers.VerifyEmailRequest{Email: email})
 	if err != nil {
-		e.l.Printf("[ERROR] activating email: %v", err)
+		e.l.Errorf("failure activating email: %v", err)
 		return &premail.ActivateResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -62,7 +62,7 @@ func (e *Email) SendActivation(ctx context.Context, r *premail.SendActivationReq
 
 	err := data.SendActivation(e.db, r.Email)
 	if err != nil {
-		e.l.Printf("[ERROR] sending email activation: %v\n", err)
+		e.l.Errorf("failure sending email activation: %v\n", err)
 		return &premail.SendActivationResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 

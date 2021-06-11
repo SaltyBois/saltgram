@@ -2,17 +2,18 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"saltgram/protos/users/prusers"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Users struct {
-	l  *log.Logger
+	l  *logrus.Logger
 	uc prusers.UsersClient
 }
 
-func NewUsers(l *log.Logger, uc prusers.UsersClient) *Users {
+func NewUsers(l *logrus.Logger, uc prusers.UsersClient) *Users {
 	return &Users{l: l, uc: uc}
 }
 

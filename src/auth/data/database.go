@@ -2,10 +2,10 @@ package data
 
 import (
 	"fmt"
-	"log"
 	"saltgram/internal"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,10 +20,10 @@ var (
 
 type DBConn struct {
 	DB *gorm.DB
-	l  *log.Logger
+	l  *logrus.Logger
 }
 
-func NewDBConn(l *log.Logger) *DBConn {
+func NewDBConn(l *logrus.Logger) *DBConn {
 	return &DBConn{l: l}
 }
 
@@ -32,13 +32,13 @@ func (db *DBConn) ConnectToDb() error {
 		HOST_DB, USER_DB, PASS_DB, NAME_DB, PORT_DB)
 	dbtmp, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	for err != nil {
-		db.l.Print("Reattempting connection to Auth db")
+		db.l.Info("Reattempting connection to AuthDB")
 		time.Sleep(time.Millisecond * 5000)
 		dbtmp, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	}
 
 	if dbtmp != nil {
-		db.l.Printf("Connected to Auth db!\n")
+		db.l.Info("Connected to Auth db!")
 	}
 
 	db.DB = dbtmp

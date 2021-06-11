@@ -3,7 +3,6 @@ package servers
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"saltgram/auth/data"
 	saltdata "saltgram/data"
@@ -14,19 +13,20 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Auth struct {
 	prauth.UnimplementedAuthServer
-	l  *log.Logger
+	l  *logrus.Logger
 	e  *casbin.Enforcer
 	db *data.DBConn
 	uc prusers.UsersClient
 }
 
-func NewAuth(l *log.Logger, e *casbin.Enforcer, db *data.DBConn, uc prusers.UsersClient) *Auth {
+func NewAuth(l *logrus.Logger, e *casbin.Enforcer, db *data.DBConn, uc prusers.UsersClient) *Auth {
 	return &Auth{
 		l:  l,
 		e:  e,
@@ -47,31 +47,31 @@ func (a *Auth) CheckPermissions(ctx context.Context, r *prauth.PermissionRequest
 			},
 		)
 		if err != nil {
-			a.l.Printf("[ERROR] parsing token: %v\n", err)
+			a.l.Errorf("failure parsing token: %v\n", err)
 			return &prauth.PermissionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 		}
 		claims, ok := jwt.Claims.(*saltdata.AccessClaims)
 		if !ok {
-			a.l.Printf("[ERROR] parsing claims: %v\n", err)
+			a.l.Errorf("failure parsing claims: %v\n", err)
 			return &prauth.PermissionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 		}
 		res, err := a.uc.GetRole(context.Background(), &prusers.RoleRequest{Username: claims.Username})
 		if err != nil {
-			a.l.Printf("[ERROR] getting user role: %v\n", err)
+			a.l.Errorf("failed to get user role: %v\n", err)
 			return &prauth.PermissionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 		}
 		subject = res.Role
 	}
 	ok, err := a.e.Enforce(subject, r.Path, r.Method)
 	if err != nil {
-		a.l.Printf("[ERROR] enforcing: %v\n", err)
+		a.l.Errorf("failure enforcing: %v\n", err)
 		return &prauth.PermissionResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 	if !ok {
-		a.l.Printf("[DENIED] Subject: %v, Object: %v, Method: %v\n", subject, r.Path, r.Method)
+		a.l.Infof("[DENIED] Subject: %v, Object: %v, Method: %v\n", subject, r.Path, r.Method)
 		return &prauth.PermissionResponse{}, status.Error(codes.PermissionDenied, "Permission denied")
 	}
-	a.l.Printf("[GRANTED] Subject: %v, Object: %v, Method: %v\n", subject, r.Path, r.Method)
+	a.l.Infof("[GRANTED] Subject: %v, Object: %v, Method: %v\n", subject, r.Path, r.Method)
 	return &prauth.PermissionResponse{}, nil
 }
 
@@ -85,24 +85,21 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 	)
 
 	if err != nil {
-		fmt.Printf("JOVAN1 %v", err)
-		a.l.Printf("[ERROR] parsing refresh claims: %v", err)
+		a.l.Errorf("failure parsing refresh claims: %v\n", err)
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	claims, ok := rToken.Claims.(*saltdata.RefreshClaims)
 
 	if !ok {
-		fmt.Printf("JOVAN2 %v", err)
-		a.l.Println("[ERROR] unable to parse claims")
+		a.l.Error("unable to parse claims")
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	refreshToken, err := data.GetRefreshToken(a.db, claims.Username)
 
 	if err != nil {
-		fmt.Printf("JOVAN3 %v", err)
-		a.l.Println("[ERROR] can't find refresh token")
+		a.l.Errorf("can't find refresh token: %v\n")
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -111,8 +108,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 		Token:    refreshToken,
 	}
 	if err := rt.Verify(a.db); err != nil {
-		fmt.Printf("JOVAN4 %v", err)
-		a.l.Println("[ERROR] refresh token no longer valid")
+		a.l.Errorf("refresh token: %v no longer valid: %v\n", rt.Token, err)
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -128,8 +124,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 	jwsClaims, ok := jwtOld.Claims.(*saltdata.AccessClaims)
 
 	if !ok {
-		fmt.Printf("JOVAN5 %v", err)
-		a.l.Println("[ERROR] unable to parse claims")
+		a.l.Error("unable to parse claims")
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -140,8 +135,7 @@ func (a *Auth) Refresh(ctx context.Context, r *prauth.RefreshRequest) (*prauth.R
 
 	jwsNew, err := jwtNew.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	if err != nil {
-		fmt.Printf("JOVAN6 %v", err)
-		a.l.Printf("[ERROR] failed signing JWT: %v", err)
+		a.l.Errorf("failed signing JWT: %v\n", err)
 		return &prauth.RefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -164,13 +158,13 @@ func (a *Auth) GetJWT(ctx context.Context, r *prauth.JWTRequest) (*prauth.JWTRes
 
 	jws, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	if err != nil {
-		a.l.Printf("[ERROR] failed signing JWT: %v", err)
+		a.l.Errorf("failed signing JWT: %v\n", err)
 		return &prauth.JWTResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
 	refreshToken, err := data.GetRefreshToken(a.db, r.Username)
 	if err != nil {
-		a.l.Printf("[ERROR] failed getting refresh token: %v", err)
+		a.l.Errorf("failed getting refresh token: %v\n", err)
 		return &prauth.JWTResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
@@ -187,7 +181,7 @@ func (a *Auth) AddRefresh(ctx context.Context, r *prauth.AddRefreshRequest) (*pr
 	}
 	err := data.AddRefreshToken(a.db, token.Username, token.Token)
 	if err != nil {
-		a.l.Printf("[ERROR] adding refresh token: %v\n", err)
+		a.l.Errorf("adding refresh token: %v\n", err)
 		return &prauth.AddRefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -199,7 +193,7 @@ var ErrorBadRequest = fmt.Errorf("bad request")
 func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.LoginResponse, error) {
 	res, err := a.uc.CheckEmail(context.Background(), &prusers.CheckEmailRequest{Username: r.Username})
 	if err != nil {
-		a.l.Printf("[ERROR] checking email: %v\n", err)
+		a.l.Errorf("checking email: %v\n", err)
 		return &prauth.LoginResponse{}, err
 	}
 
@@ -209,22 +203,23 @@ func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.Login
 	}
 	score, err := recaptcha.Verify()
 	if err != nil {
-		a.l.Println("[ERROR] verifying reCaptcha")
+		a.l.Errorf("failed to verify reCaptcha: %v\n", err)
 		return &prauth.LoginResponse{}, err
 	}
 
 	if score < 0.5 {
+		a.l.Infof("[DENIED] due to low recaptcha score: %v\n", score)
 		return &prauth.LoginResponse{}, status.Error(codes.PermissionDenied, "Low ReCaptcha score")
 	}
 
 	if !res.Verified {
-		a.l.Println("[ERROR] mail not verified")
+		a.l.Error("mail not verified")
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	pres, err := a.uc.CheckPassword(context.Background(), &prusers.CheckPasswordRequest{Username: r.Username, Password: r.Password})
 	if err != nil {
-        a.l.Printf("[ERROR] validating password: %v\n", err)
+        a.l.Errorf("failure validating password: %v\n", err)
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
