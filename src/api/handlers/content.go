@@ -1,17 +1,18 @@
 package handlers
 
 import (
-	"log"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Content struct {
-	l  *log.Logger
+	l  *logrus.Logger
 	cc prcontent.ContentClient
 	uc prusers.UsersClient
 }
 
-func NewContent(l *log.Logger, cc prcontent.ContentClient, uc prusers.UsersClient) *Content {
+func NewContent(l *logrus.Logger, cc prcontent.ContentClient, uc prusers.UsersClient) *Content {
 	return &Content{l: l, cc: cc, uc: uc}
 }

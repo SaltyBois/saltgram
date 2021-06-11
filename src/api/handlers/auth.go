@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"log"
 	"saltgram/protos/auth/prauth"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Auth struct {
-	l  *log.Logger
+	l  *logrus.Logger
 	ac prauth.AuthClient
 }
 
-func NewAuth(l *log.Logger, ac prauth.AuthClient) *Auth {
+func NewAuth(l *logrus.Logger, ac prauth.AuthClient) *Auth {
 	return &Auth{l: l, ac: ac}
 }

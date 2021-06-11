@@ -3,17 +3,17 @@ package internal
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"log"
 	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
 type Service struct {
-	L   *log.Logger
+	L   *logrus.Logger
 	S   *mux.Router
 	TLS *TLS
 }
@@ -39,7 +39,7 @@ func GetEnvOrDefaultInt(key string, fallback int) int {
 	return int(value)
 }
 
-func NewService(l *log.Logger) *Service {
+func NewService(l *logrus.Logger) *Service {
 	return &Service{L: l, S: mux.NewRouter(), TLS: &TLS{}}
 }
 

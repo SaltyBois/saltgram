@@ -16,24 +16,25 @@ import (
 )
 
 func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
-	a.l.Println("Handling REFRESH")
 	cookie, err := r.Cookie("refresh")
 	if err != nil {
-		a.l.Printf("[ERROR] getting cookie: %v", err)
+		a.l.Printf("getting cookie: %v", err)
 		http.Error(w, "No refresh cookie", http.StatusBadRequest)
 		return
 	}
 
 	jws, err := getUserJWS(r)
 	if err != nil {
-		a.l.Println("[ERROR] JWS not found")
+		a.l.Errorf("failed to get user jws: %v\n", err)
 		http.Error(w, "Missing JWS", http.StatusBadRequest)
 		return
 	}
 
+	a.l.Printf("Refreshing token: %v\n", jws)
+
 	res, err := a.ac.Refresh(context.Background(), &prauth.RefreshRequest{OldJWS: jws, Refresh: cookie.Value})
 	if err != nil {
-		a.l.Printf("[ERROR] getting refresh token: %v\n", err)
+		a.l.Errorf("getting refresh token: %v\n", err)
 		http.Error(w, "Failed to get refresh token", http.StatusBadRequest)
 		return
 	}
@@ -45,7 +46,7 @@ func (a *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
 func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	jws, err := getUserJWS(r)
 	if err != nil {
-		u.l.Println("[ERROR] JWS not found")
+		u.l.Errorf("failed to get user's jws: %v\n", err)
 		http.Error(w, "JWS not found", http.StatusBadRequest)
 		return
 	}
@@ -59,7 +60,7 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		u.l.Printf("[ERROR] parsing claims: %v", err)
+		u.l.Errorf("failed to parse claims: %v", err)
 		http.Error(w, "Error parsing claims", http.StatusBadRequest)
 		return
 	}
@@ -67,27 +68,27 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
 	if !ok {
-		u.l.Println("[ERROR] unable to parse claims")
+		u.l.Errorf("unable to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
 		return
 	}
 
 	user, err := u.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
 	if err != nil {
-		u.l.Println("[ERROR] fetching user", err)
+		u.l.Errorf("failed to fetch user: %v\n", err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
 	if user.HashedPassword != claims.Password {
-		u.l.Println("[ERROR] passwords do not match")
+		u.l.Println("passwords do not match")
 		http.Error(w, "JWT password doesn't match user's password", http.StatusUnauthorized)
 		return
 	}
 
 	err = saltdata.ToJSON(user, w)
 	if err != nil {
-		u.l.Println("[ERROR] serializing user ", err)
+		u.l.Errorf("serializing user ", err)
 		http.Error(w, "Error serializing user", http.StatusInternalServerError)
 		return
 	}
@@ -98,7 +99,7 @@ func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
 
 	jws, err := getUserJWS(r)
 	if err != nil {
-		s.l.Println("[ERROR] JWS not found")
+		s.l.Println("getting jws: %v\n", err)
 		http.Error(w, "JWS not found", http.StatusBadRequest)
 		return
 	}
@@ -112,7 +113,7 @@ func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		s.l.Printf("[ERROR] parsing claims: %v", err)
+		s.l.Errorf("parsing claims: %v", err)
 		http.Error(w, "Error parsing claims", http.StatusBadRequest)
 		return
 	}
@@ -120,21 +121,21 @@ func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
 	if !ok {
-		s.l.Println("[ERROR] unable to parse claims")
+		s.l.Errorf("unable to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
 		return
 	}
 
 	user, err := s.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
 	if err != nil {
-		s.l.Println("[ERROR] fetching user", err)
+		s.l.Errorf("failed to fetch user: %v\n", err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
 	stream, err := s.cc.GetSharedMedia(context.Background(), &prcontent.SharedMediaRequest{UserId: user.Id})
 	if err != nil {
-		s.l.Println("[ERROR] fetching shared medias")
+		s.l.Errorf("failed to fetch media %v\n", err)
 		http.Error(w, "Followers shared media error", http.StatusInternalServerError)
 		return
 	}
@@ -145,7 +146,7 @@ func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		if err != nil {
-			s.l.Println("[ERROR] fetching sharedMedias")
+			s.l.Errorf("failed to fetch sharedMedias: %v\n", err)
 			http.Error(w, "Error couldn't fetch sharedMedias", http.StatusInternalServerError)
 			return
 		}
@@ -160,13 +161,13 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 	userId := vars["id"]
 	id, err := strconv.ParseUint(userId, 10, 64)
 	if err != nil {
-		s.l.Println("[ERROR] converting id")
+		s.l.Println("converting id")
 		return
 	}
 
 	stream, err := s.cc.GetSharedMedia(context.Background(), &prcontent.SharedMediaRequest{UserId: id})
 	if err != nil {
-		s.l.Println("[ERROR] fetching shared medias")
+		s.l.Errorf("failed fetching shared medias %v\n", err)
 		http.Error(w, "Followers shared media error", http.StatusInternalServerError)
 		return
 	}
@@ -177,7 +178,7 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		if err != nil {
-			s.l.Println("[ERROR] fetching sharedMedias")
+			s.l.Errorf("failed to fetch sharedMedias: %v\n", err)
 			http.Error(w, "Error couldn't fetch sharedMedias", http.StatusInternalServerError)
 			return
 		}
