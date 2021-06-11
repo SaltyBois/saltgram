@@ -31,3 +31,5 @@ jsconfig.json
 tsconfig.json
 
 *.env
+
+/src/target/
