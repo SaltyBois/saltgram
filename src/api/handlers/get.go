@@ -225,3 +225,35 @@ func (c *Content) GetProfilePictureByUser(w http.ResponseWriter, r *http.Request
 	w.Header().Add("Content-Type", "application/json")
 
 }
+
+func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("converting id")
+		return
+	}
+
+	stream, err := s.cc.GetPosts(context.Background(), &prcontent.GetPostsRequest{UserId: id})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		posts, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Errorf("failed to fetch posts: %v\n", err)
+			http.Error(w, "Error couldn't fetch posts", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(posts, w)
+	}
+	w.Write([]byte("}"))
+}

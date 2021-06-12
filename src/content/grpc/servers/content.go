@@ -79,6 +79,48 @@ func (c *Content) getProflePicture(ctx context.Context, r *prcontent.GetProfileP
 	}, nil
 }
 
+func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsServer) error {
+	posts, err := c.db.GetPostByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting user posts: %v\n", err)
+		return err
+	}
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+			})
+		}
+		post := &prcontent.Post {
+			Id: p.ID,
+			UserId: p.UserID,
+			SharedMedia: &prcontent.SharedMedia {
+				Media: media,
+			}, 
+		}
+		err = stream.Send(&prcontent.GetPostsResponse{
+			Post: post,
+		})
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return err
+		}
+	}
+	return nil
+}
+
+
+
+
 func (c *Content) AddProflePicture(ctx context.Context, r *prcontent.AddProfilePictureRequest) (*prcontent.AddProfilePictureResponse, error) {
 
 	profilePicture := data.ProfilePicture{
@@ -132,4 +174,37 @@ func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMedi
 	}
 
 	return &prcontent.AddSharedMediaResponse{}, nil
+}
+
+func (u *Content) AddPost(ctx context.Context, r *prcontent.AddPostRequest) (*prcontent.AddPostResponse, error) {
+
+	media := []*data.Media{}
+	for _, m := range r.SharedMedia.Media {
+		media = append(media, &data.Media{
+			Filename:    m.Filename,
+			Tags:        []data.Tag{},
+			Description: m.Description,
+			Location: data.Location{
+				Country: m.Location.Country,
+				State:   m.Location.State,
+				ZipCode: m.Location.ZipCode,
+				Street:  m.Location.Street,
+			},
+			AddedOn: m.AddedOn,
+		})
+	}
+	post := data.Post{
+		SharedMedia: data.SharedMedia{
+			Media: media,
+		},
+		UserID: r.UserId,
+	}
+
+	err := u.db.AddPost(&post)
+	if err != nil {
+		u.l.Errorf("failure adding post: %v\n", err)
+		return &prcontent.AddPostResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.AddPostResponse{}, nil
 }

@@ -3,15 +3,15 @@ option go_package = "./content/prcontent";
 
 service Content {
     rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
-    rpc GetPosts(GetPostRequest) returns(stream GetPostsResponse);
+    rpc GetPosts(GetPostsRequest) returns(stream GetPostsResponse);
     rpc GetStories(GetStoryRequest) returns(stream GetStoriesResponse);
     rpc GetProfilePicture(GetProfilePictureRequest) returns(GetProfilePictureResponse);
     rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
     //rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
 
     rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
-    rpc AddPosts(AddPostsRequest) returns(AddPostsResponse);
-    rpc AddStories(AddStoriesRequest) returns(AddStoriesResponse);
+    rpc AddPost(AddPostRequest) returns(AddPostResponse);
+    rpc AddStory(AddStoryRequest) returns(AddStoryResponse);
     rpc AddProfilePicture(AddProfilePictureRequest) returns(AddSharedMediaResponse);
     rpc AddComments(AddCommentRequest) returns(AddCommentResponse);
     //rpc AddReactions(AddReactionRequest) returns(AddReactionResponse);
@@ -21,7 +21,7 @@ message SharedMediaRequest {
     uint64 userId = 1;
 }
 
-message GetPostRequest {
+message GetPostsRequest {
     uint64 userId = 1;
 }
 message GetStoryRequest {
@@ -31,7 +31,6 @@ message GetStoryRequest {
 message GetProfilePictureRequest {
     uint64 userId = 1;
 }
-
 
 message SharedMediaResponse {
     repeated Media media = 1;
@@ -62,19 +61,6 @@ message SharedMedia {
     repeated Media media = 1;
 }
 
-message PostResponse {
-    uint64 id = 1;
-    SharedMedia sharedMedia = 2;
-    uint64 userId = 3;
-}
-
-message StoryResponse {
-    uint64 id = 1;
-    SharedMedia sharedMedia = 2;
-    uint64 userId = 3;
-    bool closeFriends = 4;
-}
-
 message AddSharedMediaRequest {
     repeated Media media = 1;
 }
@@ -88,7 +74,7 @@ message Post {
 }
 
 message GetPostsResponse {
-    repeated Post post = 1;
+    Post post = 1;
 }
 
 message Story {
@@ -99,7 +85,7 @@ message Story {
 }
 
 message GetStoriesResponse {
-    repeated Story story = 1;
+    Story story = 1;
 }
 
 message GetProfilePictureResponse {
@@ -108,16 +94,16 @@ message GetProfilePictureResponse {
     uint64 id = 3;
 }
 
-message AddPostsResponse {}
-message AddStoriesResponse {}
+message AddPostResponse {}
+message AddStoryResponse {}
 message AddProfilePictureResponse {}
 
-message AddPostsRequest {
+message AddPostRequest {
     SharedMedia sharedMedia = 1;
     uint64 userId = 2;
 }
 
-message AddStoriesRequest {
+message AddStoryRequest {
     SharedMedia sharedMedia = 1;
     uint64 userId = 2;
     bool closeFriends = 3;

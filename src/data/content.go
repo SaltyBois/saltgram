@@ -32,6 +32,11 @@ type ProfilePictureDTO struct {
 	Media  MediaDTO
 }
 
+type PostDTO struct {
+	SharedMedia SharedMediaDTO
+	User UserDTO
+}
+
 func (sm *SharedMediaDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(sm)

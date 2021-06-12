@@ -19,13 +19,13 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ContentClient interface {
 	GetSharedMedia(ctx context.Context, in *SharedMediaRequest, opts ...grpc.CallOption) (Content_GetSharedMediaClient, error)
-	GetPosts(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (Content_GetPostsClient, error)
+	GetPosts(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsClient, error)
 	GetStories(ctx context.Context, in *GetStoryRequest, opts ...grpc.CallOption) (Content_GetStoriesClient, error)
 	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error)
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error)
 	AddSharedMedia(ctx context.Context, in *AddSharedMediaRequest, opts ...grpc.CallOption) (*AddSharedMediaResponse, error)
-	AddPosts(ctx context.Context, in *AddPostsRequest, opts ...grpc.CallOption) (*AddPostsResponse, error)
-	AddStories(ctx context.Context, in *AddStoriesRequest, opts ...grpc.CallOption) (*AddStoriesResponse, error)
+	AddPost(ctx context.Context, in *AddPostRequest, opts ...grpc.CallOption) (*AddPostResponse, error)
+	AddStory(ctx context.Context, in *AddStoryRequest, opts ...grpc.CallOption) (*AddStoryResponse, error)
 	AddProfilePicture(ctx context.Context, in *AddProfilePictureRequest, opts ...grpc.CallOption) (*AddSharedMediaResponse, error)
 	AddComments(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
 }
@@ -70,7 +70,7 @@ func (x *contentGetSharedMediaClient) Recv() (*SharedMediaResponse, error) {
 	return m, nil
 }
 
-func (c *contentClient) GetPosts(ctx context.Context, in *GetPostRequest, opts ...grpc.CallOption) (Content_GetPostsClient, error) {
+func (c *contentClient) GetPosts(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[1], "/Content/GetPosts", opts...)
 	if err != nil {
 		return nil, err
@@ -184,18 +184,18 @@ func (c *contentClient) AddSharedMedia(ctx context.Context, in *AddSharedMediaRe
 	return out, nil
 }
 
-func (c *contentClient) AddPosts(ctx context.Context, in *AddPostsRequest, opts ...grpc.CallOption) (*AddPostsResponse, error) {
-	out := new(AddPostsResponse)
-	err := c.cc.Invoke(ctx, "/Content/AddPosts", in, out, opts...)
+func (c *contentClient) AddPost(ctx context.Context, in *AddPostRequest, opts ...grpc.CallOption) (*AddPostResponse, error) {
+	out := new(AddPostResponse)
+	err := c.cc.Invoke(ctx, "/Content/AddPost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *contentClient) AddStories(ctx context.Context, in *AddStoriesRequest, opts ...grpc.CallOption) (*AddStoriesResponse, error) {
-	out := new(AddStoriesResponse)
-	err := c.cc.Invoke(ctx, "/Content/AddStories", in, out, opts...)
+func (c *contentClient) AddStory(ctx context.Context, in *AddStoryRequest, opts ...grpc.CallOption) (*AddStoryResponse, error) {
+	out := new(AddStoryResponse)
+	err := c.cc.Invoke(ctx, "/Content/AddStory", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -225,13 +225,13 @@ func (c *contentClient) AddComments(ctx context.Context, in *AddCommentRequest, 
 // for forward compatibility
 type ContentServer interface {
 	GetSharedMedia(*SharedMediaRequest, Content_GetSharedMediaServer) error
-	GetPosts(*GetPostRequest, Content_GetPostsServer) error
+	GetPosts(*GetPostsRequest, Content_GetPostsServer) error
 	GetStories(*GetStoryRequest, Content_GetStoriesServer) error
 	GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error)
 	GetComments(*GetCommentsRequest, Content_GetCommentsServer) error
 	AddSharedMedia(context.Context, *AddSharedMediaRequest) (*AddSharedMediaResponse, error)
-	AddPosts(context.Context, *AddPostsRequest) (*AddPostsResponse, error)
-	AddStories(context.Context, *AddStoriesRequest) (*AddStoriesResponse, error)
+	AddPost(context.Context, *AddPostRequest) (*AddPostResponse, error)
+	AddStory(context.Context, *AddStoryRequest) (*AddStoryResponse, error)
 	AddProfilePicture(context.Context, *AddProfilePictureRequest) (*AddSharedMediaResponse, error)
 	AddComments(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
 	mustEmbedUnimplementedContentServer()
@@ -244,7 +244,7 @@ type UnimplementedContentServer struct {
 func (UnimplementedContentServer) GetSharedMedia(*SharedMediaRequest, Content_GetSharedMediaServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetSharedMedia not implemented")
 }
-func (UnimplementedContentServer) GetPosts(*GetPostRequest, Content_GetPostsServer) error {
+func (UnimplementedContentServer) GetPosts(*GetPostsRequest, Content_GetPostsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetPosts not implemented")
 }
 func (UnimplementedContentServer) GetStories(*GetStoryRequest, Content_GetStoriesServer) error {
@@ -259,11 +259,11 @@ func (UnimplementedContentServer) GetComments(*GetCommentsRequest, Content_GetCo
 func (UnimplementedContentServer) AddSharedMedia(context.Context, *AddSharedMediaRequest) (*AddSharedMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddSharedMedia not implemented")
 }
-func (UnimplementedContentServer) AddPosts(context.Context, *AddPostsRequest) (*AddPostsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddPosts not implemented")
+func (UnimplementedContentServer) AddPost(context.Context, *AddPostRequest) (*AddPostResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPost not implemented")
 }
-func (UnimplementedContentServer) AddStories(context.Context, *AddStoriesRequest) (*AddStoriesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddStories not implemented")
+func (UnimplementedContentServer) AddStory(context.Context, *AddStoryRequest) (*AddStoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddStory not implemented")
 }
 func (UnimplementedContentServer) AddProfilePicture(context.Context, *AddProfilePictureRequest) (*AddSharedMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddProfilePicture not implemented")
@@ -306,7 +306,7 @@ func (x *contentGetSharedMediaServer) Send(m *SharedMediaResponse) error {
 }
 
 func _Content_GetPosts_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetPostRequest)
+	m := new(GetPostsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
@@ -404,38 +404,38 @@ func _Content_AddSharedMedia_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Content_AddPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddPostsRequest)
+func _Content_AddPost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddPostRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ContentServer).AddPosts(ctx, in)
+		return srv.(ContentServer).AddPost(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Content/AddPosts",
+		FullMethod: "/Content/AddPost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContentServer).AddPosts(ctx, req.(*AddPostsRequest))
+		return srv.(ContentServer).AddPost(ctx, req.(*AddPostRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Content_AddStories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddStoriesRequest)
+func _Content_AddStory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddStoryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ContentServer).AddStories(ctx, in)
+		return srv.(ContentServer).AddStory(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Content/AddStories",
+		FullMethod: "/Content/AddStory",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContentServer).AddStories(ctx, req.(*AddStoriesRequest))
+		return srv.(ContentServer).AddStory(ctx, req.(*AddStoryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -492,12 +492,12 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Content_AddSharedMedia_Handler,
 		},
 		{
-			MethodName: "AddPosts",
-			Handler:    _Content_AddPosts_Handler,
+			MethodName: "AddPost",
+			Handler:    _Content_AddPost_Handler,
 		},
 		{
-			MethodName: "AddStories",
-			Handler:    _Content_AddStories_Handler,
+			MethodName: "AddStory",
+			Handler:    _Content_AddStory_Handler,
 		},
 		{
 			MethodName: "AddProfilePicture",

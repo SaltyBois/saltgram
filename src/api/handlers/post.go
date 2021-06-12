@@ -443,3 +443,86 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Activation email sent"))
 }
+
+func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.PostDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failure adding post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+
+	media := []*prcontent.Media{}
+	for _, m := range dto.SharedMedia.Media {
+		tags := []*prcontent.Tag{}
+		for _, t := range m.Tags {
+			tags = append(tags, &prcontent.Tag{
+				Value: t.Value,
+				Id:    t.ID,
+			})
+		}
+		media = append(media, &prcontent.Media{
+			UserId:      user.Id,
+			Filename:    m.Filename,
+			Tags:        tags,
+			Description: m.Description,
+			Location: &prcontent.Location{
+				Country: m.Location.Country,
+				State:   m.Location.State,
+				ZipCode: m.Location.ZipCode,
+				Street:  m.Location.Street,
+			},
+			AddedOn: m.AddedOn,
+		})
+	}
+	sharedMedia := &prcontent.SharedMedia {
+		Media: media,
+	}
+
+	_, err = c.cc.AddPost(context.Background(), &prcontent.AddPostRequest{SharedMedia: sharedMedia, UserId: user.Id})
+
+	if err != nil {
+		c.l.Errorf("failed to add post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
