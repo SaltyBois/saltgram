@@ -89,7 +89,8 @@ func main() {
 	contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/post/{id}", contentHandler.GetPostsByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
-
+	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

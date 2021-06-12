@@ -37,6 +37,18 @@ type PostDTO struct {
 	User UserDTO
 }
 
+type CommentDTO struct {
+	Content string
+	UserId uint64
+	PostId uint64
+}
+
+type ReactionDTO struct {
+	ReactionType uint64
+	UserId uint64
+	PostId uint64
+}
+
 func (sm *SharedMediaDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(sm)

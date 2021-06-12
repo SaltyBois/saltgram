@@ -13,8 +13,8 @@ service Content {
     rpc AddPost(AddPostRequest) returns(AddPostResponse);
     rpc AddStory(AddStoryRequest) returns(AddStoryResponse);
     rpc AddProfilePicture(AddProfilePictureRequest) returns(AddSharedMediaResponse);
-    rpc AddComments(AddCommentRequest) returns(AddCommentResponse);
-    //rpc AddReactions(AddReactionRequest) returns(AddReactionResponse);
+    rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
+    rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
 }
 
 message SharedMediaRequest {
@@ -115,13 +115,13 @@ message AddProfilePictureRequest {
 }
 
 message Comment {
-    uint64 userId = 1;
-    uint64 postId = 2;
-    string content = 3;
+    string content = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
 }
 
 message GetCommentsResponse {
-    repeated Comment comment = 1;
+    Comment comment = 1;
 }
 
 message GetCommentsRequest {
@@ -129,13 +129,20 @@ message GetCommentsRequest {
 }
 
 message AddCommentRequest {
-    uint64 userId = 1;
-    uint64 postId = 2;
-    string content = 3;
+    string content = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
 }
 
 message AddCommentResponse {}
 
+message AddReactionRequest {
+    uint64 reactionType = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+}
+
+message AddReactionResponse {}
 
 
 

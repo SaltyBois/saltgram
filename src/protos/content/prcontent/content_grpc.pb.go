@@ -27,7 +27,8 @@ type ContentClient interface {
 	AddPost(ctx context.Context, in *AddPostRequest, opts ...grpc.CallOption) (*AddPostResponse, error)
 	AddStory(ctx context.Context, in *AddStoryRequest, opts ...grpc.CallOption) (*AddStoryResponse, error)
 	AddProfilePicture(ctx context.Context, in *AddProfilePictureRequest, opts ...grpc.CallOption) (*AddSharedMediaResponse, error)
-	AddComments(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
+	AddComment(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
+	AddReaction(ctx context.Context, in *AddReactionRequest, opts ...grpc.CallOption) (*AddReactionResponse, error)
 }
 
 type contentClient struct {
@@ -211,9 +212,18 @@ func (c *contentClient) AddProfilePicture(ctx context.Context, in *AddProfilePic
 	return out, nil
 }
 
-func (c *contentClient) AddComments(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error) {
+func (c *contentClient) AddComment(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error) {
 	out := new(AddCommentResponse)
-	err := c.cc.Invoke(ctx, "/Content/AddComments", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Content/AddComment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) AddReaction(ctx context.Context, in *AddReactionRequest, opts ...grpc.CallOption) (*AddReactionResponse, error) {
+	out := new(AddReactionResponse)
+	err := c.cc.Invoke(ctx, "/Content/AddReaction", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +243,8 @@ type ContentServer interface {
 	AddPost(context.Context, *AddPostRequest) (*AddPostResponse, error)
 	AddStory(context.Context, *AddStoryRequest) (*AddStoryResponse, error)
 	AddProfilePicture(context.Context, *AddProfilePictureRequest) (*AddSharedMediaResponse, error)
-	AddComments(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
+	AddComment(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
+	AddReaction(context.Context, *AddReactionRequest) (*AddReactionResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -268,8 +279,11 @@ func (UnimplementedContentServer) AddStory(context.Context, *AddStoryRequest) (*
 func (UnimplementedContentServer) AddProfilePicture(context.Context, *AddProfilePictureRequest) (*AddSharedMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddProfilePicture not implemented")
 }
-func (UnimplementedContentServer) AddComments(context.Context, *AddCommentRequest) (*AddCommentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddComments not implemented")
+func (UnimplementedContentServer) AddComment(context.Context, *AddCommentRequest) (*AddCommentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddComment not implemented")
+}
+func (UnimplementedContentServer) AddReaction(context.Context, *AddReactionRequest) (*AddReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddReaction not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -458,20 +472,38 @@ func _Content_AddProfilePicture_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Content_AddComments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Content_AddComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddCommentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ContentServer).AddComments(ctx, in)
+		return srv.(ContentServer).AddComment(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Content/AddComments",
+		FullMethod: "/Content/AddComment",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContentServer).AddComments(ctx, req.(*AddCommentRequest))
+		return srv.(ContentServer).AddComment(ctx, req.(*AddCommentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_AddReaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).AddReaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/AddReaction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).AddReaction(ctx, req.(*AddReactionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -504,8 +536,12 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Content_AddProfilePicture_Handler,
 		},
 		{
-			MethodName: "AddComments",
-			Handler:    _Content_AddComments_Handler,
+			MethodName: "AddComment",
+			Handler:    _Content_AddComment_Handler,
+		},
+		{
+			MethodName: "AddReaction",
+			Handler:    _Content_AddReaction_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

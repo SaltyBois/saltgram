@@ -118,9 +118,6 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	return nil
 }
 
-
-
-
 func (c *Content) AddProflePicture(ctx context.Context, r *prcontent.AddProfilePictureRequest) (*prcontent.AddProfilePictureResponse, error) {
 
 	profilePicture := data.ProfilePicture{
@@ -208,3 +205,38 @@ func (u *Content) AddPost(ctx context.Context, r *prcontent.AddPostRequest) (*pr
 
 	return &prcontent.AddPostResponse{}, nil
 }
+
+func (c *Content) AddComment(ctx context.Context, r *prcontent.AddCommentRequest) (*prcontent.AddCommentResponse, error) {
+
+	comment := data.Comment{
+		Content: r.Content,
+		UserID: r.UserId,
+		PostID: r.PostId,
+	}
+
+	err := c.db.AddComment(&comment)
+	if err != nil {
+		c.l.Errorf("Failed adding comment: %v\n", err)
+		return &prcontent.AddCommentResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.AddCommentResponse{}, nil
+}
+
+func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionRequest) (*prcontent.AddReactionResponse, error) {
+
+	reaction := data.Reaction{
+		//ReactionType: r.ReactionType,
+		UserID: r.UserId,
+		PostID: r.PostId,
+	}
+
+	err := c.db.AddReaction(&reaction)
+	if err != nil {
+		c.l.Errorf("Failed adding reaction: %v\n", err)
+		return &prcontent.AddReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.AddReactionResponse{}, nil
+}
+

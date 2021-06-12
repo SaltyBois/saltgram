@@ -1,9 +1,9 @@
 package data
 
-type ReactionType int
+type ReactionType uint64
 
 const (
-	Like ReactionType = iota
+	Like ReactionType = iota + 1
 	Dislike
 )
 
@@ -11,9 +11,13 @@ type Reaction struct {
 	ID           uint64       `json:"id"`
 	ReactionType ReactionType `validate:"required"`
 	User         User         `json:"user"`
-	UserID       string       `json:"userId"`
+	UserID       uint64       `json:"userId"`
 	Post         Post         `json:"post"`
 	PostID       uint64       `json:"postId"`
+}
+
+func (db *DBConn) AddReaction(reaction *Reaction) error {
+	return db.DB.Create(reaction).Error
 }
 
 func (db *DBConn) GetReactionByPostId(id uint64) (*Reaction, error) {
