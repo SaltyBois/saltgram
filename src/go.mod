@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go v0.81.0
+	github.com/aws/aws-sdk-go v1.27.0
 	github.com/casbin/casbin/v2 v2.28.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
@@ -30,6 +31,7 @@ require (
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.8
 	rsc.io/qr v0.2.0
