@@ -1,15 +1,15 @@
 package data
 
-type ReactionType uint64
+type ReactionType string
 
 const (
-	Like ReactionType = iota + 1
-	Dislike
+	LIKE ReactionType = "LIKE"
+	DISLIKE
 )
 
 type Reaction struct {
 	ID           uint64       `json:"id"`
-	ReactionType ReactionType `validate:"required"`
+	ReactionType ReactionType `json:"reactionType" validate:"required"`
 	User         User         `json:"user"`
 	UserID       uint64       `json:"userId"`
 	Post         Post         `json:"post"`

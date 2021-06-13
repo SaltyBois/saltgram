@@ -83,3 +83,9 @@ func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
 func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
 	return db.DB.Create(pp).Error
 }
+
+func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
+	post := []Post{}
+	err := db.DB.Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
+	return &post, err
+}

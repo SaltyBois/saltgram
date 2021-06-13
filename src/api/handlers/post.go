@@ -628,7 +628,7 @@ func (c *Content) AddReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{ReactionType: dto.ReactionType, UserId: user.Id, PostId: dto.PostId})
+	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{/*ReactionType: dto.ReactionType,*/ UserId: user.Id, PostId: dto.PostId})
 
 	if err != nil {
 		c.l.Errorf("failed to add reaction: %v\n", err)

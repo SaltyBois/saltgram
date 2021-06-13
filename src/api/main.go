@@ -91,6 +91,8 @@ func main() {
 	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
+
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

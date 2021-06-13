@@ -43,8 +43,15 @@ type CommentDTO struct {
 	PostId uint64
 }
 
+type ReactionType string
+
+const (
+	LIKE ReactionType = "LIKE"
+	DISLIKE
+)
+
 type ReactionDTO struct {
-	ReactionType uint64
+	ReactionType ReactionType
 	UserId uint64
 	PostId uint64
 }

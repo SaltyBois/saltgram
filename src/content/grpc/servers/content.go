@@ -79,8 +79,47 @@ func (c *Content) getProflePicture(ctx context.Context, r *prcontent.GetProfileP
 	}, nil
 }
 
-func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsServer) error {
+func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserServer) error {
 	posts, err := c.db.GetPostByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting user posts: %v\n", err)
+		return err
+	}
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+			})
+		}
+		post := &prcontent.Post {
+			Id: p.ID,
+			UserId: p.UserID,
+			SharedMedia: &prcontent.SharedMedia {
+				Media: media,
+			}, 
+		}
+		err = stream.Send(&prcontent.GetPostsResponse{
+			Post: post,
+		})
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
+	posts, err := c.db.GetPostsByReaction(r.UserId)
 	if err != nil {
 		c.l.Errorf("failure getting user posts: %v\n", err)
 		return err
