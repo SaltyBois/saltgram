@@ -14,6 +14,8 @@ import (
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+	//"saltgram/protos/notification/prnotification"
+
 	"time"
 
 	"github.com/rs/cors"
@@ -85,6 +87,15 @@ func main() {
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
+
+	notificationConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_NOTIFICATION_ADDR", "localhost"), os.Getenv("SALT_NOTIFICATION_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing notification connection: %v\n", err)
+	}
+	defer notificationConnection.Close()
+	/*notificationClient := prnotification.NewNotificationClient(notificationConnection)
+	notificationHandler := handlers.NewNotification(l.L, notificationClient, usersClient)
+	notificationRouter := s.S.PathPrefix("/content").Subrouter()*/
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
