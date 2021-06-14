@@ -47,6 +47,7 @@ func (g *GDrive) getServiceClient() {
 			drive.DriveScope,
 		},
 	}
+
 	client := config.Client(context.Background())
 	srv, err := drive.NewService(g.ctx, option.WithHTTPClient(client))
 	if err != nil {
@@ -91,6 +92,7 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 }
 
 func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isPublic bool) (*drive.File, error) {
+
 	f := &drive.File{
 		MimeType: "application/vnd.google-apps.photo",
 		Name:     name,

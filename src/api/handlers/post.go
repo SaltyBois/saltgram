@@ -216,14 +216,14 @@ func (a *Auth) Get2FAQR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-    w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Type", "image/png")
 	_, err = w.Write(res.Png)
 	if err != nil {
 		a.l.Errorf("failed to write png data: %v\n", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	
+
 }
 
 func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {
@@ -405,7 +405,6 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	//////////////// GDRIVE PART STARTS   ////////////////////////////////
 
 	r.ParseMultipartForm(10 << 20) // up to 10MB
@@ -423,6 +422,7 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid image data", http.StatusBadRequest)
 		return
 	}
+
 	resp, err := c.cc.PostProfile(context.Background(), &prcontent.PostProfileRequest{
 		Image: imageBytes,
 	})
@@ -433,7 +433,6 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//////////////////// GDRIVE PART ENDS  /////////////////////////////////////
-
 
 	/*dto := saltdata.ProfilePictureDTO{}
 	err = saltdata.FromJSON(&dto, r.Body)
@@ -452,9 +451,9 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 	_, err = c.cc.AddProfilePicture(context.Background(), &prcontent.AddProfilePictureRequest{
 		UserId: user.Id,
 		Media: &prcontent.Media{
-			UserId:      user.Id,
+			UserId: user.Id,
 			//Filename:    dto.Media.Filename,
-			Filename:    resp.Url,
+			Filename: resp.Url,
 			/*Description: dto.Media.Description,
 			Location: &prcontent.Location{
 				Country: dto.Media.Location.Country,
@@ -467,12 +466,12 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		c.l.Printf("[ERROR] registering profile picture: %v\n", err)
+		c.l.Errorf("[ERROR] adding profile picture: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
-	w.Write([]byte("Activation email sent"))
+	w.Write([]byte("Profile picture added"))
 }
 
 func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
@@ -521,7 +520,6 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	media := []*prcontent.Media{}
 	for _, m := range dto.SharedMedia.Media {
 		tags := []*prcontent.Tag{}
@@ -545,7 +543,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 			AddedOn: m.AddedOn,
 		})
 	}
-	sharedMedia := &prcontent.SharedMedia {
+	sharedMedia := &prcontent.SharedMedia{
 		Media: media,
 	}
 
@@ -659,7 +657,7 @@ func (c *Content) AddReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{/*ReactionType: dto.ReactionType,*/ UserId: user.Id, PostId: dto.PostId})
+	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{ /*ReactionType: dto.ReactionType,*/ UserId: user.Id, PostId: dto.PostId})
 
 	if err != nil {
 		c.l.Errorf("failed to add reaction: %v\n", err)

@@ -17,7 +17,7 @@
              ref="file"
              style="display: none"
              @change="onSelectedFile($event)"
-             accept="image/*,video/*">
+             accept="image/*">
 
     </div>
     <div class="item-container ">
@@ -124,25 +124,37 @@ export default {
   components: {ImageMessage},
   data: function () {
     return {
-      profileImage: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg',
+      profilePicture: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg',
       showContent: false,
       genderRoles: [ 'Male', 'Female' ],
-      privateProfile: false
+      privateProfile: false,
+      isUploadedContent: false,
     }
   },
   methods: {
     onSelectedFile(event) {
-      var files = event.target.files || event.dataTransfer.files;
-      if (!files.length)
-        return;
-      console.log(files.length)
-      console.log(files[0])
-      this.item.image = URL.createObjectURL(files[0])
-      console.log(this.item.image)
-      if (files[0]['type'].includes('image')) this.typeContent = 'image';
-      else this.typeContent = 'video';
-      console.log(this.typeContent)
-      this.isUploadedContent = true;
+
+      this.profilePicture = event.target.files[0]
+      console.log(this.profilePicture)
+
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data
+
+          let data = new FormData();
+          data.append('profileImg', this.profilePicture);
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          this.axios.post("content/profilepicture", data, config)
+            .then(() => this.isUploadedContent = true)
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
+
+
     },
   }
 }
