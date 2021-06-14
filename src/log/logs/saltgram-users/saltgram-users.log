@@ -1,0 +1,52 @@
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 08:44:08"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 08:44:09"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 08:45:23"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 08:45:24"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 09:04:11"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 09:04:11"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 10:46:40"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 10:46:41"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 10:51:36"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 10:51:37"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 10:54:03"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 10:54:05"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 10:54:53"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 10:54:54"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 10:55:52"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 10:55:53"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 11:00:33"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 11:00:34"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 11:05:57"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 11:05:58"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 11:07:30"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 11:07:31"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 11:23:09"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 11:23:09"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 11:45:19"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 11:45:19"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 11:55:18"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 11:55:18"}
+{"data":{},"file":"users.go:71","func":"saltgram/users/grpc/servers.(*Users).ChangePassword","level":"info","msg":"changing password for: jovan\n","time":"06-11-2021 11:56:50"}
+{"data":{},"file":"users.go:148","func":"saltgram/users/grpc/servers.(*Users).CheckPassword","level":"error","msg":"failure checking password: invalid password\n","time":"06-11-2021 11:56:58"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-11-2021 13:09:02"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-11-2021 13:09:17"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 08:18:42"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 08:22:13"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:13:13"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:13:14"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:27:22"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:27:23"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:31:38"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:31:38"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:34:10"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:34:11"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:35:48"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:35:49"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:38:54"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:38:54"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:39:41"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:39:41"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:40:35"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:40:36"}
+{"data":{},"file":"main.go:21","func":"main.main","level":"info","msg":"Starting Users microservice on port: 8083\n","time":"06-14-2021 12:42:33"}
+{"data":{},"file":"database.go:41","func":"saltgram/users/data.(*DBConn).ConnectToDb","level":"info","msg":"Connected to User db","time":"06-14-2021 12:42:34"}
