@@ -8,6 +8,7 @@ import (
 	"saltgram/internal"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
@@ -46,6 +47,7 @@ func (g *GDrive) getServiceClient() {
 		Scopes: []string{
 			drive.DriveScope,
 		},
+		TokenURL: google.JWTTokenURL,
 	}
 
 	client := config.Client(context.Background())

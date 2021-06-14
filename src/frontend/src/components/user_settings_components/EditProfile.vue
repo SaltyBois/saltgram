@@ -149,7 +149,8 @@ export default {
               'Authorization': 'Bearer ' + this.$store.state.jws,
             },
           };
-          this.axios.post("content/profilepicture", data, config)
+          // Vratiti nazad
+          this.axios.post("content/user/profile", data, config)
             .then(() => this.isUploadedContent = true)
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));

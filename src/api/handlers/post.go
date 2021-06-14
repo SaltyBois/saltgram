@@ -414,18 +414,18 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid image data", http.StatusBadRequest)
 	}
 	defer file.Close()
-	c.l.Infof("uploaded file: %v", handler.Filename)
-
+	
 	imageBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		c.l.Errorf("failed to read image bytes: %v", err)
 		http.Error(w, "Invalid image data", http.StatusBadRequest)
 		return
 	}
-
+	
 	resp, err := c.cc.PostProfile(context.Background(), &prcontent.PostProfileRequest{
 		Image: imageBytes,
 	})
+	c.l.Infof("uploaded file: %v, at: %v", handler.Filename, resp.Url)
 	if err != nil {
 		c.l.Errorf("failed to upload profile image: %v", err)
 		http.Error(w, "Failed to upload profile image", http.StatusInternalServerError)
@@ -682,8 +682,7 @@ func (c *Content) PostProfile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid image data", http.StatusBadRequest)
 	}
 	defer file.Close()
-	c.l.Infof("uploaded file: %v", handler.Filename)
-
+	
 	imageBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		c.l.Errorf("failed to read image bytes: %v", err)
@@ -698,6 +697,7 @@ func (c *Content) PostProfile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to upload profile image", http.StatusInternalServerError)
 		return
 	}
+	c.l.Infof("uploaded file: %v, at: ", handler.Filename, resp.Url)
 
 	// Returns uploaded image url
 	w.Write([]byte(resp.Url))

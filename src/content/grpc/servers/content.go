@@ -1,8 +1,8 @@
 package servers
 
 import (
-	"context" 	
 	"bytes"
+	"context"
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
@@ -32,7 +32,7 @@ func (c *Content) PostProfile(ctx context.Context, r *prcontent.PostProfileReque
 		c.l.Errorf("bad request, empty image")
 		return &prcontent.PostProfileResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
-	f, err := c.g.CreateFile("profile", []string{"root"}, bytes.NewReader(r.Image), true)
+	f, err := c.g.CreateFile("profile", []string{}, bytes.NewReader(r.Image), true)
 	if err != nil {
 		c.l.Errorf("failed to upload profile image: %v", err)
 		return &prcontent.PostProfileResponse{}, status.Error(codes.Internal, "Internal server error")
