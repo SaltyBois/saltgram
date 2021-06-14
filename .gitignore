@@ -36,3 +36,5 @@ saltgram-c0751de619fa.json
 secrets
 *.log
 
+# Logs
+*.log

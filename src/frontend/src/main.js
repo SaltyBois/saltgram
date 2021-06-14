@@ -35,11 +35,9 @@ export default store;
 Vue.mixin({
   methods: {
     getAHeader: function () {
-       console.log("aaaa", store.state.jws);
       return {'Authorization': 'Bearer ' + store.state.jws};
     },
     refreshToken: async function (aHeader) {
-       console.log("aaa", store.state.jws);
       return axios.get("auth/refresh", {headers: aHeader});
     },
   }

@@ -2,10 +2,10 @@ package data
 
 import (
 	"fmt"
-	"log"
 	"saltgram/internal"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,10 +20,10 @@ var (
 
 type DBConn struct {
 	DB *gorm.DB
-	l *log.Logger
+	l *logrus.Logger
 }
 
-func NewDBConn(l *log.Logger) *DBConn {
+func NewDBConn(l *logrus.Logger) *DBConn {
 	return &DBConn{l: l}
 }
 
@@ -33,13 +33,13 @@ func (db *DBConn) ConnectToDb() error {
 	dbtmp, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	for err != nil {
-		db.l.Print("Reattempting connection to Email db")
+		db.l.Info("Reattempting connection to Email db")
 		time.Sleep(time.Millisecond * 5000)
 		dbtmp, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	}
 
 	if dbtmp != nil {
-		db.l.Printf("Connected to Email db!\n")
+		db.l.Info("Connected to Email db!\n")
 	}
 	
 	db.DB = dbtmp

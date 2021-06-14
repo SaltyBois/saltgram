@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
+	"saltgram/content/gdrive"
 	"saltgram/content/grpc/servers"
+	"saltgram/log"
+	"saltgram/pki"
 	"saltgram/protos/content/prcontent"
 
 	"saltgram/content/data"
@@ -15,29 +17,35 @@ import (
 )
 
 func main() {
-	l := log.New(os.Stdout, "saltgram-contents", log.LstdFlags)
-	l.Printf("Starting Content microservice on port: %s\n", os.Getenv("SALT_CONTENT_PORT"))
-	s := internal.NewService(l)
-
-	db := data.NewDBConn(l)
+	l := log.NewLogger("saltgram-content")
+	l.L.Printf("Starting Content microservice on port: %s\n", os.Getenv("SALT_CONTENT_PORT"))
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("saltgram-contents")
+	if err != nil {
+		l.L.Fatalf("failure while registering pki: %v\n", err)
+	}
+	s := internal.NewService(l.L)
+	err = s.Init("saltgram-contents", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
+	if err != nil {
+		l.L.Fatalf("failure while initializing saltgram-contents: %v\n", err)
+	}
+	db := data.NewDBConn(l.L)
 	db.ConnectToDb()
 	db.MigradeData()
-	err := s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
-	if err != nil {
-		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
-	}
 
-	gContentServer := servers.NewContent(l, db)
+	g := gdrive.NewGDrive(l.L)
+
+	gContentServer := servers.NewContent(l.L, db, g)
 	grpcServer := s.NewServer()
 	prcontent.RegisterContentServer(grpcServer, gContentServer)
 	reflection.Register(grpcServer)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SALT_CONTENT_PORT")))
 	if err != nil {
-		l.Fatalf("[ERROR] creating listener: %v\n", err)
+		l.L.Fatalf("failure while creating listener: %v\n", err)
 	}
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		l.Fatalf("[ERROR] while serving: %v\n", err)
+		l.L.Fatalf("failure while serving: %v\n", err)
 	}
 	grpcServer.GracefulStop()
 }

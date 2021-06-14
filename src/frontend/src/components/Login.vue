@@ -5,6 +5,15 @@
         indeterminate
         color="primary"/>
       </div>
+      <v-form id="login-and-logo" v-model="isFormValid" v-else-if="!processing && success">
+        <img :src="qr" alt="QR" id="qr"/>
+        <v-text-field 
+        label="QR token"
+        v-model="token"
+        required/>
+        <span class="err">{{error}}</span>
+        <v-btn @click="verifyToken" color="primary" :disabled="!isFormValid">Verify token</v-btn>
+      </v-form>
       <div v-else id="login-and-logo">
         <h1 id="home-title">Saltgram</h1>
         <v-form id="login" v-model="isFormValid">
@@ -41,6 +50,11 @@ export default {
   name: 'Home',
   data: function() {
     return {
+      //
+      token: '',
+      qr: null,
+      //
+      success: false,
       error: "",
       processing: false,
       isFormValid: false,
@@ -62,6 +76,25 @@ export default {
     }
   },
   methods: {
+    verifyToken: function() {
+      this.error = "";
+      this.axios.get("auth/2fa/" + this.token)
+        .then(() => this.$router.push("/user"))
+        .catch(() => this.error = "Invalid token");
+    },
+
+    getQRImg: function() {
+      this.axios({
+        url:"auth/2fa",
+        data: this.user.username,
+        method: 'POST',
+        responseType: 'blob'})
+        .then(r => {
+          this.qr = window.URL.createObjectURL(new Blob([r.data]));
+          this.success = true;
+        })
+    },
+
     login: function() {
       this.$refs.recaptcha.execute();
     },
@@ -82,6 +115,7 @@ export default {
               this.$store.state.jws = r.data;
               console.log("Saved jwt ", this.$store.state.jws);
               this.$router.push("/user");
+              //this.getQRImg();
             })
             .catch(r => {
               console.log(r);
@@ -109,6 +143,11 @@ export default {
 </script>
 
 <style scoped>
+
+  #qr {
+    height: 256px;
+    width: 256px;
+  }
 
   .err {
     border-color: #fff impor !important;

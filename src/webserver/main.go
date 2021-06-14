@@ -3,37 +3,33 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"saltgram/pki"
 	"time"
+
+	"saltgram/log"
 
 	spa "github.com/roberthodgen/spa-server"
 )
 
-func getTLSConfig() (*tls.Config, error) {
-	crt, err := ioutil.ReadFile("../../certs/localhost.crt")
+func getTLSConfig(certPEM, keyPEM []byte, pki *pki.PKI) (*tls.Config, error) {
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := ioutil.ReadFile("../../certs/localhost.key")
-	if err != nil {
-		return nil, err
-	}
-
-	cert, err := tls.X509KeyPair(crt, key)
-	if err != nil {
-		return nil, err
-	}
+	rootPool := x509.NewCertPool()
+	rootPool.AddCert(pki.RootCA.Cert)
 
 	return &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		ServerName:   "localhost",
 		MinVersion:   tls.VersionTLS13,
+		// RootCAs: rootPool,
 	}, nil
 }
 
@@ -45,13 +41,18 @@ func hstsMiddleware(h http.Handler) func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	log.Printf("Running web server on port: %v\n", os.Getenv("SALT_WEB_PORT"))
+	l := log.NewLogger("saltgram-webserver")
+	l.L.Infof("Starting webserver on port: %s", os.Getenv("SALT_WEB_PORT"))
 	serverMux := http.NewServeMux()
 	serverMux.HandleFunc("/", hstsMiddleware(spa.SpaHandler("../frontend/dist", "index.html")))
-
-	tlsConfig, err := getTLSConfig()
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("saltgram-web-server")
 	if err != nil {
-		log.Fatalf("[ERROR] getting TLS config: %v\n", err)
+		l.L.Fatalf("[ERROR] registering to PKI: %v\n", err)
+	}
+	tlsConfig, err := getTLSConfig(cert.CertPEM, cert.PrivateKeyPEM, pkiHandler)
+	if err != nil {
+		l.L.Fatalf("failed to get TLS config: %v\n", err)
 	}
 
 	server := http.Server{
@@ -66,7 +67,7 @@ func main() {
 	go func() {
 		err := server.ListenAndServeTLS("", "")
 		if err != nil {
-			log.Fatalf("[ERROR] while serving: %v\n", err)
+			l.L.Fatalf("[ERROR] while serving: %v\n", err)
 		}
 	}()
 
@@ -74,7 +75,7 @@ func main() {
 	signal.Notify(signalChan, os.Interrupt, os.Kill)
 
 	sig := <-signalChan
-	log.Println("Recieved terminate, graceful shutdown with sigtype:", sig)
+	l.L.Infof("Recieved terminate, graceful shutdown with sigtype: %v\n", sig)
 
 	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
