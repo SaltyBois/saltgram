@@ -216,14 +216,14 @@ func (a *Auth) Get2FAQR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-    w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Type", "image/png")
 	_, err = w.Write(res.Png)
 	if err != nil {
 		a.l.Errorf("failed to write png data: %v\n", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	
+
 }
 
 func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ContentClient interface {
 	GetSharedMedia(ctx context.Context, in *SharedMediaRequest, opts ...grpc.CallOption) (Content_GetSharedMediaClient, error)
 	AddSharedMedia(ctx context.Context, in *AddSharedMediaRequest, opts ...grpc.CallOption) (*AddSharedMediaResponse, error)
+	PostProfile(ctx context.Context, in *PostProfileRequest, opts ...grpc.CallOption) (*PostProfileResponse, error)
 }
 
 type contentClient struct {
@@ -71,12 +72,22 @@ func (c *contentClient) AddSharedMedia(ctx context.Context, in *AddSharedMediaRe
 	return out, nil
 }
 
+func (c *contentClient) PostProfile(ctx context.Context, in *PostProfileRequest, opts ...grpc.CallOption) (*PostProfileResponse, error) {
+	out := new(PostProfileResponse)
+	err := c.cc.Invoke(ctx, "/Content/PostProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContentServer is the server API for Content service.
 // All implementations must embed UnimplementedContentServer
 // for forward compatibility
 type ContentServer interface {
 	GetSharedMedia(*SharedMediaRequest, Content_GetSharedMediaServer) error
 	AddSharedMedia(context.Context, *AddSharedMediaRequest) (*AddSharedMediaResponse, error)
+	PostProfile(context.Context, *PostProfileRequest) (*PostProfileResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -89,6 +100,9 @@ func (UnimplementedContentServer) GetSharedMedia(*SharedMediaRequest, Content_Ge
 }
 func (UnimplementedContentServer) AddSharedMedia(context.Context, *AddSharedMediaRequest) (*AddSharedMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddSharedMedia not implemented")
+}
+func (UnimplementedContentServer) PostProfile(context.Context, *PostProfileRequest) (*PostProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostProfile not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -142,6 +156,24 @@ func _Content_AddSharedMedia_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_PostProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).PostProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/PostProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).PostProfile(ctx, req.(*PostProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Content_ServiceDesc is the grpc.ServiceDesc for Content service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +184,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddSharedMedia",
 			Handler:    _Content_AddSharedMedia_Handler,
+		},
+		{
+			MethodName: "PostProfile",
+			Handler:    _Content_PostProfile_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

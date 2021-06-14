@@ -14,8 +14,8 @@ import (
 )
 
 type GDrive struct {
-	s *drive.Service
-	l *logrus.Logger
+	s   *drive.Service
+	l   *logrus.Logger
 	ctx context.Context
 }
 
@@ -35,13 +35,13 @@ func (g *GDrive) getServiceClient() {
 	if err != nil {
 		g.l.Fatalf("failed to load gdrive service credentials: %v\n", err)
 	}
-	var s = struct{
-		Email string `json:"client_email"`
+	var s = struct {
+		Email      string `json:"client_email"`
 		PrivateKey string `json:"private_key"`
 	}{}
 	json.Unmarshal(b, &s)
 	config := &jwt.Config{
-		Email: s.Email,
+		Email:      s.Email,
 		PrivateKey: []byte(s.PrivateKey),
 		Scopes: []string{
 			drive.DriveScope,
@@ -58,8 +58,8 @@ func (g *GDrive) getServiceClient() {
 func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*drive.File, error) {
 	f := &drive.File{
 		MimeType: "application/vnd.google-apps.folder",
-		Name: name,		
-		Parents: parentIds,
+		Name:     name,
+		Parents:  parentIds,
 	}
 
 	createdFile, err := g.s.Files.Create(f).Do()
@@ -78,9 +78,9 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 		}
 	} else {
 		_, err := g.s.Permissions.Create(createdFile.Id, &drive.Permission{
-			Type: "user",
+			Type:         "user",
 			EmailAddress: "bezbednovic@gmail.com",
-			Role: "reader",
+			Role:         "reader",
 		}).Do()
 		if err != nil {
 			g.l.Errorf("failed to create private permissions for file: %v, error: %v\n", f.Name, err)
@@ -93,8 +93,8 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isPublic bool) (*drive.File, error) {
 	f := &drive.File{
 		MimeType: "application/vnd.google-apps.photo",
-		Name: name,
-		Parents: parentIds,
+		Name:     name,
+		Parents:  parentIds,
 	}
 	createdFile, err := g.s.Files.Create(f).Media(data).Do()
 	if err != nil {
@@ -112,9 +112,9 @@ func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isP
 		}
 	} else {
 		_, err = g.s.Permissions.Create(createdFile.Id, &drive.Permission{
-			Type: "user",
+			Type:         "user",
 			EmailAddress: "bezbednovic@gmail.com",
-			Role: "reader",
+			Role:         "reader",
 		}).Do()
 		if err != nil {
 			g.l.Errorf("failed to create private permissions for file: %v, error: %v", createdFile.Id, err)

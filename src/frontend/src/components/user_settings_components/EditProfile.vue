@@ -142,7 +142,13 @@ export default {
       if (files[0]['type'].includes('image')) this.typeContent = 'image';
       else this.typeContent = 'video';
       console.log(this.typeContent)
-      this.isUploadedContent = true;
+      this.refreshToken()
+        .then(rr => {
+          this.$store.state.jws = rr.data
+          this.axios.post("content/profile")
+            .then(() => this.isUploadedContent = true)
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
     },
   }
 }

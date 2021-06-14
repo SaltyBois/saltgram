@@ -7,19 +7,19 @@ import (
 )
 
 type PKI struct {
-	db *data.DBConn
+	db     *data.DBConn
 	RootCA *data.Certificate
 }
 
 func (p *PKI) RegisterSaltgramService(commonName string) (*data.Certificate, error) {
 	return data.RegisterService(p.db, pkix.Name{
-		CommonName: commonName,
-		Organization: []string{"Saltgram"},
-		Country: []string{"RS"},
-		Province: []string{""},
-		Locality: []string{"Liman"},
+		CommonName:    commonName,
+		Organization:  []string{"Saltgram"},
+		Country:       []string{"RS"},
+		Province:      []string{""},
+		Locality:      []string{"Liman"},
 		StreetAddress: []string{"Balzakova 69"},
-		PostalCode: []string{"21000"},
+		PostalCode:    []string{"21000"},
 	})
 }
 

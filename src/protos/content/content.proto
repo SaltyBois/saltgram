@@ -4,6 +4,15 @@ option go_package = "./content/prcontent";
 service Content {
     rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
     rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
+    rpc PostProfile(PostProfileRequest) returns (PostProfileResponse);
+}
+
+message PostProfileRequest {
+    bytes image = 1;
+}
+
+message PostProfileResponse {
+    string url = 1;
 }
 
 message SharedMediaRequest {

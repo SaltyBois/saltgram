@@ -1,8 +1,10 @@
 package servers
 
 import (
+	"bytes"
 	"context"
 	"saltgram/content/data"
+	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
 
 	"github.com/sirupsen/logrus"
@@ -14,19 +16,34 @@ type Content struct {
 	prcontent.UnimplementedContentServer
 	l  *logrus.Logger
 	db *data.DBConn
+	g  *gdrive.GDrive
 }
 
-func NewContent(l *logrus.Logger, db *data.DBConn) *Content {
+func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	return &Content{
 		l:  l,
 		db: db,
+		g:  g,
 	}
 }
 
-func (s *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
-	sharedMedias, err := s.db.GetSharedMediaByUser(r.UserId)
+func (c *Content) PostProfile(ctx context.Context, r *prcontent.PostProfileRequest) (*prcontent.PostProfileResponse, error) {
+	if len(r.Image) == 0 {
+		c.l.Errorf("bad request, empty image")
+		return &prcontent.PostProfileResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+	f, err := c.g.CreateFile("profile", []string{"root"}, bytes.NewReader(r.Image), true)
 	if err != nil {
-		s.l.Errorf("failure getting user shared media: %v\n", err)
+		c.l.Errorf("failed to upload profile image: %v", err)
+		return &prcontent.PostProfileResponse{}, status.Error(codes.Internal, "Internal server error")
+	}
+	return &prcontent.PostProfileResponse{Url: f.WebViewLink}, nil
+}
+
+func (c *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
+	sharedMedias, err := c.db.GetSharedMediaByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting user shared media: %v\n", err)
 		return err
 	}
 	for _, sm := range *sharedMedias {
@@ -48,14 +65,14 @@ func (s *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prconte
 			Media: media,
 		})
 		if err != nil {
-			s.l.Errorf("failure sending shared media response: %v\n", err)
+			c.l.Errorf("failure sending shared media response: %v\n", err)
 			return err
 		}
 	}
 	return nil
 }
 
-func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {
+func (c *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {
 
 	media := []*data.Media{}
 	for _, m := range r.Media {
@@ -76,9 +93,9 @@ func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMedi
 		Media: media,
 	}
 
-	err := u.db.AddSharedMedia(&sharedMedia)
+	err := c.db.AddSharedMedia(&sharedMedia)
 	if err != nil {
-		u.l.Errorf("failure adding user: %v\n", err)
+		c.l.Errorf("failure adding user: %v\n", err)
 		return &prcontent.AddSharedMediaResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 

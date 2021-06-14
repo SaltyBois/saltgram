@@ -20,7 +20,7 @@ var (
 
 type DBConn struct {
 	DB *gorm.DB
-	l *logrus.Logger
+	l  *logrus.Logger
 }
 
 func NewDBConn(l *logrus.Logger) *DBConn {
@@ -41,7 +41,7 @@ func (db *DBConn) ConnectToDb() error {
 	if dbtmp != nil {
 		db.l.Info("Connected to Email db!\n")
 	}
-	
+
 	db.DB = dbtmp
 	return err
 }

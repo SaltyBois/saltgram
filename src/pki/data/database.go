@@ -20,7 +20,7 @@ var (
 
 type DBConn struct {
 	DB *gorm.DB
-	l *logrus.Logger
+	l  *logrus.Logger
 }
 
 func NewDBConn(l *logrus.Logger) *DBConn {

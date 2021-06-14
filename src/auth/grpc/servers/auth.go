@@ -249,7 +249,7 @@ func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.Login
 
 	pres, err := a.uc.CheckPassword(context.Background(), &prusers.CheckPasswordRequest{Username: r.Username, Password: r.Password})
 	if err != nil {
-        a.l.Errorf("failure validating password: %v\n", err)
+		a.l.Errorf("failure validating password: %v\n", err)
 		return &prauth.LoginResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
