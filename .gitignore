@@ -21,6 +21,7 @@ node_modules
 certs
 *.pem
 *.pfx
+*.crt
 
 # IDE
 *.idea
@@ -33,4 +34,5 @@ tsconfig.json
 *.env
 saltgram-c0751de619fa.json
 secrets
+*.log
 
