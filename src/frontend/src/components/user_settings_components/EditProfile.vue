@@ -137,15 +137,27 @@ export default {
         return;
       console.log(files.length)
       console.log(files[0])
-      this.item.image = URL.createObjectURL(files[0])
-      console.log(this.item.image)
-      if (files[0]['type'].includes('image')) this.typeContent = 'image';
-      else this.typeContent = 'video';
-      console.log(this.typeContent)
-      this.refreshToken()
+      // event.item.image = URL.createObjectURL(files[0]) // Baca error
+      // console.log(this.item.image) // ne postoji this.item, baca error
+      // baca errore
+      // if (files[0]['type'].includes('image')) this.typeContent = 'image';
+      // else this.typeContent = 'video';
+      // console.log(this.typeContent)
+
+
+      this.refreshToken(this.getAHeader())
         .then(rr => {
           this.$store.state.jws = rr.data
-          this.axios.post("content/profile")
+
+          let data = new FormData();
+          data.append('profileImg', files[0]);
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          this.axios.post("content/user/profile", data, config)
             .then(() => this.isUploadedContent = true)
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));

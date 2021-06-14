@@ -288,6 +288,43 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(res, w)
 }
 
+func (c *Content) PostProfile(w http.ResponseWriter, r *http.Request) {
+	// TODO Get user data for structured profile upload
+	// and user verification
+	// jws, err := getUserJWS(r)
+	// if err != nil {
+	// 	c.l.Errorf("JWS not found: %v", err)
+	// 	http.Error(w, "JWS not found", http.StatusBadRequest)
+	// 	return
+	// }
+	r.ParseMultipartForm(10 << 20) // up to 10MB
+	file, handler, err := r.FormFile("profileImg")
+	if err != nil {
+		c.l.Errorf("failed to parse request: %v", err)
+		http.Error(w, "Invalid image data", http.StatusBadRequest)
+	}
+	defer file.Close()
+	c.l.Infof("uploaded file: %v", handler.Filename)
+
+	imageBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		c.l.Errorf("failed to read image bytes: %v", err)
+		http.Error(w, "Invalid image data", http.StatusBadRequest)
+		return
+	}
+	resp, err := c.cc.PostProfile(context.Background(), &prcontent.PostProfileRequest{
+		Image: imageBytes,
+	})
+	if err != nil {
+		c.l.Errorf("failed to upload profile image: %v", err)
+		http.Error(w, "Failed to upload profile image", http.StatusInternalServerError)
+		return
+	}
+
+	// Returns uploaded image url
+	w.Write([]byte(resp.Url))
+}
+
 func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 
 	jws, err := getUserJWS(r)
