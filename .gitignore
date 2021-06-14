@@ -21,6 +21,7 @@ node_modules
 certs
 *.pem
 *.pfx
+*.crt
 
 # IDE
 *.idea
