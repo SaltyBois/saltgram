@@ -9,6 +9,7 @@ service Content {
     rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
     //rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
     rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
+    rpc PostProfile(PostProfileRequest) returns (PostProfileResponse);
 
     rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
     rpc AddPost(AddPostRequest) returns(AddPostResponse);
@@ -16,6 +17,14 @@ service Content {
     rpc AddProfilePicture(AddProfilePictureRequest) returns(AddSharedMediaResponse);
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
+}
+
+message PostProfileRequest {
+    bytes image = 1;
+}
+
+message PostProfileResponse {
+    string url = 1;
 }
 
 message SharedMediaRequest {

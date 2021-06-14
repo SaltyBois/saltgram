@@ -1,8 +1,10 @@
 package servers
 
 import (
-	"context"
+	"context" 	
+	"bytes"
 	"saltgram/content/data"
+	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
 
 	"github.com/sirupsen/logrus"
@@ -14,14 +16,30 @@ type Content struct {
 	prcontent.UnimplementedContentServer
 	l  *logrus.Logger
 	db *data.DBConn
+	g  *gdrive.GDrive
 }
 
-func NewContent(l *logrus.Logger, db *data.DBConn) *Content {
+func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	return &Content{
 		l:  l,
 		db: db,
+		g: g,
 	}
 }
+
+func (c *Content) PostProfile(ctx context.Context, r *prcontent.PostProfileRequest) (*prcontent.PostProfileResponse, error) {
+	if len(r.Image) == 0 {
+		c.l.Errorf("bad request, empty image")
+		return &prcontent.PostProfileResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+	f, err := c.g.CreateFile("profile", []string{"root"}, bytes.NewReader(r.Image), true)
+	if err != nil {
+		c.l.Errorf("failed to upload profile image: %v", err)
+		return &prcontent.PostProfileResponse{}, status.Error(codes.Internal, "Internal server error")
+	}
+	return &prcontent.PostProfileResponse{Url: f.WebViewLink}, nil
+}
+
 
 func (s *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
 	sharedMedias, err := s.db.GetSharedMediaByUser(r.UserId)

@@ -25,6 +25,7 @@ type ContentClient interface {
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error)
 	//rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error)
+	PostProfile(ctx context.Context, in *PostProfileRequest, opts ...grpc.CallOption) (*PostProfileResponse, error)
 	AddSharedMedia(ctx context.Context, in *AddSharedMediaRequest, opts ...grpc.CallOption) (*AddSharedMediaResponse, error)
 	AddPost(ctx context.Context, in *AddPostRequest, opts ...grpc.CallOption) (*AddPostResponse, error)
 	AddStory(ctx context.Context, in *AddStoryRequest, opts ...grpc.CallOption) (*AddStoryResponse, error)
@@ -210,6 +211,15 @@ func (x *contentGetPostsByUserReactionClient) Recv() (*GetPostsResponse, error) 
 	return m, nil
 }
 
+func (c *contentClient) PostProfile(ctx context.Context, in *PostProfileRequest, opts ...grpc.CallOption) (*PostProfileResponse, error) {
+	out := new(PostProfileResponse)
+	err := c.cc.Invoke(ctx, "/Content/PostProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) AddSharedMedia(ctx context.Context, in *AddSharedMediaRequest, opts ...grpc.CallOption) (*AddSharedMediaResponse, error) {
 	out := new(AddSharedMediaResponse)
 	err := c.cc.Invoke(ctx, "/Content/AddSharedMedia", in, out, opts...)
@@ -275,6 +285,7 @@ type ContentServer interface {
 	GetComments(*GetCommentsRequest, Content_GetCommentsServer) error
 	//rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
 	GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error
+	PostProfile(context.Context, *PostProfileRequest) (*PostProfileResponse, error)
 	AddSharedMedia(context.Context, *AddSharedMediaRequest) (*AddSharedMediaResponse, error)
 	AddPost(context.Context, *AddPostRequest) (*AddPostResponse, error)
 	AddStory(context.Context, *AddStoryRequest) (*AddStoryResponse, error)
@@ -305,6 +316,9 @@ func (UnimplementedContentServer) GetComments(*GetCommentsRequest, Content_GetCo
 }
 func (UnimplementedContentServer) GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetPostsByUserReaction not implemented")
+}
+func (UnimplementedContentServer) PostProfile(context.Context, *PostProfileRequest) (*PostProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostProfile not implemented")
 }
 func (UnimplementedContentServer) AddSharedMedia(context.Context, *AddSharedMediaRequest) (*AddSharedMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddSharedMedia not implemented")
@@ -460,6 +474,24 @@ func (x *contentGetPostsByUserReactionServer) Send(m *GetPostsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Content_PostProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).PostProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/PostProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).PostProfile(ctx, req.(*PostProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Content_AddSharedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddSharedMediaRequest)
 	if err := dec(in); err != nil {
@@ -578,6 +610,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProfilePicture",
 			Handler:    _Content_GetProfilePicture_Handler,
+		},
+		{
+			MethodName: "PostProfile",
+			Handler:    _Content_PostProfile_Handler,
 		},
 		{
 			MethodName: "AddSharedMedia",
