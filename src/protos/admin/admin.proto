@@ -1,0 +1,31 @@
+syntax = "proto3";
+option go_package = "./admin/pradmin";
+
+service Admin {
+    rpc AddVerificationReq(AddVerificationRequest) returns (AddVerificationResponse);
+    rpc GetPendingVerifications(GetVerificationRequest) returns (stream GetVerificationResponse);
+    rpc ReviewVerificatonReq(ReviewVerificatonRequest) returns (ReviewVerificatonResponse);
+}
+
+message AddVerificationRequest {
+    string fullName = 1;
+    uint64 userId = 2;
+    //Category category = 3;
+}
+
+message AddVerificationResponse {}
+
+message GetVerificationRequest {}
+
+message GetVerificationResponse {
+    uint64 id = 1;
+    string fullName = 2;
+    //Category category = 3;
+}
+
+message ReviewVerificatonRequest {
+    uint64 id = 1;
+    //VerificationStatus verficationStatus = 2;
+}
+
+message ReviewVerificatonResponse {}

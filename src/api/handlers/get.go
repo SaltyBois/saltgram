@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
@@ -195,6 +196,30 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		saltdata.ToJSON(sharedMedia, w)
+	}
+	w.Write([]byte("}"))
+}
+
+func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) {
+
+	stream, err := a.ac.GetPendingVerifications(context.Background(), &pradmin.GetVerificationRequest{})
+	if err != nil {
+		a.l.Errorf("failed fetching pending verifications %v\n", err)
+		http.Error(w, "Pending verifications error", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		verificationRequest, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			a.l.Errorf("failed to fetch verification requests: %v\n", err)
+			http.Error(w, "Error couldn't fetch verification requests", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(verificationRequest, w)
 	}
 	w.Write([]byte("}"))
 }

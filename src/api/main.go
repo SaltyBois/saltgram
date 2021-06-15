@@ -10,6 +10,7 @@ import (
 	"saltgram/internal"
 	"saltgram/log"
 	"saltgram/pki"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
@@ -28,7 +29,7 @@ func main() {
 		l.L.Fatalf("registering service for pki: %v\n", err)
 	}
 	s := internal.NewService(l.L)
-	
+
 	err = s.Init("saltgram-api-gateway", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
 	if err != nil {
 		l.L.Fatalf("failed to init api service: %v\n", err)
@@ -85,6 +86,18 @@ func main() {
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
+
+	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing admin connection: %v\n", err)
+	}
+	defer adminConnection.Close()
+	adminClient := pradmin.NewAdminClient(adminConnection)
+	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient)
+	adminRouter := s.S.PathPrefix("/admin").Subrouter()
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
+	//adminRouter.HandleFunc("/verificationrequest", adminHandler.).Methods(http.MethodPost)
+	//dminRouter.HandleFunc("/verificationrequest", adminHandler.).Methods(http.MethodPut)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
@@ -216,14 +217,14 @@ func (a *Auth) Get2FAQR(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-    w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Content-Type", "image/png")
 	_, err = w.Write(res.Png)
 	if err != nil {
 		a.l.Errorf("failed to write png data: %v\n", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	
+
 }
 
 func (a *Auth) GetJWT(w http.ResponseWriter, r *http.Request) {
@@ -362,6 +363,61 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		c.l.Errorf("failed to add shared media: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (a *Admin) AddVerificationRequest(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		a.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		a.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		a.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := a.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		a.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.VerificationRequestDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		a.l.Errorf("failure adding verification request: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.AddVerificationReq(context.Background(), &pradmin.AddVerificationRequest{FullName: dto.FullName, UserId: user.Id})
+
+	if err != nil {
+		a.l.Errorf("failed to add verification request: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
