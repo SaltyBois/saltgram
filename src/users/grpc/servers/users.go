@@ -8,6 +8,7 @@ import (
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -206,13 +207,7 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
-	// response.Username = profile.Username
-	// response.Followers = followers
-	// response.Following = following
-	// response.FullName = user.FullName
-	// response.Description = profile.Description
-	// response.IsFollowing = isFollowing
-	// response.IsPublic = profile.Public
+	date, err := strconv.ParseInt(profile.DateOfBirth.String(), 10, 64)
 
 	return &prusers.ProfileResponse{
 		Username:    profile.Username,
@@ -222,6 +217,10 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		Description: profile.Description,
 		IsFollowing: isFollowing,
 		IsPublic:    profile.Public,
+		PhoneNumber: profile.PhoneNumber,
+		Gender: profile.Gender,
+		DateOfBirth: date,
+		WebSite: profile.WebSite,
 	}, nil
 }
 

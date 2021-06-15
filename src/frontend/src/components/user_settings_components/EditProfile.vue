@@ -10,7 +10,7 @@
         <b style="color: #2b80e0; margin-top: 5px; cursor:pointer;" @click="$refs.file.click()">Change profile photo</b>
       </div>
       <div style="padding-top: 15px; margin-left: 5px">
-        <h1 style="text-align: left; justify-content: center" >Username</h1>
+        <h1 style="text-align: left; justify-content: center" >{{ user.username }}</h1>
       </div>
 
       <input type="file"
@@ -26,7 +26,7 @@
           <h3 style="margin-top: 14px;">Name</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined value="Name and Lastname" style="width: 400px"/>
+          <v-text-field outlined v-model="profile.fullName" style="width: 400px"/>
         </div>
       </div>
     </div>
@@ -36,7 +36,7 @@
           <h3 style="margin-top: 14px; ">Username</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined value="Username" style="width: 400px"/>
+          <v-text-field outlined v-model="profile.username" style="width: 400px"/>
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@
           <h3 style="margin-top: 14px; ">Description</h3>
         </div>
         <div style="width: 50%;">
-          <v-textarea outlined height="80px" no-resize value="Lorem ipsum" style="width: 400px;"/>
+          <v-textarea outlined height="80px" no-resize v-model="profile.description" style="width: 400px;"/>
         </div>
       </div>
     </div>
@@ -56,7 +56,7 @@
           <h3 style="margin-top: 14px;">E-mail</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined no-resize value="bezbednovic@gmail.com" style="width: 400px;"/>
+          <v-text-field outlined no-resize v-model="user.email" style="width: 400px;"/>
         </div>
       </div>
     </div>
@@ -66,7 +66,7 @@
           <h3 style="margin-top: 14px;">Phone number</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined no-resize value="+381 123 4567" style="width: 400px;"/>
+          <v-text-field outlined no-resize v-model="profile.phoneNumber" style="width: 400px;"/>
         </div>
       </div>
     </div>
@@ -76,7 +76,7 @@
           <h3 style="margin-top: 14px;">Gender</h3>
         </div>
         <div style="width: 50%;">
-          <v-select outlined :items="genderRoles" v-model="genderRoles[0]" style="width: 400px"/>
+          <v-select outlined :items="genderRoles" v-model="profile.gender" style="width: 400px"/>
         </div>
       </div>
     </div>
@@ -86,7 +86,7 @@
           <h3 style="margin-top: 14px;">Date of Birth</h3>
         </div>
         <div style="width: 60%;">
-          <v-date-picker show-current />
+          <v-date-picker show-current v-model="profile.dateOfBirth" />
         </div>
       </div>
     </div>
@@ -96,7 +96,7 @@
           <h3 style="margin-top: 14px;">Web Site</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined no-resize value="Saltgram.rs" style="width: 400px;"/>
+          <v-text-field outlined no-resize v-model="profile.webSite" style="width: 400px;"/>
         </div>
       </div>
     </div>
@@ -127,7 +127,22 @@ export default {
       profileImage: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg',
       showContent: false,
       genderRoles: [ 'Male', 'Female' ],
-      privateProfile: false
+      privateProfile: false,
+      profile : {
+        privateUser: true,
+        description: '',
+        fullName: '',
+        followers: '',
+        following: '',
+        followersList:[],
+        followingList: [],
+        username: '',
+        webSite: '',
+        phoneNumber: '',
+        gender: '',
+        dateOfBirth: ''
+      },
+      user: '',
     }
   },
   methods: {
@@ -144,6 +159,41 @@ export default {
       console.log(this.typeContent)
       this.isUploadedContent = true;
     },
+    getUserInfo: function() {
+      this.refreshToken(this.getAHeader())
+          .then(rr => {
+            this.$store.state.jws = rr.data;
+            this.axios.get("users", {headers: this.getAHeader()})
+                .then(r =>{
+                  this.user = r.data
+                  this.getProfileInfo();
+                });
+
+          }).catch(() => this.$router.push('/'));
+    },
+    getProfileInfo: function() {
+      this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
+          .then(r => {
+            console.log(r.data)
+            this.profile.privateUser = !r.data.isPublic;
+            this.profile.username = r.data.username;
+            this.profile.fullName = r.data.fullName;
+            this.profile.description = r.data.description;
+            this.profile.webSite = r.data.WebSite;
+            this.profile.phoneNumber = r.data.PhoneNumber;
+            this.profile.gender = r.data.Gender;
+            this.profile.dateOfBirth = r.data.DateOfBirth;
+            console.log(this.profile.phoneNumber);
+          }).catch(err => {
+        console.log(err)
+        console.log('Pushing Back to Login Page after fetching profile')
+        this.$router.push('/');
+      })
+    },
+
+  },
+  mounted() {
+    this.getUserInfo();
   }
 }
 </script>

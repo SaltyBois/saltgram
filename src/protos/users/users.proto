@@ -131,6 +131,10 @@ message ProfileResponse {
     string description = 5;
     bool isFollowing = 6;
     bool isPublic = 7;
+    string PhoneNumber = 8;
+    string Gender = 9;
+    int64 DateOfBirth = 10;
+    string WebSite = 11;
 }
 
 message ChangePublicRequest {
