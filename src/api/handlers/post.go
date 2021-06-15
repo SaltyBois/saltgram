@@ -414,7 +414,7 @@ func (a *Admin) AddVerificationRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = a.ac.AddVerificationReq(context.Background(), &pradmin.AddVerificationRequest{FullName: dto.FullName, UserId: user.Id})
+	_, err = a.ac.AddVerificationReq(context.Background(), &pradmin.AddVerificationRequest{FullName: dto.FullName, UserId: user.Id, Category: dto.Category})
 
 	if err != nil {
 		a.l.Errorf("failed to add verification request: %v\n", err)

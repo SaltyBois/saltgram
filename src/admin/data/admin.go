@@ -11,25 +11,23 @@ const (
 	ORGANIZATION
 )
 
-type VerificationStatus string
+type Status string
 
 const (
-	ACCEPTED VerificationStatus = "ACCEPTED"
+	ACCEPTED = "ACCEPTED"
 	REJECTED
 	PENDING
 )
 
-type Admin struct {
-}
-
 type VerificationRequest struct {
 	ID       uint64 `json:"id"`
 	Fullname string `json:"fullname" validate:"required"`
-	//DocumentImage image
-	User               User               `json:"user"`
-	UserID             uint64             `json:"userId"`
-	Category           Category           `validate:"required"`
-	VerificationStatus VerificationStatus `validate:"required"`
+	Media    Media  `json:"media"`
+	MediaID  uint64 `json:"mediaId"`
+	User     User   `json:"user"`
+	UserID   uint64 `json:"userId"`
+	Category string `validate:"required"`
+	Status   string `validate:"required"`
 }
 
 func (db *DBConn) AddVerificationRequest(verificationRequest *VerificationRequest) error {
@@ -38,7 +36,7 @@ func (db *DBConn) AddVerificationRequest(verificationRequest *VerificationReques
 
 func (db *DBConn) GetPendingVerificationRequests() (*[]VerificationRequest, error) {
 	verificationRequest := []VerificationRequest{}
-	err := db.DB.Where("verification_status = 'PENDING'").Find(&verificationRequest).Error
+	err := db.DB.Where("status = 'PENDING'").Find(&verificationRequest).Error
 	return &verificationRequest, err
 }
 
@@ -59,12 +57,32 @@ func (db *DBConn) GetVerficationRequestById(id uint64) (*VerificationRequest, er
 	return &vr, err
 }
 
-func ReviewVerificationRequest(db *DBConn, verificationStatus VerificationStatus, id uint64) error {
+/*func ReviewVerificationRequest(db *DBConn, status Status, id uint64) error {
 	verificationRequest, err := db.GetVerficationRequestById(id)
 	if err != nil {
 		return err
 	}
-	verificationRequest.VerificationStatus = verificationStatus
+	verificationRequest.Status = status
+	db.UpdateVerificationRequest(verificationRequest)
+	return nil
+}*/
+
+func RejectVerificationRequest(db *DBConn, id uint64) error {
+	verificationRequest, err := db.GetVerficationRequestById(id)
+	if err != nil {
+		return err
+	}
+	verificationRequest.Status = REJECTED
+	db.UpdateVerificationRequest(verificationRequest)
+	return nil
+}
+
+func AcceptVerificationRequest(db *DBConn, id uint64) error {
+	verificationRequest, err := db.GetVerficationRequestById(id)
+	if err != nil {
+		return err
+	}
+	verificationRequest.Status = ACCEPTED
 	db.UpdateVerificationRequest(verificationRequest)
 	return nil
 }

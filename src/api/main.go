@@ -96,7 +96,7 @@ func main() {
 	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient)
 	adminRouter := s.S.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
-	//adminRouter.HandleFunc("/verificationrequest", adminHandler.).Methods(http.MethodPost)
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.AddVerificationRequest).Methods(http.MethodPost)
 	//dminRouter.HandleFunc("/verificationrequest", adminHandler.).Methods(http.MethodPut)
 
 	c := cors.New(cors.Options{

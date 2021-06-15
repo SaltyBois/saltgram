@@ -33,6 +33,7 @@ func (a *Admin) GetPendingVerifications(r *pradmin.GetVerificationRequest, strea
 		err = stream.Send(&pradmin.GetVerificationResponse{
 			Id:       vr.ID,
 			FullName: vr.Fullname,
+			Category: vr.Category,
 		})
 		if err != nil {
 			a.l.Errorf("failure sending verification request response: %v\n", err)
@@ -47,9 +48,9 @@ func (a *Admin) AddVerificationReq(ctx context.Context, r *pradmin.AddVerificati
 	verificationRequest := data.VerificationRequest{
 		Fullname: r.FullName,
 		UserID:   r.UserId,
-		//DocumentImage:
-		//Category:
-		//VerificationStatus: data.VerificationStatus.PENDING,
+		//Media:    r.Media,
+		Category: r.Category,
+		Status:   data.ACCEPTED,
 	}
 	err := a.db.AddVerificationRequest(&verificationRequest)
 	if err != nil {
@@ -62,7 +63,7 @@ func (a *Admin) AddVerificationReq(ctx context.Context, r *pradmin.AddVerificati
 
 /*func (a *Admin) ReviewVerificationReq(ctx context.Context, r *pradmin.ReviewVerificatonRequest) (*pradmin.ReviewVerificatonResponse, error) {
 
-	err := ReviewVerificationRequest(a.db, r.VerificationStatus, r.Id)
+	err := ReviewVerificationRequest(a.db, r.Status, r.Id)
 	if err != nil {
 		a.l.Errorf("failure updating verification request: %v\n", err)
 		return &pradmin.ReviewVerificatonResponse{}, status.Error(codes.InvalidArgument, "Bad request")

@@ -10,7 +10,9 @@ service Admin {
 message AddVerificationRequest {
     string fullName = 1;
     uint64 userId = 2;
-    //Category category = 3;
+    string category = 3;
+    string status = 4;
+    uint64 mediaId = 5;
 }
 
 message AddVerificationResponse {}
@@ -20,12 +22,12 @@ message GetVerificationRequest {}
 message GetVerificationResponse {
     uint64 id = 1;
     string fullName = 2;
-    //Category category = 3;
+    string category = 3;
 }
 
 message ReviewVerificatonRequest {
     uint64 id = 1;
-    //VerificationStatus verficationStatus = 2;
+    //Status status = 2;
 }
 
 message ReviewVerificatonResponse {}
