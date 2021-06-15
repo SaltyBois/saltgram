@@ -94,6 +94,11 @@ message RegisterRequest {
     string password = 4;
     string description = 5;
     UserReCaptcha reCaptcha = 6;
+    string PhoneNumber = 7;
+    string Gender = 8;
+    int64 DateOfBirth = 9;
+    string WebSite = 10;
+    bool PrivateProfile = 11;
 }
 
 message CheckPasswordRequest {

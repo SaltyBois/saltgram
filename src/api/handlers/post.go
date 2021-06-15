@@ -190,6 +190,11 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 			Token:  dto.ReCaptcha.Token,
 			Action: dto.ReCaptcha.Action,
 		},
+		PhoneNumber: dto.PhoneNumber,
+		Gender: dto.Gender,
+		DateOfBirth: dto.DateOfBirth.Unix(),
+		WebSite: dto.WebSite,
+		PrivateProfile: dto.PrivateProfile,
 	})
 
 	if err != nil {

@@ -59,7 +59,7 @@ const routes = [
    },
  },
 {
-    path: '/user/settings',
+    path: '/user/settings/:username',
     name: 'Settings',
     component: () => import(/* webpackChunkName: "userSettings" */ '../views/UserSettings.vue')
 },

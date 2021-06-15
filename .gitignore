@@ -31,3 +31,6 @@ jsconfig.json
 tsconfig.json
 
 *.env
+
+src/log
+src/keystore

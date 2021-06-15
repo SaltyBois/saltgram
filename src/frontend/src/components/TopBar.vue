@@ -77,7 +77,7 @@
                 <i class="fa fa-folder-open mr-1"/>
                 saved
               </v-btn>
-              <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; $router.push('/user/settings')" class="accent mt-3">
+              <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; $router.push('/user/settings/' + username)" class="accent mt-3">
                 <i class="fa fa-cog mr-1"/>
                 settings
               </v-btn>
