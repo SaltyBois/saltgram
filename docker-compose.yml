@@ -149,4 +149,4 @@ services:
 
 secrets:
   gcred:
-    file: ./saltgram-c0751de619fa.json
+    file: ./secrets/saltgram-c0751de619fa.json
