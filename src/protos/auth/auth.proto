@@ -7,6 +7,7 @@ service Auth {
     rpc GetJWT(JWTRequest) returns (JWTResponse);
     rpc Refresh(RefreshRequest) returns (RefreshResponse);
     rpc CheckPermissions(PermissionRequest) returns (PermissionResponse);
+    rpc UpdateRefresh(UpdateRefreshRequest) returns (UpdateRefreshResponse);
     rpc Get2FAQR(TwoFARequest) returns (TwoFAResponse);
     rpc Authenticate2FA(Auth2FARequest) returns (Auth2FAResponse);
 }
@@ -73,4 +74,14 @@ message LoginRequest {
 message LoginResponse {
     string username = 1;
     string password = 2;
+}
+
+message UpdateRefreshRequest {
+    string oldUsername = 1;
+    string newUsername = 2;
+}
+
+message UpdateRefreshResponse {
+    string jws = 1;
+    string refresh = 2;
 }

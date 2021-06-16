@@ -7,7 +7,7 @@
       </div>
       <v-form id="login-and-logo" v-model="isFormValid" v-else-if="!processing && success">
         <img :src="qr" alt="QR" id="qr"/>
-        <v-text-field 
+        <v-text-field
         label="QR token"
         v-model="token"
         required/>
@@ -21,6 +21,7 @@
           <v-text-field 
           v-model="user.username"
           label="Username"
+          v-on:keydown="loginEnter"
           required/>
           <v-text-field 
           v-model="user.password"
@@ -30,6 +31,7 @@
           :append-icon="showPassword ? 'fa-eye' : 'fa-eye-slash'"
           :type="showPassword ? 'text' : 'password'"
           @click:append="showPassword = !showPassword"
+          v-on:keydown="loginEnter"
           required/>
            <vue-recaptcha
               ref="recaptcha"
@@ -98,6 +100,10 @@ export default {
     login: function() {
       this.$refs.recaptcha.execute();
     },
+    loginEnter: function(e) {
+      if (e.keyCode === 13) // ENTER KEY
+      this.$refs.recaptcha.execute();
+    },
 
     onCaptchaVerified: function(token) {
       this.error = "";
@@ -109,13 +115,14 @@ export default {
 
       this.axios.post("auth/login", this.user)
         .then(r => {
-          console.log(r);
+          // console.log(r);
+          var username = r.data.username
           this.axios.post("auth/jwt", r.data)
             .then(r => {
               this.$store.state.jws = r.data;
-              console.log("Saved jwt ", this.$store.state.jws);
-              // this.$router.push("/user");
-              this.getQRImg();
+              // console.log("Saved jwt ", this.$store.state.jws);
+              this.$router.push("/user/" + username);
+              // this.getQRImg();
             })
             .catch(r => {
               console.log(r);
@@ -150,7 +157,7 @@ export default {
   }
 
   .err {
-    border-color: #fff impor !important;
+    border-color: #fff !important;
     color: #f00;
   }
 

@@ -20,7 +20,7 @@ const routes = [
     // },
   },
  {
-   path: '/user',
+   path: '/user/:username',
    name: 'User',
    component: () => import(/* webpackChunkName: "user" */ '../views/User.vue')
  },
@@ -59,7 +59,7 @@ const routes = [
    },
  },
 {
-    path: '/user/settings',
+    path: '/user/settings/:username',
     name: 'Settings',
     component: () => import(/* webpackChunkName: "userSettings" */ '../views/UserSettings.vue')
 },

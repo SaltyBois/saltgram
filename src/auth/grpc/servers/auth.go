@@ -2,7 +2,6 @@ package servers
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"saltgram/auth/data"
 	saltdata "saltgram/data"
@@ -218,7 +217,18 @@ func (a *Auth) AddRefresh(ctx context.Context, r *prauth.AddRefreshRequest) (*pr
 	return &prauth.AddRefreshResponse{}, nil
 }
 
-var ErrorBadRequest = fmt.Errorf("bad request")
+func (a *Auth) UpdateRefresh(ctx context.Context, r *prauth.UpdateRefreshRequest) (*prauth.UpdateRefreshResponse, error) {
+
+	err := data.UpdateRefreshTokenUsername(a.db, r.OldUsername, r.NewUsername)
+	if err != nil {
+		a.l.Printf("[ERROR] updating refresh token: %v\n", err)
+		return &prauth.UpdateRefreshResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prauth.UpdateRefreshResponse{}, nil
+}
+
+//var ErrorBadRequest = fmt.Errorf("bad request")
 
 func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.LoginResponse, error) {
 	res, err := a.uc.CheckEmail(context.Background(), &prusers.CheckEmailRequest{Username: r.Username})

@@ -45,6 +45,7 @@ func main() {
 	authRouter.HandleFunc("/refresh", authHandler.Refresh) //.Methods(http.MethodGet)
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
+	authRouter.HandleFunc("/update", authHandler.UpdateJWTUsername).Methods(http.MethodPut)
 	authRouter.HandleFunc("", authHandler.CheckPermissions).Methods(http.MethodPut)
 	authRouter.HandleFunc("/2fa", authHandler.Get2FAQR).Methods(http.MethodPost)
 	authRouter.HandleFunc("/2fa/{token}", authHandler.Authenticate2FA).Methods(http.MethodGet)
@@ -61,6 +62,11 @@ func main() {
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/profile/{username}", usersHandler.UpdateProfile).Methods(http.MethodPut)
+	usersRouter.HandleFunc("/create/follow", usersHandler.Follow).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/get/followers/{username}", usersHandler.GetFollowers).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/get/following/{username}", usersHandler.GetFollowing).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
