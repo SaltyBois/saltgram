@@ -172,7 +172,7 @@ export default {
     getProfileInfo: function() {
       this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
           .then(r => {
-            console.log(r.data)
+            // console.log(r.data)
             this.profile.privateUser = !r.data.isPublic;
             this.profile.username = r.data.username;
             this.profile.fullName = r.data.fullName;
@@ -233,10 +233,10 @@ export default {
       // console.log(this.maxDate)
     },
     changeUserInfo() {
-      console.log(this.profile.dateOfBirth)
+      // console.log(this.profile.dateOfBirth)
       let parts = this.profile.dateOfBirth.split('-')
       this.profile.dateOfBirth = new Date(parts[0], parts[1] - 1, parts[2])
-      console.log(this.profile.dateOfBirth)
+      // console.log(this.profile.dateOfBirth)
       let profileData = {
             privateProfile: this.profile.privateUser,
             description: this.profile.description,
@@ -249,8 +249,17 @@ export default {
             email: this.profile.email
         }
       this.axios.put("users/profile/" + this.$route.params.username, profileData, {headers: this.getAHeader()} )
-      .then(r => {
-        console.log(r)
+      .then(() => {
+        // console.log(r)
+        let authData = {
+          newUsername: this.profile.username
+        }
+        this.axios.put("auth/update", authData, {headers: this.getAHeader()} )
+        .then(r => {
+          this.$store.state.jws = r.data;
+          this.$router.push('/user/settings/' + this.profile.username)
+        })
+        .catch(() => this.$router.push('/'))
       })
       .catch(() => this.$router.push('/'))
     }

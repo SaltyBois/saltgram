@@ -70,6 +70,9 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	u.l.Println("[INFO] username: %v\n", claims.Username)
+	u.l.Println("[INFO] password: %v\n", claims.Password)
+
 	user, err := u.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
 	if err != nil {
 		u.l.Println("[ERROR] fetching user", err)
@@ -132,6 +135,8 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing URL", http.StatusBadRequest)
 		return
 	}
+
+
 
 	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user, Username: profileUsername})
 	if err != nil {

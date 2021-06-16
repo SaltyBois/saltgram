@@ -37,6 +37,7 @@ func main() {
 	authRouter.HandleFunc("/refresh", authHandler.Refresh) //.Methods(http.MethodGet)
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
+	authRouter.HandleFunc("/update", authHandler.UpdateJWTUsername).Methods(http.MethodPut)
 	authRouter.HandleFunc("", authHandler.CheckPermissions).Methods(http.MethodPut)
 
 	usersConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))

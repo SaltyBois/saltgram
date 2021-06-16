@@ -12,6 +12,7 @@
           <v-text-field 
           v-model="user.username"
           label="Username"
+          v-on:keydown="loginEnter"
           required/>
           <v-text-field 
           v-model="user.password"

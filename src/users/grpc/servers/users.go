@@ -45,6 +45,7 @@ func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) 
 func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameRequest) (*prusers.GetByUsernameResponse, error) {
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
+		u.l.Printf("[ERROR] username: %v\n", r.Username)
 		u.l.Printf("[ERROR] getting user by username: %v\n", err)
 		return &prusers.GetByUsernameResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
