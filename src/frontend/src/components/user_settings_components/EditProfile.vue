@@ -56,7 +56,7 @@
           <h3 style="margin-top: 14px;">E-mail</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined no-resize v-model="user.email" style="width: 400px;"/>
+          <v-text-field outlined no-resize v-model="profile.email" style="width: 400px;"/>
         </div>
       </div>
     </div>
@@ -86,7 +86,7 @@
           <h3 style="margin-top: 14px;">Date of Birth</h3>
         </div>
         <div style="width: 60%;">
-          <v-date-picker show-current v-model="profile.dateOfBirth" />
+          <v-date-picker show-current v-model="profile.dateOfBirth" :max="maxDate" />
         </div>
       </div>
     </div>
@@ -103,15 +103,15 @@
     <div class="item-container mb-10">
       <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
         <div style="width: 50%;">
-          <v-btn class="mx-2" v-bind:class="!privateProfile ? 'primary' : 'accent'" @click="privateProfile = false"><i class="fa fa-unlock mr-1"/>Public profile</v-btn>
+          <v-btn class="mx-2" v-bind:class="!profile.privateUser ? 'primary' : 'accent'" @click="profile.privateUser  = false"><i class="fa fa-unlock mr-1"/>Public profile</v-btn>
         </div>
         <div style="width: 50%;">
-          <v-btn class="mx-2" v-bind:class="privateProfile ? 'primary' : 'accent'" @click="privateProfile = true"><i class="fa fa-lock mr-1"/>Private profile</v-btn>
+          <v-btn class="mx-2" v-bind:class="profile.privateUser  ? 'primary' : 'accent'" @click="profile.privateUser  = true"><i class="fa fa-lock mr-1"/>Private profile</v-btn>
         </div>
       </div>
     </div>
     <div class="item-container ">
-      <v-btn class="primary mb-5">Confirm changes</v-btn>
+      <v-btn class="primary mb-5" @click="changeUserInfo">Confirm changes</v-btn>
     </div>
   </div>
 </template>
@@ -127,22 +127,19 @@ export default {
       profileImage: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg',
       showContent: false,
       genderRoles: [ 'Male', 'Female' ],
-      privateProfile: false,
       profile : {
         privateUser: true,
         description: '',
         fullName: '',
-        followers: '',
-        following: '',
-        followersList:[],
-        followingList: [],
         username: '',
         webSite: '',
         phoneNumber: '',
         gender: '',
-        dateOfBirth: ''
+        dateOfBirth: '',
+        email: ''
       },
       user: '',
+      maxDate: ''
     }
   },
   methods: {
@@ -166,6 +163,7 @@ export default {
             this.axios.get("users", {headers: this.getAHeader()})
                 .then(r =>{
                   this.user = r.data
+                  this.profile.email = this.user.email
                   this.getProfileInfo();
                 });
 
@@ -179,20 +177,86 @@ export default {
             this.profile.username = r.data.username;
             this.profile.fullName = r.data.fullName;
             this.profile.description = r.data.description;
-            this.profile.webSite = r.data.WebSite;
-            this.profile.phoneNumber = r.data.PhoneNumber;
-            this.profile.gender = r.data.Gender;
-            this.profile.dateOfBirth = r.data.DateOfBirth;
-            console.log(this.profile.phoneNumber);
+            this.profile.webSite = r.data.webSite;
+            this.profile.phoneNumber = r.data.phoneNumber;
+            this.profile.gender = r.data.gender;
+            this.profile.dateOfBirth = r.data.dateOfBirth * 1000;
+            // console.log(this.profile.dateOfBirth);
+            this.dateFunc();
           }).catch(err => {
         console.log(err)
         console.log('Pushing Back to Login Page after fetching profile')
         this.$router.push('/');
       })
     },
+    dateFunc() {
+      let dateFull = new Date(this.profile.dateOfBirth);
+      var formatedDate = dateFull.getFullYear() + '-';
 
+      let month = dateFull.getMonth() + 1
+      if (month < 10) {
+        formatedDate += '0' + month + '-'
+      } else {
+        formatedDate += month + '-'
+      }
+
+      let date = dateFull.getDate()
+
+      if (date < 10) {
+        formatedDate += '0' + date
+      } else {
+        formatedDate += date
+      }
+      // console.log(formatedDate)
+      this.profile.dateOfBirth = formatedDate;
+    },
+    maxDateFunc() {
+      let now = new Date();
+      this.maxDate = now.getFullYear() + '-';
+
+      let month = now.getMonth() + 1
+      if (month < 10) {
+        this.maxDate += '0' + month + '-'
+      }
+      else {
+        this.maxDate += month + '-'
+      }
+
+      let date = now.getDate()
+
+      if (date < 10) {
+        this.maxDate += '0' + date
+      }
+      else {
+        this.maxDate += date
+      }
+      // console.log(this.maxDate)
+    },
+    changeUserInfo() {
+      console.log(this.profile.dateOfBirth)
+      let parts = this.profile.dateOfBirth.split('-')
+      this.profile.dateOfBirth = new Date(parts[0], parts[1] - 1, parts[2])
+      console.log(this.profile.dateOfBirth)
+      let profileData = {
+            privateProfile: this.profile.privateUser,
+            description: this.profile.description,
+            fullName: this.profile.fullName,
+            username: this.profile.username,
+            webSite: this.profile.webSite,
+            phoneNumber: this.profile.phoneNumber,
+            gender: this.profile.gender,
+            dateOfBirth: this.profile.dateOfBirth,
+            email: this.profile.email
+        }
+      this.axios.put("users/profile/" + this.$route.params.username, profileData, {headers: this.getAHeader()} )
+      .then(r => {
+        console.log(r)
+      })
+      .catch(() => this.$router.push('/'))
+    }
   },
   mounted() {
+    this.maxDateFunc();
     this.getUserInfo();
   }
 }

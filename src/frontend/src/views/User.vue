@@ -145,7 +145,7 @@ export default {
 
             this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
             .then(r => {
-              console.log(r.data)
+              // console.log(r.data)
               this.profile.privateUser = !r.data.isPublic;
               this.profile.followingUser = r.data.isFollowing;
               this.profile.username = r.data.username;

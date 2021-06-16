@@ -47,6 +47,7 @@
         </v-btn>
         <v-btn  id="right-side-button4"
                 depressed
+                style="text-transform: none"
                 @click="profileDropDownMenuActive=!profileDropDownMenuActive">
           <v-img  class="post-header-profile"
                   src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
@@ -129,7 +130,6 @@ export default {
             this.axios.get("users", {headers: this.getAHeader()})
                 .then(r =>{
                   this.username = r.data.username
-                  console.log(this.username);
                 });
 
           }).catch(() => console.log('No User was founded !?!'));

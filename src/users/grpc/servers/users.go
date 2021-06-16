@@ -185,6 +185,8 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
+
+
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
@@ -207,7 +209,8 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
-	date, err := strconv.ParseInt(profile.DateOfBirth.String(), 10, 64)
+	dateStr := strconv.FormatInt(profile.DateOfBirth.Unix(), 10)
+	date, err := strconv.ParseInt(dateStr, 10, 64)
 
 	return &prusers.ProfileResponse{
 		Username:    profile.Username,
@@ -312,6 +315,12 @@ func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*p
 	profile.Username = r.NewUsername
 	profile.Public = r.Public
 	profile.Taggable = r.Taggable
+	profile.PhoneNumber = r.PhoneNumber
+	profile.Gender = r.Gender
+	profile.DateOfBirth = time.Unix(r.DateOfBirth, 0)
+	profile.WebSite = r.WebSite
+	profile.PrivateProfile = r.PrivateProfile
+	profile.Description = r.Description
 
 	err = u.db.UpdateUser(user)
 	if err != nil {

@@ -166,7 +166,7 @@ export default {
             console.log(this.dateOfBirth)
             let parts = this.dateOfBirth.split('-')
             let realDate = new Date(parts[0], parts[1] - 1, parts[2])
-            console.log(realDate)
+            // console.log(realDate)
             console.log('this.privateProfile: ' + this.privateProfile)
             let user = {
                 username: this.username,

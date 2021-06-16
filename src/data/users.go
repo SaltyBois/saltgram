@@ -20,11 +20,17 @@ type UserDTO struct {
 }
 
 type ProflieDTO struct {
-	Email    string `json:"email" validate:"required"`
-	FullName string `json:"fullName" validate:"required"`
-	Username string `json:"username" validate:"required"`
-	Public   bool   `json:"public" validate:"required"`
-	Taggable bool   `json:"taggable" validate:"required"`
+	Email    	string    `json:"email" validate:"required"`
+	FullName 	string    `json:"fullName" validate:"required"`
+	Username 	string    `json:"username" validate:"required"`
+	Public   	bool      `json:"public"`	 /* `json:"public" validate:"required"` */
+	Taggable 	bool      `json:"taggable"`  /* `json:"taggable" validate:"required"` */
+	Description string    `json:"description" validate:"required"`
+	PhoneNumber string    `json:"phoneNumber" validate:"required"`
+	Gender      string    `json:"gender" validate:"required"`
+	DateOfBirth time.Time `json:"dateOfBirth" validate:"required"`
+	WebSite 	string 	  `json:"webSite"`
+	PrivateProfile bool   `json:"privateProfile"`
 }
 
 type FollowDTO struct {
