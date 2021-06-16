@@ -97,7 +97,8 @@ func main() {
 	adminRouter := s.S.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.AddVerificationRequest).Methods(http.MethodPost)
-	//dminRouter.HandleFunc("/verificationrequest", adminHandler.).Methods(http.MethodPut)
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.ReviewVerificationRequest).Methods(http.MethodPut)
+	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

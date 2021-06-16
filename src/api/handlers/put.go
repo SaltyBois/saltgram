@@ -4,6 +4,8 @@ import (
 	"context"
 	"io/ioutil"
 	"net/http"
+	saltdata "saltgram/data"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
 	"time"
@@ -68,4 +70,23 @@ func (e *Email) Activate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte("200 - OK"))
+}
+
+func (a *Admin) ReviewVerificationRequest(w http.ResponseWriter, r *http.Request) {
+
+	dto := saltdata.ReviewRequestDTO{}
+	err := saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		a.l.Errorf("failure reviewing verification request: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.ReviewVerificatonReq(context.Background(), &pradmin.ReviewVerificatonRequest{Id: dto.Id, Status: dto.Status})
+
+	if err != nil {
+		a.l.Errorf("failed to add verification request: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
 }

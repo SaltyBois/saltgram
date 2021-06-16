@@ -57,32 +57,12 @@ func (db *DBConn) GetVerficationRequestById(id uint64) (*VerificationRequest, er
 	return &vr, err
 }
 
-/*func ReviewVerificationRequest(db *DBConn, status Status, id uint64) error {
+func ReviewVerificationRequest(db *DBConn, status string, id uint64) error {
 	verificationRequest, err := db.GetVerficationRequestById(id)
 	if err != nil {
 		return err
 	}
 	verificationRequest.Status = status
-	db.UpdateVerificationRequest(verificationRequest)
-	return nil
-}*/
-
-func RejectVerificationRequest(db *DBConn, id uint64) error {
-	verificationRequest, err := db.GetVerficationRequestById(id)
-	if err != nil {
-		return err
-	}
-	verificationRequest.Status = REJECTED
-	db.UpdateVerificationRequest(verificationRequest)
-	return nil
-}
-
-func AcceptVerificationRequest(db *DBConn, id uint64) error {
-	verificationRequest, err := db.GetVerficationRequestById(id)
-	if err != nil {
-		return err
-	}
-	verificationRequest.Status = ACCEPTED
 	db.UpdateVerificationRequest(verificationRequest)
 	return nil
 }

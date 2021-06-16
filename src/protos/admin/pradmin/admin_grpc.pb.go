@@ -21,6 +21,7 @@ type AdminClient interface {
 	AddVerificationReq(ctx context.Context, in *AddVerificationRequest, opts ...grpc.CallOption) (*AddVerificationResponse, error)
 	GetPendingVerifications(ctx context.Context, in *GetVerificationRequest, opts ...grpc.CallOption) (Admin_GetPendingVerificationsClient, error)
 	ReviewVerificatonReq(ctx context.Context, in *ReviewVerificatonRequest, opts ...grpc.CallOption) (*ReviewVerificatonResponse, error)
+	SendInappropriateContentReport(ctx context.Context, in *InappropriateContentReportRequest, opts ...grpc.CallOption) (*InappropriateContentReportResponse, error)
 }
 
 type adminClient struct {
@@ -81,6 +82,15 @@ func (c *adminClient) ReviewVerificatonReq(ctx context.Context, in *ReviewVerifi
 	return out, nil
 }
 
+func (c *adminClient) SendInappropriateContentReport(ctx context.Context, in *InappropriateContentReportRequest, opts ...grpc.CallOption) (*InappropriateContentReportResponse, error) {
+	out := new(InappropriateContentReportResponse)
+	err := c.cc.Invoke(ctx, "/Admin/SendInappropriateContentReport", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 // All implementations must embed UnimplementedAdminServer
 // for forward compatibility
@@ -88,6 +98,7 @@ type AdminServer interface {
 	AddVerificationReq(context.Context, *AddVerificationRequest) (*AddVerificationResponse, error)
 	GetPendingVerifications(*GetVerificationRequest, Admin_GetPendingVerificationsServer) error
 	ReviewVerificatonReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error)
+	SendInappropriateContentReport(context.Context, *InappropriateContentReportRequest) (*InappropriateContentReportResponse, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -103,6 +114,9 @@ func (UnimplementedAdminServer) GetPendingVerifications(*GetVerificationRequest,
 }
 func (UnimplementedAdminServer) ReviewVerificatonReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReviewVerificatonReq not implemented")
+}
+func (UnimplementedAdminServer) SendInappropriateContentReport(context.Context, *InappropriateContentReportRequest) (*InappropriateContentReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendInappropriateContentReport not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
 
@@ -174,6 +188,24 @@ func _Admin_ReviewVerificatonReq_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Admin_SendInappropriateContentReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InappropriateContentReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).SendInappropriateContentReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/SendInappropriateContentReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).SendInappropriateContentReport(ctx, req.(*InappropriateContentReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Admin_ServiceDesc is the grpc.ServiceDesc for Admin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -188,6 +220,10 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReviewVerificatonReq",
 			Handler:    _Admin_ReviewVerificatonReq_Handler,
+		},
+		{
+			MethodName: "SendInappropriateContentReport",
+			Handler:    _Admin_SendInappropriateContentReport_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -34,6 +34,7 @@ func (a *Admin) GetPendingVerifications(r *pradmin.GetVerificationRequest, strea
 			Id:       vr.ID,
 			FullName: vr.Fullname,
 			Category: vr.Category,
+			//Media: vr.Media,
 		})
 		if err != nil {
 			a.l.Errorf("failure sending verification request response: %v\n", err)
@@ -48,9 +49,9 @@ func (a *Admin) AddVerificationReq(ctx context.Context, r *pradmin.AddVerificati
 	verificationRequest := data.VerificationRequest{
 		Fullname: r.FullName,
 		UserID:   r.UserId,
-		//Media:    r.Media,
 		Category: r.Category,
-		Status:   data.ACCEPTED,
+		Status:   data.PENDING,
+		//Media:    r.Media,
 	}
 	err := a.db.AddVerificationRequest(&verificationRequest)
 	if err != nil {
@@ -61,13 +62,30 @@ func (a *Admin) AddVerificationReq(ctx context.Context, r *pradmin.AddVerificati
 	return &pradmin.AddVerificationResponse{}, nil
 }
 
-/*func (a *Admin) ReviewVerificationReq(ctx context.Context, r *pradmin.ReviewVerificatonRequest) (*pradmin.ReviewVerificatonResponse, error) {
+func (a *Admin) ReviewVerificationReq(ctx context.Context, r *pradmin.ReviewVerificatonRequest) (*pradmin.ReviewVerificatonResponse, error) {
 
-	err := ReviewVerificationRequest(a.db, r.Status, r.Id)
+	err := data.ReviewVerificationRequest(a.db, r.Status, r.Id)
 	if err != nil {
 		a.l.Errorf("failure updating verification request: %v\n", err)
 		return &pradmin.ReviewVerificatonResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	return &pradmin.ReviewVerificatonResponse{}, nil
-}*/
+}
+
+func (a *Admin) SendInappropriateContentReport(ctx context.Context, r *pradmin.InappropriateContentReportRequest) (*pradmin.InappropriateContentReportResponse, error) {
+
+	inappropriateContentReport := data.InappropriateContentReport{
+		UserID: r.UserId,
+		Status: data.PENDING,
+		Reason: r.Reason,
+		//SharedMedia:    r.SharedMedia,
+	}
+	err := a.db.AddInappropriateContentReport(&inappropriateContentReport)
+	if err != nil {
+		a.l.Errorf("failure sending inappropriate content report: %v\n", err)
+		return &pradmin.InappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &pradmin.InappropriateContentReportResponse{}, nil
+}

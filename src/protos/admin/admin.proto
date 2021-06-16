@@ -5,14 +5,14 @@ service Admin {
     rpc AddVerificationReq(AddVerificationRequest) returns (AddVerificationResponse);
     rpc GetPendingVerifications(GetVerificationRequest) returns (stream GetVerificationResponse);
     rpc ReviewVerificatonReq(ReviewVerificatonRequest) returns (ReviewVerificatonResponse);
+    rpc SendInappropriateContentReport(InappropriateContentReportRequest) returns (InappropriateContentReportResponse);
 }
 
 message AddVerificationRequest {
     string fullName = 1;
     uint64 userId = 2;
     string category = 3;
-    string status = 4;
-    uint64 mediaId = 5;
+    //Media media = 4;
 }
 
 message AddVerificationResponse {}
@@ -23,11 +23,20 @@ message GetVerificationResponse {
     uint64 id = 1;
     string fullName = 2;
     string category = 3;
+    //Media media = 4;
 }
 
 message ReviewVerificatonRequest {
     uint64 id = 1;
-    //Status status = 2;
+    string status = 2;
 }
 
 message ReviewVerificatonResponse {}
+
+message InappropriateContentReportRequest {
+    uint64 userId = 1;
+    string reason = 2;
+    //SharedMedia sharedMedia = 3;
+}
+
+message InappropriateContentReportResponse {}
