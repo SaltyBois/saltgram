@@ -44,7 +44,7 @@ func (e *Email) ConfirmReset(w http.ResponseWriter, r *http.Request) {
 	token := vars["token"]
 	res, err := e.ec.ConfirmReset(context.Background(), &premail.ConfirmRequest{Token: token})
 	if err != nil {
-		e.l.Printf("[ERROR] confirming reset: %v", err)
+		e.l.Errorf("failure confirming reset: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -67,7 +67,7 @@ func (e *Email) Activate(w http.ResponseWriter, r *http.Request) {
 	token := vars["token"]
 	_, err := e.ec.Activate(context.Background(), &premail.ActivateRequest{Token: token})
 	if err != nil {
-		e.l.Printf("[ERROR] activating email: %v\n", err)
+		e.l.Errorf("failure activating email: %v\n", err)
 		http.Error(w, "Failed to activate email", http.StatusBadRequest)
 		return
 	}

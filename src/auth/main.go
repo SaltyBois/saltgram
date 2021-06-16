@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"saltgram/auth/data"
 	"saltgram/auth/grpc/servers"
 	"saltgram/internal"
+	"saltgram/log"
+	"saltgram/pki"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/users/prusers"
 
@@ -16,39 +17,45 @@ import (
 )
 
 func main() {
-	l := log.New(os.Stdout, "saltgram-auth", log.LstdFlags)
-	l.Printf("Starting Auth microservice on port: %s\n", os.Getenv("SALT_AUTH_PORT"))
-	s := internal.NewService(l)
-	db := data.DBConn{}
+	l := log.NewLogger("saltgram-auth")
+	l.L.Printf("Starting Auth microservice on port: %s\n", os.Getenv("SALT_AUTH_PORT"))
+
+	pkiHandler := pki.Init()
+	cert, err := pkiHandler.RegisterSaltgramService("saltgram-auth")
+	if err != nil {
+		l.L.Fatalf("failed to register to PKI")
+	}
+	s := internal.NewService(l.L)
+	err = s.Init("saltgram-auth", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
+	if err != nil {
+		l.L.Fatalf("failed to init auth service: %v\n", err)
+	}
+	db := data.NewDBConn(l.L)
 	db.ConnectToDb()
 	db.MigradeData()
 	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
 	if err != nil {
-		l.Printf("[ERROR] creating auth enforcer: %v\n", err)
-	}
-	err = s.TLS.Init("../../certs/localhost.crt", "../../certs/localhost.key", "../../certs/RootCA.pem")
-	if err != nil {
-		l.Fatalf("[ERROR] configuring TLS: %v\n", err)
+		l.L.Errorf("failure creating auth enforcer: %v\n", err)
 	}
 
 	grpcServer := s.NewServer()
-	usersConnection, err := s.GetConnection(fmt.Sprintf("localhost:%s", os.Getenv("SALT_USERS_PORT")))
+	usersConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
-		l.Fatalf("[ERROR] dialing users connection: %v\n", err)
+		l.L.Fatalf("failure dialing users connection: %v\n", err)
 	}
 	defer usersConnection.Close()
 
 	usersClient := prusers.NewUsersClient(usersConnection)
-	gAuthServer := servers.NewAuth(l, authEnforcer, &db, usersClient)
+	gAuthServer := servers.NewAuth(l.L, authEnforcer, db, usersClient)
 	prauth.RegisterAuthServer(grpcServer, gAuthServer)
 	reflection.Register(grpcServer)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", os.Getenv("SALT_AUTH_PORT")))
 	if err != nil {
-		l.Fatalf("[ERROR] creating listener: %v\n", err)
+		l.L.Fatalf("failure creating listener: %v\n", err)
 	}
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		l.Fatalf("[ERROR] while serving: %v\n", err)
+		l.L.Fatalf("failure while serving: %v\n", err)
 	}
 	grpcServer.GracefulStop()
 }
