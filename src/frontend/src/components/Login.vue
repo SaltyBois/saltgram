@@ -81,12 +81,12 @@ export default {
 
       this.axios.post("auth/login", this.user)
         .then(r => {
-          console.log(r);
+          // console.log(r);
           var username = r.data.username
           this.axios.post("auth/jwt", r.data)
             .then(r => {
               this.$store.state.jws = r.data;
-              console.log("Saved jwt ", this.$store.state.jws);
+              // console.log("Saved jwt ", this.$store.state.jws);
               this.$router.push("/user/" + username);
             })
             .catch(r => {
@@ -117,7 +117,7 @@ export default {
 <style scoped>
 
   .err {
-    border-color: #fff impor !important;
+    border-color: #fff !important;
     color: #f00;
   }
 

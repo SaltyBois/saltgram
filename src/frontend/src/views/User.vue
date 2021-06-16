@@ -20,7 +20,7 @@
 
           </v-layout>
 
-          <NameAndDescription :name="this.profile.fullName" :description="this.profile.description"/>
+          <NameAndDescription :name="this.profile.fullName" :description="this.profile.description" :web-site="this.profile.webSite"/>
 
         </v-layout>
 
@@ -109,6 +109,7 @@ export default {
           followersList:[],
           followingList: [],
           username: '',
+          webSite: ''
         },
         isMyProfile: false,
         radioButton: 'posts',
@@ -144,6 +145,7 @@ export default {
 
             this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
             .then(r => {
+              // console.log(r.data)
               this.profile.privateUser = !r.data.isPublic;
               this.profile.followingUser = r.data.isFollowing;
               this.profile.username = r.data.username;
@@ -151,6 +153,7 @@ export default {
               this.profile.following = r.data.following;
               this.profile.fullName = r.data.fullName;
               this.profile.description = r.data.description;
+              this.profile.webSite = r.data.webSite;
             }).catch(err => {
               console.log(err)
               console.log('Pushing Back to Login Page after fetching profile')

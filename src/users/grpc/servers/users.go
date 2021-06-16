@@ -8,6 +8,7 @@ import (
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -127,6 +128,11 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		Taggable: false,
 		Public:   false,
 		Description: r.Description,
+		PhoneNumber: r.PhoneNumber,
+		Gender: r.Gender,
+		DateOfBirth: time.Unix(r.DateOfBirth, 0),
+		WebSite: r.WebSite,
+		PrivateProfile: r.PrivateProfile,
 	}
 
 	err = u.db.AddProfile(&profile)
@@ -179,6 +185,8 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
+
+
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
@@ -201,13 +209,8 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
-	// response.Username = profile.Username
-	// response.Followers = followers
-	// response.Following = following
-	// response.FullName = user.FullName
-	// response.Description = profile.Description
-	// response.IsFollowing = isFollowing
-	// response.IsPublic = profile.Public
+	dateStr := strconv.FormatInt(profile.DateOfBirth.Unix(), 10)
+	date, err := strconv.ParseInt(dateStr, 10, 64)
 
 	return &prusers.ProfileResponse{
 		Username:    profile.Username,
@@ -217,6 +220,10 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		Description: profile.Description,
 		IsFollowing: isFollowing,
 		IsPublic:    profile.Public,
+		PhoneNumber: profile.PhoneNumber,
+		Gender: profile.Gender,
+		DateOfBirth: date,
+		WebSite: profile.WebSite,
 	}, nil
 }
 
@@ -308,6 +315,12 @@ func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*p
 	profile.Username = r.NewUsername
 	profile.Public = r.Public
 	profile.Taggable = r.Taggable
+	profile.PhoneNumber = r.PhoneNumber
+	profile.Gender = r.Gender
+	profile.DateOfBirth = time.Unix(r.DateOfBirth, 0)
+	profile.WebSite = r.WebSite
+	profile.PrivateProfile = r.PrivateProfile
+	profile.Description = r.Description
 
 	err = u.db.UpdateUser(user)
 	if err != nil {

@@ -43,6 +43,12 @@ message UpdateRequest {
     string fullName = 4;
     bool public = 5;
     bool taggable = 6;
+    string phoneNumber = 7;
+    string gender = 8;
+    int64 dateOfBirth = 9;
+    string webSite = 10;
+    bool privateProfile = 11;
+    string description = 12;
 }
 
 message UpdateResponse {}
@@ -94,6 +100,11 @@ message RegisterRequest {
     string password = 4;
     string description = 5;
     UserReCaptcha reCaptcha = 6;
+    string phoneNumber = 7;
+    string gender = 8;
+    int64 dateOfBirth = 9;
+    string webSite = 10;
+    bool privateProfile = 11;
 }
 
 message CheckPasswordRequest {
@@ -126,6 +137,10 @@ message ProfileResponse {
     string description = 5;
     bool isFollowing = 6;
     bool isPublic = 7;
+    string phoneNumber = 8;
+    string gender = 9;
+    int64 dateOfBirth = 10;
+    string webSite = 11;
 }
 
 message ChangePublicRequest {

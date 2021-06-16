@@ -1,5 +1,7 @@
 package data
 
+import "time"
+
 type RequestStatus string
 
 const (
@@ -18,6 +20,11 @@ type Profile struct {
 	Following   []*Profile `gorm:"many2many:profile_following;"`
 	Profiles    []FollowRequest
 	Requests    []FollowRequest
+	PhoneNumber string    `json:"phoneNumber"`
+	Gender      string    `json:"gender"`
+	DateOfBirth time.Time `json:"dateOfBirth"`
+	WebSite 	string 	  `json:"webSite"`
+	PrivateProfile bool   `json:"privateProfile"`
 }
 
 type FollowRequest struct {
