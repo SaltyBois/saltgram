@@ -3,9 +3,11 @@ package servers
 import (
 	"bytes"
 	"context"
+	"io"
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -23,23 +25,9 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	return &Content{
 		l:  l,
 		db: db,
-		g: g,
+		g:  g,
 	}
 }
-
-func (c *Content) PostProfile(ctx context.Context, r *prcontent.PostProfileRequest) (*prcontent.PostProfileResponse, error) {
-	if len(r.Image) == 0 {
-		c.l.Errorf("bad request, empty image")
-		return &prcontent.PostProfileResponse{}, status.Error(codes.InvalidArgument, "Bad request")
-	}
-	f, err := c.g.CreateFile("profile", []string{}, bytes.NewReader(r.Image), true)
-	if err != nil {
-		c.l.Errorf("failed to upload profile image: %v", err)
-		return &prcontent.PostProfileResponse{}, status.Error(codes.Internal, "Internal server error")
-	}
-	return &prcontent.PostProfileResponse{Url: f.WebViewLink}, nil
-}
-
 
 func (s *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
 	sharedMedias, err := s.db.GetSharedMediaByUser(r.UserId)
@@ -118,12 +106,12 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 				},
 			})
 		}
-		post := &prcontent.Post {
-			Id: p.ID,
+		post := &prcontent.Post{
+			Id:     p.ID,
 			UserId: p.UserID,
-			SharedMedia: &prcontent.SharedMedia {
+			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
-			}, 
+			},
 		}
 		err = stream.Send(&prcontent.GetPostsResponse{
 			Post: post,
@@ -157,12 +145,12 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 				},
 			})
 		}
-		post := &prcontent.Post {
-			Id: p.ID,
+		post := &prcontent.Post{
+			Id:     p.ID,
 			UserId: p.UserID,
-			SharedMedia: &prcontent.SharedMedia {
+			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
-			}, 
+			},
 		}
 		err = stream.Send(&prcontent.GetPostsResponse{
 			Post: post,
@@ -175,11 +163,16 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 	return nil
 }
 
-func (c *Content) AddProflePicture(ctx context.Context, r *prcontent.AddProfilePictureRequest) (*prcontent.AddProfilePictureResponse, error) {
+func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureServer) (*prcontent.AddProfilePictureResponse, error) {
+	r, err := stream.Recv()
+	if err != nil {
+		c.l.Errorf("failed to recieve profile metadata: %v", err)
+	}
 
 	profilePicture := data.ProfilePicture{
 		UserID: r.UserId,
 		Media: data.Media{
+			// NOTE(Jovan): Might need to use Getter?
 			Filename:    r.Media.Filename,
 			Description: r.Media.Description,
 			AddedOn:     r.Media.AddedOn,
@@ -192,9 +185,43 @@ func (c *Content) AddProflePicture(ctx context.Context, r *prcontent.AddProfileP
 		},
 	}
 
-	err := c.db.AddProfilePicture(&profilePicture)
+	imageData := bytes.Buffer{}
+	imageSize := 0
+
+	c.l.Info("receiving profile image...")
+	for {
+		r, err = stream.Recv()
+		if err == io.EOF {
+			c.l.Info("profile image received")
+			break
+		}
+		if err != nil {
+			c.l.Errorf("error while receiving image data: %v", err)
+			return &prcontent.AddProfilePictureResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		}
+		chunk := r.Image
+		size := len(chunk)
+		imageSize += size
+		// TODO(Jovan): Prevent large uploads?
+		_, err = imageData.Write(chunk)
+		if err != nil {
+			c.l.Errorf("error appending image chunk data: %v", err)
+			return &prcontent.AddProfilePictureResponse{}, status.Error(codes.Internal, "Internal server error")
+		}
+	}
+
+	url, err := c.g.UploadProfilePicture(strconv.FormatUint(r.UserId, 10), &imageData)
 	if err != nil {
-		c.l.Println("[ERROR] adding profile picture ", err)
+		c.l.Errorf("failed to upload profile picture: %v", err)
+		return &prcontent.AddProfilePictureResponse{}, status.Error(codes.Internal, "Internal server error")
+	}
+
+	profilePicture.URL = url
+
+	err = c.db.AddProfilePicture(&profilePicture)
+	if err != nil {
+		c.l.Errorf("failed adding profile picture: %v", err)
+		return &prcontent.AddProfilePictureResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	return &prcontent.AddProfilePictureResponse{}, nil
@@ -267,8 +294,8 @@ func (c *Content) AddComment(ctx context.Context, r *prcontent.AddCommentRequest
 
 	comment := data.Comment{
 		Content: r.Content,
-		UserID: r.UserId,
-		PostID: r.PostId,
+		UserID:  r.UserId,
+		PostID:  r.PostId,
 	}
 
 	err := c.db.AddComment(&comment)
@@ -296,4 +323,3 @@ func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionReque
 
 	return &prcontent.AddReactionResponse{}, nil
 }
-

@@ -9,22 +9,13 @@ service Content {
     rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
     //rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
     rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
-    rpc PostProfile(PostProfileRequest) returns (PostProfileResponse);
 
     rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
     rpc AddPost(AddPostRequest) returns(AddPostResponse);
     rpc AddStory(AddStoryRequest) returns(AddStoryResponse);
-    rpc AddProfilePicture(AddProfilePictureRequest) returns(AddSharedMediaResponse);
+    rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
-}
-
-message PostProfileRequest {
-    bytes image = 1;
-}
-
-message PostProfileResponse {
-    string url = 1;
 }
 
 message SharedMediaRequest {
@@ -106,7 +97,6 @@ message GetProfilePictureResponse {
 
 message AddPostResponse {}
 message AddStoryResponse {}
-message AddProfilePictureResponse {}
 
 message AddPostRequest {
     SharedMedia sharedMedia = 1;
@@ -120,8 +110,14 @@ message AddStoryRequest {
 }
 
 message AddProfilePictureRequest {
-    Media media = 1;
-    uint64 userId = 2;
+    oneof data {
+        Media media = 1;
+        bytes image = 3;
+    }
+}
+
+message AddProfilePictureResponse {
+    string url = 1;
 }
 
 message Comment {

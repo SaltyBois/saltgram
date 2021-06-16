@@ -19,11 +19,11 @@ var (
 )
 
 type Certificate struct {
-	Cert       *x509.Certificate   `json:"cert"`
-	CertChain  []*x509.Certificate `json:"certChain"`
-	PrivateKey *rsa.PrivateKey     `json:"-"`
-	Type       CertType            `json:"type"`
-	CertPEM    []byte
+	Cert          *x509.Certificate   `json:"cert"`
+	CertChain     []*x509.Certificate `json:"certChain"`
+	PrivateKey    *rsa.PrivateKey     `json:"-"`
+	Type          CertType            `json:"type"`
+	CertPEM       []byte
 	PrivateKeyPEM []byte
 }
 
@@ -33,7 +33,7 @@ type ArchivedCert struct {
 }
 
 type LookupDTO struct {
-	SubjectName string `json:"subjectName"`
+	SubjectName  string `json:"subjectName"`
 	SerialNumber string `json:"serialNumber"`
 }
 
@@ -49,22 +49,22 @@ func Init(db *DBConn) (*Certificate, error) {
 		rootTemplate := &x509.Certificate{
 			SerialNumber: serialNumber,
 			Subject: pkix.Name{
-				SerialNumber: serialNumber.String(),
-				CommonName: "SaltgramRootCA",
-				Organization: []string{"Saltgram"},
-				Country: []string{"RS"},
-				Province: []string{"Liman"},
-				Locality: []string{"Novi Sad"},
+				SerialNumber:  serialNumber.String(),
+				CommonName:    "SaltgramRootCA",
+				Organization:  []string{"Saltgram"},
+				Country:       []string{"RS"},
+				Province:      []string{"Liman"},
+				Locality:      []string{"Novi Sad"},
 				StreetAddress: []string{"Balzakova 69"},
-				PostalCode: []string{"21000"},
+				PostalCode:    []string{"21000"},
 			},
-			NotBefore: time.Now(),
-			NotAfter: time.Now().AddDate(10, 0, 0),
-			IsCA: true,
-			ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-			KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+			NotBefore:             time.Now(),
+			NotAfter:              time.Now().AddDate(10, 0, 0),
+			IsCA:                  true,
+			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+			KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 			BasicConstraintsValid: true,
-			DNSNames: trustedDNS,
+			DNSNames:              trustedDNS,
 		}
 
 		cert, err = GenRootCA(rootTemplate)
@@ -84,18 +84,18 @@ func Init(db *DBConn) (*Certificate, error) {
 func RegisterService(db *DBConn, subject pkix.Name) (*Certificate, error) {
 	serialNumber := GetRandomSerial()
 	template := &x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: subject,
-		NotBefore: time.Now(),
-		NotAfter: time.Now().AddDate(1, 0, 0),
-		IsCA: false,
-		KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
+		SerialNumber:          serialNumber,
+		Subject:               subject,
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(1, 0, 0),
+		IsCA:                  false,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
 		BasicConstraintsValid: false,
-		DNSNames: trustedDNS,
+		DNSNames:              trustedDNS,
 	}
 
 	cert, err := GenCert(db, template, LookupDTO{
-		SubjectName: ROOT_CN,
+		SubjectName:  ROOT_CN,
 		SerialNumber: "",
 	})
 	if err != nil {
@@ -118,7 +118,7 @@ func GenRootCA(rootTemplate *x509.Certificate) (*Certificate, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	rootCert, _, err := genCert(rootTemplate, rootTemplate, &privateKey.PublicKey, privateKey)
 	if err != nil {
 		return nil, err
@@ -151,10 +151,10 @@ func GenCert(db *DBConn, template *x509.Certificate, issuerDTO LookupDTO) (*Cert
 	certChain = append([]*x509.Certificate{issuerCert.Cert}, certChain...)
 
 	cert := Certificate{
-		Cert: c,
-		CertChain: certChain,
+		Cert:       c,
+		CertChain:  certChain,
 		PrivateKey: privateKey,
-		Type: GetType(c),
+		Type:       GetType(c),
 	}
 	return &cert, err
 }
@@ -183,6 +183,7 @@ func (cert *Certificate) Load(dto LookupDTO) error {
 }
 
 var ErrCertificateIsArchived = fmt.Errorf("certificate is archived")
+
 func (cert *Certificate) Verify(db *DBConn) error {
 	if cert.Type == Root && !IsArchived(db, []string{cert.Cert.Subject.SerialNumber}) {
 		return nil
@@ -199,9 +200,9 @@ func (cert *Certificate) Verify(db *DBConn) error {
 	roots, inter := getRootInetrPool(cert)
 
 	opts := x509.VerifyOptions{
-		Roots: roots,
+		Roots:         roots,
 		Intermediates: inter,
-		CurrentTime: time.Now(),
+		CurrentTime:   time.Now(),
 	}
 
 	if _, err := cert.Cert.Verify(opts); err != nil {
@@ -211,7 +212,7 @@ func (cert *Certificate) Verify(db *DBConn) error {
 }
 
 func (cert *Certificate) Save() error {
-	filename := cert.Cert.Subject.CommonName//+ cert.Cert.SerialNumber.String()
+	filename := cert.Cert.Subject.CommonName //+ cert.Cert.SerialNumber.String()
 	err := WritePFX(cert.Cert, cert.CertChain, cert.PrivateKey, filename)
 	if err != nil {
 		return err
@@ -282,11 +283,11 @@ func (cert *Certificate) loadCertAndKey(filename string) error {
 	cert.Type = GetType(cert.Cert)
 
 	cert.CertPEM = pem.EncodeToMemory(&pem.Block{
-		Type: "CERTIFICATE",
+		Type:  "CERTIFICATE",
 		Bytes: c.Raw,
 	})
 	cert.PrivateKeyPEM = pem.EncodeToMemory(&pem.Block{
-		Type: "RSA PRIVATE KEY",
+		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	})
 	return nil

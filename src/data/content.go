@@ -34,13 +34,13 @@ type ProfilePictureDTO struct {
 
 type PostDTO struct {
 	SharedMedia SharedMediaDTO
-	User UserDTO
+	User        UserDTO
 }
 
 type CommentDTO struct {
 	Content string
-	UserId uint64
-	PostId uint64
+	UserId  uint64
+	PostId  uint64
 }
 
 type ReactionType string
@@ -52,8 +52,8 @@ const (
 
 type ReactionDTO struct {
 	ReactionType ReactionType
-	UserId uint64
-	PostId uint64
+	UserId       uint64
+	PostId       uint64
 }
 
 func (sm *SharedMediaDTO) Validate() error {

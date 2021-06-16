@@ -21,7 +21,7 @@ var (
 
 type DBConn struct {
 	DB *gorm.DB
-	l *logrus.Logger
+	l  *logrus.Logger
 }
 
 func NewDBConn(l *logrus.Logger) *DBConn {
@@ -53,4 +53,5 @@ func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&Reaction{})
 	db.DB.AutoMigrate(&Comment{})
 	db.DB.AutoMigrate(&User{})
+	db.DB.AutoMigrate(&ProfilePicture{})
 }

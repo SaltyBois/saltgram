@@ -405,6 +405,8 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO(Jovan): Authenticate
+
 	//////////////// GDRIVE PART STARTS   ////////////////////////////////
 
 	r.ParseMultipartForm(10 << 20) // up to 10MB
@@ -414,21 +416,11 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid image data", http.StatusBadRequest)
 	}
 	defer file.Close()
-	
+
 	imageBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		c.l.Errorf("failed to read image bytes: %v", err)
 		http.Error(w, "Invalid image data", http.StatusBadRequest)
-		return
-	}
-	
-	resp, err := c.cc.PostProfile(context.Background(), &prcontent.PostProfileRequest{
-		Image: imageBytes,
-	})
-	c.l.Infof("uploaded file: %v, at: %v", handler.Filename, resp.Url)
-	if err != nil {
-		c.l.Errorf("failed to upload profile image: %v", err)
-		http.Error(w, "Failed to upload profile image", http.StatusInternalServerError)
 		return
 	}
 
@@ -448,12 +440,12 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}*/
 
-	_, err = c.cc.AddProfilePicture(context.Background(), &prcontent.AddProfilePictureRequest{
+	resp, err := c.cc.AddProfilePicture(context.Background(), &prcontent.AddProfilePictureRequest{
 		UserId: user.Id,
 		Media: &prcontent.Media{
 			UserId: user.Id,
 			//Filename:    dto.Media.Filename,
-			Filename: resp.Url,
+			Filename: handler.Filename,
 			/*Description: dto.Media.Description,
 			Location: &prcontent.Location{
 				Country: dto.Media.Location.Country,
@@ -463,6 +455,7 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 			},*/
 			AddedOn: time.Now().Format("yyyy-MM-dd HH:mm:ss"),
 		},
+		Image: imageBytes,
 	})
 
 	if err != nil {
@@ -471,7 +464,7 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Profile picture added"))
+	w.Write([]byte(resp.Url))
 }
 
 func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
@@ -664,41 +657,4 @@ func (c *Content) AddReaction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
-}
-
-func (c *Content) PostProfile(w http.ResponseWriter, r *http.Request) {
-	// TODO Get user data for structured profile upload
-	// and user verification
-	// jws, err := getUserJWS(r)
-	// if err != nil {
-	// 	c.l.Errorf("JWS not found: %v", err)
-	// 	http.Error(w, "JWS not found", http.StatusBadRequest)
-	// 	return
-	// }
-	r.ParseMultipartForm(10 << 20) // up to 10MB
-	file, handler, err := r.FormFile("profileImg")
-	if err != nil {
-		c.l.Errorf("failed to parse request: %v", err)
-		http.Error(w, "Invalid image data", http.StatusBadRequest)
-	}
-	defer file.Close()
-	
-	imageBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		c.l.Errorf("failed to read image bytes: %v", err)
-		http.Error(w, "Invalid image data", http.StatusBadRequest)
-		return
-	}
-	resp, err := c.cc.PostProfile(context.Background(), &prcontent.PostProfileRequest{
-		Image: imageBytes,
-	})
-	if err != nil {
-		c.l.Errorf("failed to upload profile image: %v", err)
-		http.Error(w, "Failed to upload profile image", http.StatusInternalServerError)
-		return
-	}
-	c.l.Infof("uploaded file: %v, at: ", handler.Filename, resp.Url)
-
-	// Returns uploaded image url
-	w.Write([]byte(resp.Url))
 }

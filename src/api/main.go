@@ -28,7 +28,7 @@ func main() {
 		l.L.Fatalf("registering service for pki: %v\n", err)
 	}
 	s := internal.NewService(l.L)
-	
+
 	err = s.Init("saltgram-api-gateway", cert.CertPEM, cert.PrivateKeyPEM, pkiHandler.RootCA.CertPEM)
 	if err != nil {
 		l.L.Fatalf("failed to init api service: %v\n", err)
@@ -86,13 +86,12 @@ func main() {
 	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/profilepicture/{id}", contentHandler.GetProfilePictureByUser).Methods(http.MethodGet)
-	// contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost) // Mora se impl
+	contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost) // Mora se impl
 	contentRouter.HandleFunc("/post/{id}", contentHandler.GetPostsByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
-	contentRouter.HandleFunc("/user/profile", contentHandler.PostProfile).Methods(http.MethodPost)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},

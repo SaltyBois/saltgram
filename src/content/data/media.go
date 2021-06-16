@@ -43,6 +43,7 @@ type ProfilePicture struct {
 	UserID  uint64 `json:"userId"`
 	Media   Media  `validate:"required"`
 	MediaID uint64 `json:"mediaId"`
+	URL     string `json:"url"`
 }
 
 func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
@@ -81,7 +82,14 @@ func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
 }
 
 func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
-	return db.DB.Create(pp).Error
+	oldPP, err := db.GetProfilePictureByUser(pp.UserID)
+	if err != nil {
+		return db.DB.Create(pp).Error
+	}
+	oldPP.Media = pp.Media
+	oldPP.MediaID = pp.MediaID
+	oldPP.URL = pp.URL
+	return db.DB.Save(&oldPP).Error
 }
 
 func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
