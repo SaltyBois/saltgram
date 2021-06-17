@@ -1,5 +1,7 @@
 package data
 
+import "saltgram/data"
+
 type Category string
 
 const (
@@ -20,10 +22,9 @@ const (
 )
 
 type VerificationRequest struct {
-	ID       uint64 `json:"id"`
+	data.Identifiable
 	Fullname string `json:"fullname" validate:"required"`
-	Media    Media  `json:"media"`
-	MediaID  uint64 `json:"mediaId"`
+	URL      string `json:"url"`
 	UserID   uint64 `json:"userId"`
 	Category string `validate:"required"`
 	Status   string `validate:"required"`

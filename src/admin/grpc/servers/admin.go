@@ -34,7 +34,7 @@ func (a *Admin) GetPendingVerifications(r *pradmin.GetVerificationRequest, strea
 			Id:       vr.ID,
 			FullName: vr.Fullname,
 			Category: vr.Category,
-			//Media: vr.Media,
+			Url:      vr.URL,
 		})
 		if err != nil {
 			a.l.Errorf("failure sending verification request response: %v\n", err)
@@ -51,7 +51,7 @@ func (a *Admin) AddVerificationReq(ctx context.Context, r *pradmin.AddVerificati
 		UserID:   r.UserId,
 		Category: r.Category,
 		Status:   data.PENDING,
-		//Media:    r.Media,
+		URL:      r.Url,
 	}
 	err := a.db.AddVerificationRequest(&verificationRequest)
 	if err != nil {
@@ -76,9 +76,9 @@ func (a *Admin) ReviewVerificationReq(ctx context.Context, r *pradmin.ReviewVeri
 func (a *Admin) SendInappropriateContentReport(ctx context.Context, r *pradmin.InappropriateContentReportRequest) (*pradmin.InappropriateContentReportResponse, error) {
 
 	inappropriateContentReport := data.InappropriateContentReport{
-		UserID: r.UserId,
-		Status: data.PENDING,
-		//SharedMedia:    r.SharedMedia,
+		UserID:        r.UserId,
+		Status:        data.PENDING,
+		SharedMediaID: r.SharedMediaId,
 	}
 	err := a.db.AddInappropriateContentReport(&inappropriateContentReport)
 	if err != nil {

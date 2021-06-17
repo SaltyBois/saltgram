@@ -12,7 +12,7 @@ message AddVerificationRequest {
     string fullName = 1;
     uint64 userId = 2;
     string category = 3;
-    //Media media = 4;
+    string url = 4;
 }
 
 message AddVerificationResponse {}
@@ -23,7 +23,7 @@ message GetVerificationResponse {
     uint64 id = 1;
     string fullName = 2;
     string category = 3;
-    //Media media = 4;
+    string url = 4;
 }
 
 message ReviewVerificatonRequest {
@@ -35,7 +35,7 @@ message ReviewVerificatonResponse {}
 
 message InappropriateContentReportRequest {
     uint64 userId = 1;
-    //SharedMedia sharedMedia = 3;
+    uint64 sharedMediaId = 2;
 }
 
 message InappropriateContentReportResponse {}
