@@ -21,6 +21,7 @@ node_modules
 certs
 *.pem
 *.pfx
+*.crt
 
 # IDE
 *.idea
@@ -31,7 +32,19 @@ jsconfig.json
 tsconfig.json
 
 *.env
+<<<<<<< HEAD
 saltgram-c0751de619fa.json
+secrets
+*.log
+=======
+
+# Log and Keystore
+src/log
+src/keystore
+
+# Secrets
+secrets
+>>>>>>> develop
 
 # Logs
 *.log

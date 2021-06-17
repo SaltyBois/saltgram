@@ -3,10 +3,29 @@ option go_package = "./content/prcontent";
 
 service Content {
     rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
+    rpc GetPostsByUser(GetPostsRequest) returns(stream GetPostsResponse);
+    rpc GetStories(GetStoryRequest) returns(stream GetStoriesResponse);
+    rpc GetProfilePicture(GetProfilePictureRequest) returns(GetProfilePictureResponse);
+    rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
+    //rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
+    rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
+
     rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
+    rpc AddPost(AddPostRequest) returns(AddPostResponse);
+    rpc AddStory(AddStoryRequest) returns(AddStoryResponse);
+    rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
+    rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
+    rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
 }
 
 message SharedMediaRequest {
+    uint64 userId = 1;
+}
+
+message GetPostsRequest {
+    uint64 userId = 1;
+}
+message GetStoryRequest {
     uint64 userId = 1;
 }
 
@@ -14,6 +33,7 @@ message SharedMediaResponse {
     repeated Media media = 1;
 }
 
+// Metadata
 message Media {
     uint64 userId = 1;
     string filename = 2;
@@ -29,10 +49,14 @@ message Tag {
 }
 
 message Location {
-    string Country = 1;
-	string State = 2;
-    string ZipCode = 3;
-	string Street = 4;
+    string country = 1;
+	string state = 2;
+    string zipCode = 3;
+	string street = 4;
+}
+
+message SharedMedia {
+    repeated Media media = 1;
 }
 
 message AddSharedMediaRequest {
@@ -41,7 +65,93 @@ message AddSharedMediaRequest {
 
 message AddSharedMediaResponse {}
 
+message Post {
+    uint64 id = 1;
+    uint64 userId = 2;
+    SharedMedia sharedMedia = 3;
+}
 
+message GetPostsResponse {
+    Post post = 1;
+}
+
+message Story {
+    uint64 id = 1;
+    uint64 userId = 2;
+    SharedMedia sharedMedia = 3;
+    bool closeFriends = 4;
+}
+
+message GetStoriesResponse {
+    Story story = 1;
+}
+
+message GetProfilePictureRequest {
+    uint64 userId = 1;
+}
+
+message GetProfilePictureResponse {
+    string url = 1;
+}
+
+message AddPostResponse {}
+message AddStoryResponse {}
+
+message AddPostRequest {
+    SharedMedia sharedMedia = 1;
+    uint64 userId = 2;
+}
+
+message AddStoryRequest {
+    SharedMedia sharedMedia = 1;
+    uint64 userId = 2;
+    bool closeFriends = 3;
+}
+
+message AddProfilePictureRequest {
+    oneof data {
+        uint64 userId = 1;
+        bytes image = 2;
+    }
+}
+
+message AddProfilePictureResponse {
+    string url = 1;
+}
+
+message Comment {
+    string content = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+}
+
+message GetCommentsResponse {
+    Comment comment = 1;
+}
+
+message GetCommentsRequest {
+    uint64 postId = 1;
+}
+
+message AddCommentRequest {
+    string content = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+}
+
+message AddCommentResponse {}
+
+message ReactionType {
+    string reactionType = 1;
+}
+
+message AddReactionRequest {
+    ReactionType reactionType = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+}
+
+message AddReactionResponse {}
 
 
 

@@ -7,7 +7,7 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage :following-prop="followingUser" username="Kristijan" image-src="Insert image source" @toggle-following="toggleFollow"/>
+          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" image-src="Insert image source" @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -20,14 +20,14 @@
 
           </v-layout>
 
-          <NameAndDescription/>
+          <NameAndDescription :name="this.profile.fullName" :description="this.profile.description" :web-site="this.profile.webSite"/>
 
         </v-layout>
 
       </div>
     </div>
 
-    <div v-if="!followingUser && privateUser" class="private-account">
+    <div v-if="!isContentVisible" class="private-account">
       <i class="fa fa-lock" style="transform: scale(2.5)"/>
       <h3>This user is private</h3>
 
@@ -35,7 +35,7 @@
 
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
-              v-if="!(!followingUser && privateUser)"
+              v-if="isContentVisible"
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
@@ -45,7 +45,7 @@
 
     <!--  TODO: LAYOUT FOR TOGGLING: POSTS, SAVED, TAGGED  -->
     <v-layout id="radio-button-layout"
-              v-if="!(!followingUser && privateUser)">
+              v-if="isContentVisible">
       <v-radio-group row  v-model="radioButton">
         <v-radio label="Posts"  value="posts"/>
         <v-radio label="Saved"  value="saved"/>
@@ -56,7 +56,7 @@
 <!--        TODO: POSTS -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'posts' && !(!followingUser && privateUser)"
+                v-if="radioButton === 'posts' && isContentVisible"
                 column>
         <PostOnUserPage/>
       </v-layout>
@@ -66,7 +66,7 @@
     <!--        TODO: SAVED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'saved' && !(!followingUser && privateUser)"
+                v-if="radioButton === 'saved' && isContentVisible"
                 column>
         <PostOnUserPage/>
         <PostOnUserPage/>
@@ -76,7 +76,7 @@
     <!--        TODO: TAGGED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'tagged' && !(!followingUser && privateUser)"
+                v-if="radioButton === 'tagged' && isContentVisible"
                 column>
         <PostOnUserPage/>
         <PostOnUserPage/>
@@ -100,32 +100,98 @@ export default {
     },
     data: function() {
       return {
+        profile : {
+          privateUser: true,
+          description: '',
+          fullName: '',
+          followers: '',
+          following: '',
+          followersList:[],
+          followingList: [],
+          username: '',
+          webSite: ''
+        },
+        isMyProfile: false,
         radioButton: 'posts',
         followingUser: false,
-        privateUser: true
+      }
+    },
+    computed: {
+      isContentVisible() {
+          return !(!this.isMyProfile && this.profile.privateUser && !this.followingUser);
+
       }
     },
     methods: {
-        // refreshToken: async function() {
-        //     let jws = this.$store.state.jws
-        //     if (!jws) {
-        //         this.$router.push("/")
-        //     }
-        //     return this.axios.get("auth/refresh", {headers: {"Authorization": "Bearer " + jws}})
-        // },
-
         getUserInfo: function() {
             this.refreshToken(this.getAHeader())
                 .then(rr => {
                     this.$store.state.jws = rr.data;
                     this.axios.get("users", {headers: this.getAHeader()})
-                        .then(r => this.user = r.data);
+                        .then(r =>{ 
+                          this.user = r.data
+                          this.getUser();
+                          });
+                      
                 }).catch(() => this.$router.push('/'));
         },
 
+        getUser: function() {
+            this.isMyProfile = this.user.username === this.$route.params.username;
+            this.$refs.profileImage.$data.isMyProfile = this.isMyProfile
+            this.followingUser = false;
+            this.privateUser = true;
+
+
+            this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
+            .then(r => {
+              // console.log(r.data)
+              this.profile.privateUser = !r.data.isPublic;
+              this.profile.followingUser = r.data.isFollowing;
+              this.profile.username = r.data.username;
+              this.profile.followers = r.data.followers;
+              this.profile.following = r.data.following;
+              this.profile.fullName = r.data.fullName;
+              this.profile.description = r.data.description;
+              this.profile.webSite = r.data.webSite;
+            }).catch(err => {
+              console.log(err)
+              console.log('Pushing Back to Login Page after fetching profile')
+              this.$router.push('/');
+            })
+
+          // this.axios.get("users/get/followers/" + this.$route.params.username, {headers: this.getAHeader()})
+          //     .then(r => {
+          //       this.profile.followersList = r.data
+          //     }).catch(() => {
+          //   console.log('Pushing Back to Login Page after failed fetching followers')
+          //   this.$router.push('/');
+          // })
+          //
+          // this.axios.get("users/get/following/" + this.$route.params.username, {headers: this.getAHeader()})
+          //     .then(r => {
+          //       this.profile.followingList = r.data
+          //       console.log('this.profile.followingList')
+          //       console.log(this.profile.followingList)
+          //       this.$refs.profileImage.$data.following = this.profile.followingList[this.$route.params.username] !== 'true';
+          //       console.log('this.$refs.profileImage.$data.following')
+          //       console.log(this.$refs.profileImage.$data.following)
+          //       // for (let i = 0; i < this.profile.followingList.length; ++i) {
+          //       //   if (this.$route.params.username === this.profile.followingList[i]) {
+          //       //     this.$refs.profileImage.$data.following = true
+          //       //     break;
+          //       //   }
+          //       // }
+          //     }).catch(r => {
+          //   console.log('Pushing Back to Login Page after failed fetching following')
+          //   this.$router.push('/');
+          // })
+
+
+        },
         toggleFollow(follow) {
           this.followingUser = follow
-        }
+        },
     },
     mounted() {
          this.getUserInfo(); // TODO UNCOMMENT THIS

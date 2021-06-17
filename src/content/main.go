@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"saltgram/content/gdrive"
 	"saltgram/content/grpc/servers"
 	"saltgram/log"
 	"saltgram/pki"
@@ -32,7 +33,9 @@ func main() {
 	db.ConnectToDb()
 	db.MigradeData()
 
-	gContentServer := servers.NewContent(l.L, db)
+	g := gdrive.NewGDrive(l.L)
+
+	gContentServer := servers.NewContent(l.L, db, g)
 	grpcServer := s.NewServer()
 	prcontent.RegisterContentServer(grpcServer, gContentServer)
 	reflection.Register(grpcServer)

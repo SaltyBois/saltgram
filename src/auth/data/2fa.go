@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	secret = []byte{'H', 'e', 'l', 'l', 'o', '!', 0xDE, 0xAD, 0xBE, 0xEF}
+	secret    = []byte{'H', 'e', 'l', 'l', 'o', '!', 0xDE, 0xAD, 0xBE, 0xEF}
 	secretB32 = base32.StdEncoding.EncodeToString(secret)
-	issuer = "saltgram"
+	issuer    = "saltgram"
 )
 
 func Get2FAQR(email string) ([]byte, error) {
@@ -36,9 +36,9 @@ func Get2FAQR(email string) ([]byte, error) {
 }
 
 func Authenticate2FA(token string) (bool, error) {
-	otpc := &dgoogauth.OTPConfig {
-		Secret: secretB32,
-		WindowSize: 3,
+	otpc := &dgoogauth.OTPConfig{
+		Secret:      secretB32,
+		WindowSize:  3,
 		HotpCounter: 0,
 	}
 

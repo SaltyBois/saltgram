@@ -7,7 +7,7 @@
       </div>
       <v-form id="login-and-logo" v-model="isFormValid" v-else-if="!processing && success">
         <img :src="qr" alt="QR" id="qr"/>
-        <v-text-field 
+        <v-text-field
         label="QR token"
         v-model="token"
         required/>
@@ -16,11 +16,12 @@
       </v-form>
       <div v-else id="login-and-logo">
         <h1 id="home-title">Saltgram</h1>
-        <v-form id="login" v-model="isFormValid">
+        <v-form id="login" v-model="isFormValid" @submit.prevent="login">
           <span class="err">{{error}}</span>
           <v-text-field 
           v-model="user.username"
           label="Username"
+          v-on:keydown="loginEnter"
           required/>
           <v-text-field 
           v-model="user.password"
@@ -30,6 +31,7 @@
           :append-icon="showPassword ? 'fa-eye' : 'fa-eye-slash'"
           :type="showPassword ? 'text' : 'password'"
           @click:append="showPassword = !showPassword"
+          v-on:keydown="loginEnter"
           required/>
            <vue-recaptcha
               ref="recaptcha"
@@ -38,7 +40,7 @@
               size="invisible"
               :sitekey="sitekey">
             </vue-recaptcha>
-          <v-btn :disabled="!isFormValid" class="accent" @click="login">Log in</v-btn>
+          <v-btn :disabled="!isFormValid" class="accent" @click="login" type="submit">Log in</v-btn>
           <p id="forgot-password"><router-link to="/forgotpassword">Forgot password?</router-link></p>
         </v-form>
       </div>
@@ -98,6 +100,10 @@ export default {
     login: function() {
       this.$refs.recaptcha.execute();
     },
+    loginEnter: function(e) {
+      if (e.keyCode === 13) // ENTER KEY
+      this.$refs.recaptcha.execute();
+    },
 
     onCaptchaVerified: function(token) {
       this.error = "";
@@ -109,13 +115,14 @@ export default {
 
       this.axios.post("auth/login", this.user)
         .then(r => {
-          console.log(r);
+          // console.log(r);
+          var username = r.data.username
           this.axios.post("auth/jwt", r.data)
             .then(r => {
               this.$store.state.jws = r.data;
-              console.log("Saved jwt ", this.$store.state.jws);
-              // this.$router.push("/user");
-              this.getQRImg();
+              // console.log("Saved jwt ", this.$store.state.jws);
+              this.$router.push("/user/" + username);
+              // this.getQRImg();
             })
             .catch(r => {
               console.log(r);
@@ -150,7 +157,7 @@ export default {
   }
 
   .err {
-    border-color: #fff impor !important;
+    border-color: #fff !important;
     color: #f00;
   }
 

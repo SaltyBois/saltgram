@@ -27,6 +27,30 @@ type TagDTO struct {
 	Value string `json:"value" validate:"required"`
 }
 
+type PostDTO struct {
+	SharedMedia SharedMediaDTO
+	User        UserDTO
+}
+
+type CommentDTO struct {
+	Content string
+	UserId  uint64
+	PostId  uint64
+}
+
+type ReactionType string
+
+const (
+	LIKE ReactionType = "LIKE"
+	DISLIKE
+)
+
+type ReactionDTO struct {
+	ReactionType ReactionType
+	UserId       uint64
+	PostId       uint64
+}
+
 func (sm *SharedMediaDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(sm)

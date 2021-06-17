@@ -23,6 +23,7 @@ type AuthClient interface {
 	GetJWT(ctx context.Context, in *JWTRequest, opts ...grpc.CallOption) (*JWTResponse, error)
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error)
 	CheckPermissions(ctx context.Context, in *PermissionRequest, opts ...grpc.CallOption) (*PermissionResponse, error)
+	UpdateRefresh(ctx context.Context, in *UpdateRefreshRequest, opts ...grpc.CallOption) (*UpdateRefreshResponse, error)
 	Get2FAQR(ctx context.Context, in *TwoFARequest, opts ...grpc.CallOption) (*TwoFAResponse, error)
 	Authenticate2FA(ctx context.Context, in *Auth2FARequest, opts ...grpc.CallOption) (*Auth2FAResponse, error)
 }
@@ -80,6 +81,15 @@ func (c *authClient) CheckPermissions(ctx context.Context, in *PermissionRequest
 	return out, nil
 }
 
+func (c *authClient) UpdateRefresh(ctx context.Context, in *UpdateRefreshRequest, opts ...grpc.CallOption) (*UpdateRefreshResponse, error) {
+	out := new(UpdateRefreshResponse)
+	err := c.cc.Invoke(ctx, "/Auth/UpdateRefresh", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authClient) Get2FAQR(ctx context.Context, in *TwoFARequest, opts ...grpc.CallOption) (*TwoFAResponse, error) {
 	out := new(TwoFAResponse)
 	err := c.cc.Invoke(ctx, "/Auth/Get2FAQR", in, out, opts...)
@@ -107,6 +117,7 @@ type AuthServer interface {
 	GetJWT(context.Context, *JWTRequest) (*JWTResponse, error)
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
 	CheckPermissions(context.Context, *PermissionRequest) (*PermissionResponse, error)
+	UpdateRefresh(context.Context, *UpdateRefreshRequest) (*UpdateRefreshResponse, error)
 	Get2FAQR(context.Context, *TwoFARequest) (*TwoFAResponse, error)
 	Authenticate2FA(context.Context, *Auth2FARequest) (*Auth2FAResponse, error)
 	mustEmbedUnimplementedAuthServer()
@@ -130,6 +141,9 @@ func (UnimplementedAuthServer) Refresh(context.Context, *RefreshRequest) (*Refre
 }
 func (UnimplementedAuthServer) CheckPermissions(context.Context, *PermissionRequest) (*PermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckPermissions not implemented")
+}
+func (UnimplementedAuthServer) UpdateRefresh(context.Context, *UpdateRefreshRequest) (*UpdateRefreshResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRefresh not implemented")
 }
 func (UnimplementedAuthServer) Get2FAQR(context.Context, *TwoFARequest) (*TwoFAResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get2FAQR not implemented")
@@ -240,6 +254,24 @@ func _Auth_CheckPermissions_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_UpdateRefresh_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRefreshRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).UpdateRefresh(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Auth/UpdateRefresh",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).UpdateRefresh(ctx, req.(*UpdateRefreshRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Auth_Get2FAQR_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TwoFARequest)
 	if err := dec(in); err != nil {
@@ -302,6 +334,10 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckPermissions",
 			Handler:    _Auth_CheckPermissions_Handler,
+		},
+		{
+			MethodName: "UpdateRefresh",
+			Handler:    _Auth_UpdateRefresh_Handler,
 		},
 		{
 			MethodName: "Get2FAQR",

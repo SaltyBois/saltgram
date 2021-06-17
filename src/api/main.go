@@ -46,6 +46,7 @@ func main() {
 	authRouter.HandleFunc("/refresh", authHandler.Refresh) //.Methods(http.MethodGet)
 	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
 	authRouter.HandleFunc("/jwt", authHandler.GetJWT).Methods(http.MethodPost)
+	authRouter.HandleFunc("/update", authHandler.UpdateJWTUsername).Methods(http.MethodPut)
 	authRouter.HandleFunc("", authHandler.CheckPermissions).Methods(http.MethodPut)
 	authRouter.HandleFunc("/2fa", authHandler.Get2FAQR).Methods(http.MethodPost)
 	authRouter.HandleFunc("/2fa/{token}", authHandler.Authenticate2FA).Methods(http.MethodGet)
@@ -62,6 +63,11 @@ func main() {
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/profile/{username}", usersHandler.UpdateProfile).Methods(http.MethodPut)
+	usersRouter.HandleFunc("/create/follow", usersHandler.Follow).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/get/followers/{username}", usersHandler.GetFollowers).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/get/following/{username}", usersHandler.GetFollowing).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
@@ -86,6 +92,13 @@ func main() {
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/profilepicture/{id}", contentHandler.GetProfilePictureByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost) // Mora se impl
+	contentRouter.HandleFunc("/post/{id}", contentHandler.GetPostsByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
 
 	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
 	if err != nil {
@@ -110,8 +123,8 @@ func main() {
 
 	server := http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_API_PORT")),
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Handler:      c.Handler(s.S),
 		TLSConfig:    s.TLS.TC,

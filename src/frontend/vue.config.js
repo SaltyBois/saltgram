@@ -6,8 +6,8 @@ module.exports = {
   ],
   devServer: {
       https: {
-        key: fs.readFileSync('./certs/localhost.key'),
-        cert: fs.readFileSync('./certs/localhost.crt'),
+        key: fs.readFileSync('./certs/saltgram-web-server.key'),
+        cert: fs.readFileSync('./certs/saltgram-web-server.crt'),
       },
   },
 //  devServer: {

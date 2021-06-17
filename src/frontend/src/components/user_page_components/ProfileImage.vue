@@ -1,7 +1,7 @@
 <template>
   <v-layout align-center column style="width: 40%;">
     <h2 style="text-align: center; margin-top: 10px">
-      USERNAME
+      {{this.username}}
       <i class="fa fa-check-square verified-icon ml-5"/>
     </h2>
     <v-img  id="profile-image"
@@ -9,8 +9,9 @@
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
 
-    <v-btn class="follow-button" v-if="!following" @click="emitToggleFollowing()">Follow</v-btn>
-    <v-btn class="unfollow-button" v-else @click="emitToggleFollowing()">Unfollow</v-btn>
+    <v-btn class="follow-button" v-if="isFollowBtnVisible" @click="emitToggleFollowing()">Follow</v-btn>
+    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible" @click="emitToggleFollowing()">Requested</v-btn>
+    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible" @click="emitToggleFollowing()">Unfollow</v-btn>
 
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
@@ -22,22 +23,22 @@
                 justify-center
                 column>
         <v-btn class="primary mb-2"
-               v-if="myProfile"
+               v-if="isMyProfile"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn v-if="!myProfile" @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="!isMyProfile" @click="showDialog = false" class="mute-button my-2">
           Show story
         </v-btn>
-        <v-btn v-if="!muted && !myProfile" @click="showDialog = false" class="other-buttons my-2">
+        <v-btn v-if="isMutedBtnVisible" @click="showDialog = false" class="other-buttons my-2">
           Mute
         </v-btn>
-        <v-btn v-if="muted && !myProfile" @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="!isMutedBtnVisible" @click="showDialog = false" class="mute-button my-2">
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!myProfile"
+               v-if="!isMyProfile"
                @click="showDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!myProfile"
+               v-if="!isMyProfile"
                @click="showDialog = false">Block @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
@@ -63,11 +64,12 @@ export default {
       showProfileImageDialog: false,
       following: false,
       muted: false,
-      myProfile: false
+      isMyProfile: false,
+      profile: '',
+      waitingForResponse: false
     }
   },
   mounted() {
-    this.following = this.followingProp
   },
   props: {
     followingProp: {
@@ -81,28 +83,62 @@ export default {
     imageSrc: {
       type: String,
       required: false
+    },
+    isMyProfileProp: {
+      type: Boolean,
+      required: true
     }
   },
   computed: {
-    // followData: {
-    //   get: function () {
-    //     return this.following;
-    //   },
-    //   set: function (newFollowValue) {
-    //     this.following = newFollowValue;
-    //   }
-    // },
+    isFollowBtnVisible() {
+      return !this.isMyProfile && !this.following;
+    },
+    isRequestBtnVisible() {
+      return !this.isMyProfile && !this.following && this.waitingForResponse;
+    },
+    isUnfollowBtnVisible() {
+      return !this.isMyProfile && this.following;
+    },
+    isMutedBtnVisible() {
+      return !this.muted && !this.isMyProfile;
+    }
   },
   methods: {
     onSelectedFile(event) {
       console.log(event)
       this.profilePicture = event.target.files[0]
       console.log(this.profilePicture)
+
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data
+
+          let data = new FormData();
+          data.append('profileImg', this.profilePicture);
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          this.axios.post("profilepicture", data, config)
+            .then(() => this.isUploadedContent = true)
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
+
     },
     emitToggleFollowing() {
-      this.following = !this.following;
-      this.$emit('toggle-following', this.following);
-    }
+      console.log(this.username)
+      this.axios.post("users/create/follow", {profile: this.username}, {headers: this.getAHeader()})
+        .then(r => {
+          console.log(r);
+          this.following = !this.following;
+          this.$emit('toggle-following', this.following);
+        })
+        .catch(r => {
+          console.log(r)
+        })
+    },
   }
 }
 </script>

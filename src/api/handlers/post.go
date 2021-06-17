@@ -183,14 +183,20 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = u.uc.Register(context.Background(), &prusers.RegisterRequest{
-		Username: dto.Username,
-		FullName: dto.FullName,
-		Email:    dto.Email,
-		Password: dto.Password,
+		Username:    dto.Username,
+		FullName:    dto.FullName,
+		Email:       dto.Email,
+		Password:    dto.Password,
+		Description: dto.Description,
 		ReCaptcha: &prusers.UserReCaptcha{
 			Token:  dto.ReCaptcha.Token,
 			Action: dto.ReCaptcha.Action,
 		},
+		PhoneNumber:    dto.PhoneNumber,
+		Gender:         dto.Gender,
+		DateOfBirth:    dto.DateOfBirth.Unix(),
+		WebSite:        dto.WebSite,
+		PrivateProfile: dto.PrivateProfile,
 	})
 
 	if err != nil {
@@ -366,6 +372,345 @@ func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+}
+func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	c.l.Infof("fetched user: %v, id: %v", user.Username, user.Id)
+
+	// TODO(Jovan): Authenticate
+
+	r.ParseMultipartForm(10 << 20) // up to 10MB
+	file, _, err := r.FormFile("profileImg")
+	if err != nil {
+		c.l.Errorf("failed to parse request: %v", err)
+		http.Error(w, "Invalid image data", http.StatusBadRequest)
+	}
+	defer file.Close()
+
+	imageBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		c.l.Errorf("failed to read image bytes: %v", err)
+		http.Error(w, "Invalid image data", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := c.cc.AddProfilePicture(context.Background())
+	if err != nil {
+		c.l.Errorf("failed to add profile picture: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = stream.Send(&prcontent.AddProfilePictureRequest{
+		Data: &prcontent.AddProfilePictureRequest_UserId{UserId: user.Id},
+	})
+	if err != nil {
+		c.l.Errorf("failed to send profile picture metadata: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = stream.Send(&prcontent.AddProfilePictureRequest{
+		Data: &prcontent.AddProfilePictureRequest_Image{Image: imageBytes},
+	})
+	if err != nil {
+		c.l.Errorf("failed to send profile picture bytes: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		c.l.Errorf("failed to recieve picture url: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	c.l.Infof("received response: %v", resp.Url)
+	w.Write([]byte(resp.Url))
+}
+
+func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.PostDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failure adding post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	media := []*prcontent.Media{}
+	for _, m := range dto.SharedMedia.Media {
+		tags := []*prcontent.Tag{}
+		for _, t := range m.Tags {
+			tags = append(tags, &prcontent.Tag{
+				Value: t.Value,
+				Id:    t.ID,
+			})
+		}
+		media = append(media, &prcontent.Media{
+			UserId:      user.Id,
+			Filename:    m.Filename,
+			Tags:        tags,
+			Description: m.Description,
+			Location: &prcontent.Location{
+				Country: m.Location.Country,
+				State:   m.Location.State,
+				ZipCode: m.Location.ZipCode,
+				Street:  m.Location.Street,
+			},
+			AddedOn: m.AddedOn,
+		})
+	}
+	sharedMedia := &prcontent.SharedMedia{
+		Media: media,
+	}
+
+	_, err = c.cc.AddPost(context.Background(), &prcontent.AddPostRequest{SharedMedia: sharedMedia, UserId: user.Id})
+
+	if err != nil {
+		c.l.Errorf("failed to add post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (c *Content) AddComment(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.CommentDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failure adding comment: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.AddComment(context.Background(), &prcontent.AddCommentRequest{Content: dto.Content, UserId: user.Id, PostId: dto.PostId})
+
+	if err != nil {
+		c.l.Errorf("failed to add post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (c *Content) AddReaction(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.ReactionDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failure adding reaction: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{ /*ReactionType: dto.ReactionType,*/ UserId: user.Id, PostId: dto.PostId})
+
+	if err != nil {
+		c.l.Errorf("failed to add reaction: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	profileRequest := claims.Username
+
+	dto := saltdata.FollowDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.Follow(context.Background(), &prusers.FollowRequest{Username: profileRequest, ToFollow: dto.ProfileToFollow})
+	if err != nil {
+		u.l.Printf("[ERROR] following profile: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Following %s"))
+
 }
 
 func (a *Admin) AddVerificationRequest(w http.ResponseWriter, r *http.Request) {
