@@ -55,15 +55,25 @@
                     size="invisible"
                     :sitekey="sitekey">
                     </vue-recaptcha>
+                    <v-textarea
+                    no-resize
+                    style="width: 100%; height: 200px"
+                    label="Add Description"
+                    v-model="description"/>
                     <v-text-field
                     label="Phone Number"
+                    v-model="phoneNumber"
                     hint="start with + please"/>
                     <v-select
                     :items="genderRules"
+                    v-model="gender"
                     label="Gender"/>
-                    <v-date-picker />
+                    <v-date-picker
+                    v-model="dateOfBirth"
+                    :max="maxDate"/>
                     <v-text-field
                     label="Web Site"
+                    v-model="webSite"
                     hint="You can enter it without 'www.'"/>
                     <v-btn class="mt-3 mb-3" v-bind:class="!privateProfile ? 'primary' : ''" @click="privateProfile = false"><i class="fa fa-unlock mr-1"/>Public profile</v-btn>
                     <v-btn class="mb-10" v-bind:class="privateProfile ? 'primary' : ''" @click="privateProfile = true"><i class="fa fa-lock mr-1"/>Private profile</v-btn>
@@ -103,14 +113,45 @@ export default {
             },
             genderRules: [ 'Male', 'Female' ],
             privateProfile: false,
+            description: '',
+            phoneNumber: '',
+            dateOfBirth: '',
+            maxDate: '',
+            gender: '',
+            webSite: '',
         }
     },
-
-    methods: {
+  mounted() {
+      this.dateFunc()
+  },
+  methods: {
         onScore: function({score, strength}) {
             // console.log("Password score: " + strength);
             this.passScore = score;
             this.passScoreText = strength;
+        },
+
+        dateFunc() {
+          let now = new Date();
+          this.maxDate = now.getFullYear() + '-';
+
+          let month = now.getMonth() + 1
+          if (month < 10) {
+            this.maxDate += '0' + month + '-'
+          }
+          else {
+            this.maxDate += month + '-'
+          }
+
+          let date = now.getDate()
+
+          if (date < 10) {
+            this.maxDate += '0' + date
+          }
+          else {
+            this.maxDate += date
+          }
+          console.log(this.maxDate)
         },
 
         registerUser: function() {
@@ -122,15 +163,26 @@ export default {
             this.processing = true;
             this.emailSent = false;
             this.reCaptchaStatus = "submitting";
+            console.log(this.dateOfBirth)
+            let parts = this.dateOfBirth.split('-')
+            let realDate = new Date(parts[0], parts[1] - 1, parts[2])
+            // console.log(realDate)
+            console.log('this.privateProfile: ' + this.privateProfile)
             let user = {
                 username: this.username,
                 fullName: this.fullName,
                 email: this.email,
                 password: this.password1,
+                description: this.description,
                 reCaptcha: {
                     token: token,
                     action: "register",
-                }
+                },
+                phoneNumber: this.phoneNumber,
+                gender: this.gender,
+                dateOfBirth: realDate,
+                webSite: this.webSite,
+                privateProfile: this.privateProfile
             }
             this.axios.post("users/register", user)
                 .then(response => {
@@ -185,6 +237,8 @@ export default {
     }
 
     .register-and-logo {
+        height: 80vh;
+        overflow-y: scroll;
         min-width: 25rem;
         border: 1px solid #eee;
         padding: 1rem 2rem;

@@ -1,5 +1,7 @@
 package data
 
+import "saltgram/data"
+
 type ReactionType string
 
 const (
@@ -8,9 +10,8 @@ const (
 )
 
 type Reaction struct {
-	ID           uint64       `json:"id"`
+	data.Identifiable
 	ReactionType ReactionType `json:"reactionType" validate:"required"`
-	User         User         `json:"user"`
 	UserID       uint64       `json:"userId"`
 	Post         Post         `json:"post"`
 	PostID       uint64       `json:"postId"`

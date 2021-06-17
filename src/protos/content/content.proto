@@ -91,7 +91,7 @@ message GetStoriesResponse {
 }
 
 message GetProfilePictureResponse {
-    Media media = 1;
+    string url = 1;
     uint64 userId = 2;
     uint64 id = 3;
 }

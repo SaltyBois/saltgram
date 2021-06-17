@@ -154,7 +154,6 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isPublic bool) (*drive.File, error) {
 
 	f := &drive.File{
-		MimeType: "application/vnd.google-apps.photo",
 		Name:     name,
 		Parents:  parentIds,
 	}

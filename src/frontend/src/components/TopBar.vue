@@ -16,7 +16,9 @@
         <div class="ml-5 mr-5">
           <v-text-field type="text"
                         id="search-bar"
-                        prepend-icon="fa fa-search"/>
+                        prepend-icon="fa fa-search"
+                        v-model="searchQuery"
+                        @click:prepend="$router.push('/user/' + searchQuery)"/>
         </div>
       </div>
 
@@ -45,11 +47,12 @@
         </v-btn>
         <v-btn  id="right-side-button4"
                 depressed
+                style="text-transform: none"
                 @click="profileDropDownMenuActive=!profileDropDownMenuActive">
           <v-img  class="post-header-profile"
                   src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
                   alt="Profile picture"/>
-          <b>@USERNAME</b>
+          <b>@{{this.username}}</b>
         </v-btn>
 
         <portal to="drop-down-profile-menu">
@@ -67,7 +70,7 @@
                       align-content-center
                       wrap
                       column>
-              <v-btn @click="profileDropDownMenuActive = false; $router.push('/user')" class="accent">
+              <v-btn @click="profileDropDownMenuActive = false; $router.push('/user/' + username)" class="accent">
                 <i class="fa fa-address-book mr-1"/>
                 profile
               </v-btn>
@@ -75,7 +78,7 @@
                 <i class="fa fa-folder-open mr-1"/>
                 saved
               </v-btn>
-              <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; $router.push('/user/settings')" class="accent mt-3">
+              <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; $router.push('/user/settings/' + username)" class="accent mt-3">
                 <i class="fa fa-cog mr-1"/>
                 settings
               </v-btn>
@@ -105,18 +108,32 @@ export default {
       profileDropDownMenuActive: false,
       showProfileSettingsDialog: false,
       numberOfNewNotifications: 100,
-      numberOfNewChats: 20
+      numberOfNewChats: 20,
+      username: '',
+      searchQuery: ''
     }
   },
   mounted() {
-    if (this.$router.currentRoute.path.includes('/notifications')) this.numberOfNewNotifications = 0
-    if (this.$router.currentRoute.path.includes('/inbox')) this.numberOfNewChats = 0
+    if (this.$router.currentRoute.path.includes('/notifications')) this.numberOfNewNotifications = 0;
+    if (this.$router.currentRoute.path.includes('/inbox')) this.numberOfNewChats = 0;
+    this.loadingJWSOnMounted();
   },
   methods: {
     logout: function() {
       this.$store.state.jws = "";
       this.$router.push('/');
     },
+    loadingJWSOnMounted() {
+      this.refreshToken(this.getAHeader())
+          .then(rr => {
+            this.$store.state.jws = rr.data;
+            this.axios.get("users", {headers: this.getAHeader()})
+                .then(r =>{
+                  this.username = r.data.username
+                });
+
+          }).catch(() => console.log('No User was founded !?!'));
+    }
   }
 }
 </script>

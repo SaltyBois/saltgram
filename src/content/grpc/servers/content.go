@@ -29,10 +29,10 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
-func (s *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
-	sharedMedias, err := s.db.GetSharedMediaByUser(r.UserId)
+func (c *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
+	sharedMedias, err := c.db.GetSharedMediaByUser(r.UserId)
 	if err != nil {
-		s.l.Errorf("failure getting user shared media: %v\n", err)
+		c.l.Errorf("failure getting user shared media: %v\n", err)
 		return err
 	}
 	for _, sm := range *sharedMedias {
@@ -54,7 +54,7 @@ func (s *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prconte
 			Media: media,
 		})
 		if err != nil {
-			s.l.Errorf("failure sending shared media response: %v\n", err)
+			c.l.Errorf("failure sending shared media response: %v\n", err)
 			return err
 		}
 	}
@@ -69,17 +69,8 @@ func (c *Content) getProflePicture(ctx context.Context, r *prcontent.GetProfileP
 
 	return &prcontent.GetProfilePictureResponse{
 
-		Media: &prcontent.Media{
-			Filename:    profilePicture.Media.Filename,
-			Description: profilePicture.Media.Description,
-			AddedOn:     profilePicture.Media.AddedOn,
-			Location: &prcontent.Location{
-				Country: profilePicture.Media.Location.Country,
-				State:   profilePicture.Media.Location.State,
-				ZipCode: profilePicture.Media.Location.ZipCode,
-				Street:  profilePicture.Media.Location.Street,
-			},
-		},
+		// TODO(Jovan): ADD URL
+		Url: "asd",
 		UserId: profilePicture.UserID,
 		Id:     profilePicture.ID,
 	}, nil
@@ -170,22 +161,10 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 	}
 
 	profilePicture := data.ProfilePicture{
-		UserID: r.GetMedia().UserId,
-		Media: data.Media{
-			// NOTE(Jovan): Might need to use Getter?
-			Filename:    r.GetMedia().Filename,
-			Description: r.GetMedia().Description,
-			AddedOn:     r.GetMedia().AddedOn,
-			Location: data.Location{
-				Country: r.GetMedia().Location.Country,
-				State:   r.GetMedia().Location.State,
-				ZipCode: r.GetMedia().Location.ZipCode,
-				Street:  r.GetMedia().Location.Street,
-			},
-		},
+		UserID: r.GetUserId(),
 	}
 
-	c.l.Infof("Received image metadata: %v", r.GetMedia().UserId)
+	c.l.Infof("Received image metadata: %v", r.GetUserId())
 
 	imageData := bytes.Buffer{}
 
@@ -208,7 +187,7 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 		}
 	}
 
-	url, err := c.g.UploadProfilePicture(strconv.FormatUint(r.GetMedia().UserId, 10), &imageData)
+	url, err := c.g.UploadProfilePicture(strconv.FormatUint(r.GetUserId(), 10), &imageData)
 	if err != nil {
 		c.l.Errorf("failed to upload profile picture: %v", err)
 		return status.Error(codes.Internal, "Internal server error")
@@ -230,7 +209,7 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 	return err
 }
 
-func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {
+func (c *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {
 
 	media := []*data.Media{}
 	for _, m := range r.Media {
@@ -251,9 +230,9 @@ func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMedi
 		Media: media,
 	}
 
-	err := u.db.AddSharedMedia(&sharedMedia)
+	err := c.db.AddSharedMedia(&sharedMedia)
 	if err != nil {
-		u.l.Errorf("failure adding user: %v\n", err)
+		c.l.Errorf("failure adding user: %v\n", err)
 		return &prcontent.AddSharedMediaResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 

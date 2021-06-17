@@ -55,4 +55,3 @@ func (sm *SharedMediaDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(sm)
 }
-

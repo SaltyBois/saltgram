@@ -1,7 +1,13 @@
 package data
 
+import (
+	"fmt"
+	"saltgram/data"
+	"strconv"
+)
+
 type Media struct {
-	ID            uint64   `json:"id"`
+	data.Identifiable
 	SharedMediaID uint64   `json:"sharedMediaId"`
 	Filename      string   `json:"filename" validate:"required"`
 	Tags          []Tag    `gorm:"many2many:media_tags" json:"tags" validate:"required"`
@@ -11,18 +17,17 @@ type Media struct {
 }
 
 type Tag struct {
-	ID    uint64 `json:"id"`
+	data.Identifiable
 	Value string `json:"value" validate:"required"`
 }
 
 type SharedMedia struct {
-	ID    uint64   `json:"id"`
+	data.Identifiable
 	Media []*Media `json:"media"`
 }
 
 type Story struct {
-	ID            uint64      `json:"id"`
-	User          User        `json:"user"`
+	data.Identifiable
 	UserID        uint64      `json:"userId"`
 	SharedMedia   SharedMedia `json:"sharedMedia"`
 	SharedMediaID uint64      `json:"sharedMediaId"`
@@ -30,18 +35,16 @@ type Story struct {
 }
 
 type Post struct {
-	ID            uint64      `json:"id"`
-	User          User        `json:"user"`
+	data.Identifiable
 	UserID        uint64      `json:"userId"`
 	SharedMedia   SharedMedia `validate:"required"`
 	SharedMediaID uint64      `json:"sharedMediaId"`
 }
 
 type ProfilePicture struct {
-	ID      uint64 `json:"id"`
-	User    User   `json:"user"`
-	UserID  uint64 `json:"userId"`
-	URL     string `json:"url"`
+	data.Identifiable
+	UserID uint64 `gorm:"type:numeric" json:"userId"`
+	URL    string `json:"url"`
 }
 
 func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
@@ -73,19 +76,25 @@ func (db *DBConn) AddPost(p *Post) error {
 	return db.DB.Create(p).Error
 }
 
+var ErrProfilePictureNotFound = fmt.Errorf("profile picture not found")
 func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
 	post := ProfilePicture{}
-	err := db.DB.Where("user_id = ?", id).Find(&post).Error
-	return &post, err
+	strId := strconv.FormatUint(id, 10)
+	res := db.DB.Where("user_id = ?", strId).Find(&post)
+	if res.Error != nil || res.RowsAffected == 0{
+		return nil, res.Error
+	}
+	return &post, nil
 }
 
 func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
 	oldPP, err := db.GetProfilePictureByUser(pp.UserID)
 	if err != nil {
+		return err
+	}
+	if oldPP == nil {
 		return db.DB.Create(pp).Error
 	}
-	oldPP.Media = pp.Media
-	oldPP.MediaID = pp.MediaID
 	oldPP.URL = pp.URL
 	return db.DB.Save(&oldPP).Error
 }

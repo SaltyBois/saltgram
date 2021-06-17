@@ -26,6 +26,15 @@ type UsersClient interface {
 	ResetPassword(ctx context.Context, in *UserResetRequest, opts ...grpc.CallOption) (*UserResetResponse, error)
 	GetByUsername(ctx context.Context, in *GetByUsernameRequest, opts ...grpc.CallOption) (*GetByUsernameResponse, error)
 	GetRole(ctx context.Context, in *RoleRequest, opts ...grpc.CallOption) (*RoleResponse, error)
+	UpdateUsername(ctx context.Context, in *UsernameRequest, opts ...grpc.CallOption) (*UsernameResponse, error)
+	UpdateProfile(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	GetProfileByUsername(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error)
+	ChangeProfilePublic(ctx context.Context, in *ChangePublicRequest, opts ...grpc.CallOption) (*ChangePublicResponse, error)
+	ChangeProfileTaggable(ctx context.Context, in *ChangeTaggableRequest, opts ...grpc.CallOption) (*ChangeTaggableResponse, error)
+	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error)
+	UnFollow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error)
+	GetFollowers(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GetFollowersClient, error)
+	GerFollowing(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GerFollowingClient, error)
 }
 
 type usersClient struct {
@@ -108,6 +117,133 @@ func (c *usersClient) GetRole(ctx context.Context, in *RoleRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *usersClient) UpdateUsername(ctx context.Context, in *UsernameRequest, opts ...grpc.CallOption) (*UsernameResponse, error) {
+	out := new(UsernameResponse)
+	err := c.cc.Invoke(ctx, "/Users/UpdateUsername", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UpdateProfile(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+	out := new(UpdateResponse)
+	err := c.cc.Invoke(ctx, "/Users/UpdateProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetProfileByUsername(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error) {
+	out := new(ProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetProfileByUsername", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) ChangeProfilePublic(ctx context.Context, in *ChangePublicRequest, opts ...grpc.CallOption) (*ChangePublicResponse, error) {
+	out := new(ChangePublicResponse)
+	err := c.cc.Invoke(ctx, "/Users/ChangeProfilePublic", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) ChangeProfileTaggable(ctx context.Context, in *ChangeTaggableRequest, opts ...grpc.CallOption) (*ChangeTaggableResponse, error) {
+	out := new(ChangeTaggableResponse)
+	err := c.cc.Invoke(ctx, "/Users/ChangeProfileTaggable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error) {
+	out := new(FollowRespose)
+	err := c.cc.Invoke(ctx, "/Users/Follow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UnFollow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error) {
+	out := new(FollowRespose)
+	err := c.cc.Invoke(ctx, "/Users/UnFollow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetFollowers(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GetFollowersClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[0], "/Users/GetFollowers", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetFollowersClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetFollowersClient interface {
+	Recv() (*ProfileFollower, error)
+	grpc.ClientStream
+}
+
+type usersGetFollowersClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetFollowersClient) Recv() (*ProfileFollower, error) {
+	m := new(ProfileFollower)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) GerFollowing(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GerFollowingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[1], "/Users/GerFollowing", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGerFollowingClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GerFollowingClient interface {
+	Recv() (*ProfileFollower, error)
+	grpc.ClientStream
+}
+
+type usersGerFollowingClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGerFollowingClient) Recv() (*ProfileFollower, error) {
+	m := new(ProfileFollower)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -120,6 +256,15 @@ type UsersServer interface {
 	ResetPassword(context.Context, *UserResetRequest) (*UserResetResponse, error)
 	GetByUsername(context.Context, *GetByUsernameRequest) (*GetByUsernameResponse, error)
 	GetRole(context.Context, *RoleRequest) (*RoleResponse, error)
+	UpdateUsername(context.Context, *UsernameRequest) (*UsernameResponse, error)
+	UpdateProfile(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	GetProfileByUsername(context.Context, *ProfileRequest) (*ProfileResponse, error)
+	ChangeProfilePublic(context.Context, *ChangePublicRequest) (*ChangePublicResponse, error)
+	ChangeProfileTaggable(context.Context, *ChangeTaggableRequest) (*ChangeTaggableResponse, error)
+	Follow(context.Context, *FollowRequest) (*FollowRespose, error)
+	UnFollow(context.Context, *FollowRequest) (*FollowRespose, error)
+	GetFollowers(*FollowerRequest, Users_GetFollowersServer) error
+	GerFollowing(*FollowerRequest, Users_GerFollowingServer) error
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -150,6 +295,33 @@ func (UnimplementedUsersServer) GetByUsername(context.Context, *GetByUsernameReq
 }
 func (UnimplementedUsersServer) GetRole(context.Context, *RoleRequest) (*RoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRole not implemented")
+}
+func (UnimplementedUsersServer) UpdateUsername(context.Context, *UsernameRequest) (*UsernameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUsername not implemented")
+}
+func (UnimplementedUsersServer) UpdateProfile(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfile not implemented")
+}
+func (UnimplementedUsersServer) GetProfileByUsername(context.Context, *ProfileRequest) (*ProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfileByUsername not implemented")
+}
+func (UnimplementedUsersServer) ChangeProfilePublic(context.Context, *ChangePublicRequest) (*ChangePublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeProfilePublic not implemented")
+}
+func (UnimplementedUsersServer) ChangeProfileTaggable(context.Context, *ChangeTaggableRequest) (*ChangeTaggableResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeProfileTaggable not implemented")
+}
+func (UnimplementedUsersServer) Follow(context.Context, *FollowRequest) (*FollowRespose, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Follow not implemented")
+}
+func (UnimplementedUsersServer) UnFollow(context.Context, *FollowRequest) (*FollowRespose, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnFollow not implemented")
+}
+func (UnimplementedUsersServer) GetFollowers(*FollowerRequest, Users_GetFollowersServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetFollowers not implemented")
+}
+func (UnimplementedUsersServer) GerFollowing(*FollowerRequest, Users_GerFollowingServer) error {
+	return status.Errorf(codes.Unimplemented, "method GerFollowing not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -308,6 +480,174 @@ func _Users_GetRole_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_UpdateUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsernameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UpdateUsername(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UpdateUsername",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UpdateUsername(ctx, req.(*UsernameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UpdateProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UpdateProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UpdateProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UpdateProfile(ctx, req.(*UpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetProfileByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetProfileByUsername(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/GetProfileByUsername",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetProfileByUsername(ctx, req.(*ProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_ChangeProfilePublic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePublicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).ChangeProfilePublic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/ChangeProfilePublic",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).ChangeProfilePublic(ctx, req.(*ChangePublicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_ChangeProfileTaggable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeTaggableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).ChangeProfileTaggable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/ChangeProfileTaggable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).ChangeProfileTaggable(ctx, req.(*ChangeTaggableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_Follow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).Follow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/Follow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).Follow(ctx, req.(*FollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UnFollow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UnFollow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UnFollow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UnFollow(ctx, req.(*FollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetFollowers_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(FollowerRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetFollowers(m, &usersGetFollowersServer{stream})
+}
+
+type Users_GetFollowersServer interface {
+	Send(*ProfileFollower) error
+	grpc.ServerStream
+}
+
+type usersGetFollowersServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetFollowersServer) Send(m *ProfileFollower) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_GerFollowing_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(FollowerRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GerFollowing(m, &usersGerFollowingServer{stream})
+}
+
+type Users_GerFollowingServer interface {
+	Send(*ProfileFollower) error
+	grpc.ServerStream
+}
+
+type usersGerFollowingServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGerFollowingServer) Send(m *ProfileFollower) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -347,7 +687,46 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetRole",
 			Handler:    _Users_GetRole_Handler,
 		},
+		{
+			MethodName: "UpdateUsername",
+			Handler:    _Users_UpdateUsername_Handler,
+		},
+		{
+			MethodName: "UpdateProfile",
+			Handler:    _Users_UpdateProfile_Handler,
+		},
+		{
+			MethodName: "GetProfileByUsername",
+			Handler:    _Users_GetProfileByUsername_Handler,
+		},
+		{
+			MethodName: "ChangeProfilePublic",
+			Handler:    _Users_ChangeProfilePublic_Handler,
+		},
+		{
+			MethodName: "ChangeProfileTaggable",
+			Handler:    _Users_ChangeProfileTaggable_Handler,
+		},
+		{
+			MethodName: "Follow",
+			Handler:    _Users_Follow_Handler,
+		},
+		{
+			MethodName: "UnFollow",
+			Handler:    _Users_UnFollow_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetFollowers",
+			Handler:       _Users_GetFollowers_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GerFollowing",
+			Handler:       _Users_GerFollowing_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "users/users.proto",
 }

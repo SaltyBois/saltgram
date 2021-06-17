@@ -34,9 +34,8 @@ email:
 content:
 	cd $(CONTENTDIR) && go run main.go
 
-frontend: front_build
-	# cd $(FRONTDIR) && npm run serve
-	# cd $(FRONTDIR) && npm run build
+frontend:
+	cd $(FRONTDIR) && npm run build
 	cd $(WEBSERVERDIR) && go run main.go
 
 front_build: 
@@ -64,11 +63,10 @@ build:
 	cd $(MAINDIR) && go build -v
 
 kill:
-	#npx kill-port $(SALT_WEB_PORT) &
 	npx kill-port $(SALT_API_PORT) &
 	npx kill-port $(SALT_AUTH_PORT) &
 	npx kill-port $(SALT_USERS_PORT) &
 	npx kill-port $(SALT_EMAIL_PORT) &
 	exit
 	
-	
+

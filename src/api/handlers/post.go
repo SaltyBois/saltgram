@@ -182,14 +182,20 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = u.uc.Register(context.Background(), &prusers.RegisterRequest{
-		Username: dto.Username,
-		FullName: dto.FullName,
-		Email:    dto.Email,
-		Password: dto.Password,
+		Username:    dto.Username,
+		FullName:    dto.FullName,
+		Email:       dto.Email,
+		Password:    dto.Password,
+		Description: dto.Description,
 		ReCaptcha: &prusers.UserReCaptcha{
 			Token:  dto.ReCaptcha.Token,
 			Action: dto.ReCaptcha.Action,
 		},
+		PhoneNumber:    dto.PhoneNumber,
+		Gender:         dto.Gender,
+		DateOfBirth:    dto.DateOfBirth.Unix(),
+		WebSite:        dto.WebSite,
+		PrivateProfile: dto.PrivateProfile,
 	})
 
 	if err != nil {
@@ -400,10 +406,12 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
 	if err != nil {
-		c.l.Println("[ERROR] fetching user", err)
+		c.l.Errorf("failed fetching user: %v", err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
+
+	c.l.Infof("fetched user: %v, id: %v", user.Username, user.Id)
 
 	// TODO(Jovan): Authenticate
 
@@ -452,7 +460,7 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-
+	c.l.Infof("received response: %v", resp.Url)
 	w.Write([]byte(resp.Url))
 }
 
@@ -646,4 +654,61 @@ func (c *Content) AddReaction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+}
+
+func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	profileRequest := claims.Username
+
+	dto := saltdata.FollowDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.Follow(context.Background(), &prusers.FollowRequest{Username: profileRequest, ToFollow: dto.ProfileToFollow})
+	if err != nil {
+		u.l.Printf("[ERROR] following profile: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Following %s"))
+
 }

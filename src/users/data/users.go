@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"math/rand"
+	"saltgram/data"
 	"strings"
 	"time"
 
@@ -12,10 +13,10 @@ import (
 )
 
 type User struct {
-	// ID             uint64    `json:"id"`
-	Email          string    `json:"email" gorm:"primaryKey" validate:"required"`
+	data.Identifiable
+	Email          string    `json:"email" validate:"required" gorm:"unique"`
 	FullName       string    `json:"fullName" validate:"required"`
-	Username       string    `json:"username" validate:"required"`
+	Username       string    `json:"username" validate:"required" gorm:"unique"`
 	HashedPassword string    `json:"password" validate:"required"`
 	ReCaptcha      ReCaptcha `json:"reCaptcha" gorm:"embedded" validate:"required"`
 	Role           string    `json:"role"`
@@ -193,7 +194,7 @@ func (db *DBConn) UpdateUser(u *User) error {
 
 func (db *DBConn) GetUserByEmail(email string) (*User, error) {
 	user := User{}
-	err := db.DB.First(&user).Error
+	err := db.DB.Where("email = ?", email).First(&user).Error
 	return &user, err
 }
 
