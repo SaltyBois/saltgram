@@ -27,11 +27,6 @@ type TagDTO struct {
 	Value string `json:"value" validate:"required"`
 }
 
-type ProfilePictureDTO struct {
-	UserId uint64
-	Media  MediaDTO
-}
-
 type PostDTO struct {
 	SharedMedia SharedMediaDTO
 	User        UserDTO
@@ -61,7 +56,3 @@ func (sm *SharedMediaDTO) Validate() error {
 	return validate.Struct(sm)
 }
 
-func (pp *ProfilePictureDTO) Validate() error {
-	validate := validator.New()
-	return validate.Struct(pp)
-}

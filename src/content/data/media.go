@@ -41,8 +41,6 @@ type ProfilePicture struct {
 	ID      uint64 `json:"id"`
 	User    User   `json:"user"`
 	UserID  uint64 `json:"userId"`
-	Media   Media  `validate:"required"`
-	MediaID uint64 `json:"mediaId"`
 	URL     string `json:"url"`
 }
 

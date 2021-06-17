@@ -407,10 +407,8 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(Jovan): Authenticate
 
-	//////////////// GDRIVE PART STARTS   ////////////////////////////////
-
 	r.ParseMultipartForm(10 << 20) // up to 10MB
-	file, handler, err := r.FormFile("profileImg")
+	file, _, err := r.FormFile("profileImg")
 	if err != nil {
 		c.l.Errorf("failed to parse request: %v", err)
 		http.Error(w, "Invalid image data", http.StatusBadRequest)
@@ -424,43 +422,34 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//////////////////// GDRIVE PART ENDS  /////////////////////////////////////
-
-	/*dto := saltdata.ProfilePictureDTO{}
-	err = saltdata.FromJSON(&dto, r.Body)
+	stream, err := c.cc.AddProfilePicture(context.Background())
 	if err != nil {
-		c.l.Printf("[ERROR] deserializing profile picture data: %v\n", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		c.l.Errorf("failed to add profile picture: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	err = dto.Validate()
-	if err != nil {
-		c.l.Printf("[ERROR] validating profile picture data: %v\n", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}*/
 
-	resp, err := c.cc.AddProfilePicture(context.Background(), &prcontent.AddProfilePictureRequest{
-		UserId: user.Id,
-		Media: &prcontent.Media{
-			UserId: user.Id,
-			//Filename:    dto.Media.Filename,
-			Filename: handler.Filename,
-			/*Description: dto.Media.Description,
-			Location: &prcontent.Location{
-				Country: dto.Media.Location.Country,
-				State:   dto.Media.Location.State,
-				ZipCode: dto.Media.Location.ZipCode,
-				Street:  dto.Media.Location.Street,
-			},*/
-			AddedOn: time.Now().Format("yyyy-MM-dd HH:mm:ss"),
-		},
-		Image: imageBytes,
+	err = stream.Send(&prcontent.AddProfilePictureRequest{
+		Data: &prcontent.AddProfilePictureRequest_UserId{UserId: user.Id},
 	})
-
 	if err != nil {
-		c.l.Errorf("[ERROR] adding profile picture: %v\n", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		c.l.Errorf("failed to send profile picture metadata: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = stream.Send(&prcontent.AddProfilePictureRequest{
+		Data: &prcontent.AddProfilePictureRequest_Image{Image: imageBytes},
+	})
+	if err != nil {
+		c.l.Errorf("failed to send profile picture bytes: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		c.l.Errorf("failed to recieve picture url: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 

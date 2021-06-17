@@ -163,57 +163,55 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 	return nil
 }
 
-func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureServer) (*prcontent.AddProfilePictureResponse, error) {
+func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureServer) error {
 	r, err := stream.Recv()
 	if err != nil {
 		c.l.Errorf("failed to recieve profile metadata: %v", err)
 	}
 
 	profilePicture := data.ProfilePicture{
-		UserID: r.UserId,
+		UserID: r.GetMedia().UserId,
 		Media: data.Media{
 			// NOTE(Jovan): Might need to use Getter?
-			Filename:    r.Media.Filename,
-			Description: r.Media.Description,
-			AddedOn:     r.Media.AddedOn,
+			Filename:    r.GetMedia().Filename,
+			Description: r.GetMedia().Description,
+			AddedOn:     r.GetMedia().AddedOn,
 			Location: data.Location{
-				Country: r.Media.Location.Country,
-				State:   r.Media.Location.State,
-				ZipCode: r.Media.Location.ZipCode,
-				Street:  r.Media.Location.Street,
+				Country: r.GetMedia().Location.Country,
+				State:   r.GetMedia().Location.State,
+				ZipCode: r.GetMedia().Location.ZipCode,
+				Street:  r.GetMedia().Location.Street,
 			},
 		},
 	}
 
+	c.l.Infof("Received image metadata: %v", r.GetMedia().UserId)
+
 	imageData := bytes.Buffer{}
-	imageSize := 0
 
 	c.l.Info("receiving profile image...")
 	for {
-		r, err = stream.Recv()
+		chunk, err := stream.Recv()
 		if err == io.EOF {
 			c.l.Info("profile image received")
 			break
 		}
 		if err != nil {
 			c.l.Errorf("error while receiving image data: %v", err)
-			return &prcontent.AddProfilePictureResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+			return status.Error(codes.InvalidArgument, "Bad request")
 		}
-		chunk := r.Image
-		size := len(chunk)
-		imageSize += size
 		// TODO(Jovan): Prevent large uploads?
-		_, err = imageData.Write(chunk)
+		_, err = imageData.Write(chunk.GetImage())
 		if err != nil {
 			c.l.Errorf("error appending image chunk data: %v", err)
-			return &prcontent.AddProfilePictureResponse{}, status.Error(codes.Internal, "Internal server error")
+			return status.Error(codes.Internal, "Internal server error")
 		}
 	}
 
-	url, err := c.g.UploadProfilePicture(strconv.FormatUint(r.UserId, 10), &imageData)
+	url, err := c.g.UploadProfilePicture(strconv.FormatUint(r.GetMedia().UserId, 10), &imageData)
 	if err != nil {
 		c.l.Errorf("failed to upload profile picture: %v", err)
-		return &prcontent.AddProfilePictureResponse{}, status.Error(codes.Internal, "Internal server error")
+		return status.Error(codes.Internal, "Internal server error")
 	}
 
 	profilePicture.URL = url
@@ -221,10 +219,15 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 	err = c.db.AddProfilePicture(&profilePicture)
 	if err != nil {
 		c.l.Errorf("failed adding profile picture: %v", err)
-		return &prcontent.AddProfilePictureResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		return status.Error(codes.InvalidArgument, "Bad request")
 	}
-
-	return &prcontent.AddProfilePictureResponse{}, nil
+	err = stream.SendAndClose(&prcontent.AddProfilePictureResponse{
+		Url: url,
+	})
+	if err != nil {
+		c.l.Errorf("failed to send and close: %v", err)
+	}
+	return err
 }
 
 func (u *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {

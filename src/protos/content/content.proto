@@ -13,9 +13,9 @@ service Content {
     rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
     rpc AddPost(AddPostRequest) returns(AddPostResponse);
     rpc AddStory(AddStoryRequest) returns(AddStoryResponse);
-    rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
+    rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
 }
 
 message SharedMediaRequest {
@@ -37,6 +37,7 @@ message SharedMediaResponse {
     repeated Media media = 1;
 }
 
+// Metadata
 message Media {
     uint64 userId = 1;
     string filename = 2;
@@ -111,8 +112,8 @@ message AddStoryRequest {
 
 message AddProfilePictureRequest {
     oneof data {
-        Media media = 1;
-        bytes image = 3;
+        uint64 userId = 1;
+        bytes image = 2;
     }
 }
 
