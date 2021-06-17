@@ -61,19 +61,13 @@ func (c *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prconte
 	return nil
 }
 
-func (c *Content) getProflePicture(ctx context.Context, r *prcontent.GetProfilePictureRequest) (*prcontent.GetProfilePictureResponse, error) {
+func (c *Content) GetProfilePicture(ctx context.Context, r *prcontent.GetProfilePictureRequest) (*prcontent.GetProfilePictureResponse, error) {
 	profilePicture, err := c.db.GetProfilePictureByUser(r.UserId)
 	if err != nil {
 		return &prcontent.GetProfilePictureResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
-	return &prcontent.GetProfilePictureResponse{
-
-		// TODO(Jovan): ADD URL
-		Url: "asd",
-		UserId: profilePicture.UserID,
-		Id:     profilePicture.ID,
-	}, nil
+	return &prcontent.GetProfilePictureResponse{ Url: profilePicture.URL }, nil
 }
 
 func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserServer) error {

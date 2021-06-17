@@ -18,7 +18,7 @@ func (i *Identifiable) BeforeCreate(tx *gorm.DB) error {
 }
 
 func generateUint64() uint64 {
-	buf := make([]byte, 8)
+	buf := make([]byte, 4)
 	rand.Read(buf)
 	return binary.LittleEndian.Uint64(buf)
 }

@@ -29,10 +29,6 @@ message GetStoryRequest {
     uint64 userId = 1;
 }
 
-message GetProfilePictureRequest {
-    uint64 userId = 1;
-}
-
 message SharedMediaResponse {
     repeated Media media = 1;
 }
@@ -90,10 +86,12 @@ message GetStoriesResponse {
     Story story = 1;
 }
 
+message GetProfilePictureRequest {
+    uint64 userId = 1;
+}
+
 message GetProfilePictureResponse {
     string url = 1;
-    uint64 userId = 2;
-    uint64 id = 3;
 }
 
 message AddPostResponse {}

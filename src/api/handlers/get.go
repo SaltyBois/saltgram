@@ -101,7 +101,14 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = saltdata.ToJSON(user, w)
+	response := saltdata.UserDTO {
+		Id: strconv.FormatUint(user.Id, 10),
+		Email: user.Email,
+		FullName: user.FullName,
+		Username: user.Username,
+	}
+
+	err = saltdata.ToJSON(response, w)
 	if err != nil {
 		u.l.Errorf("serializing user ", err)
 		http.Error(w, "Error serializing user", http.StatusInternalServerError)
@@ -333,13 +340,7 @@ func (c *Content) GetProfilePictureByUser(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = saltdata.ToJSON(profilePicture, w)
-	if err != nil {
-		c.l.Println("[ERROR] serializing pp ", err)
-		http.Error(w, "Error serializing pp", http.StatusInternalServerError)
-		return
-	}
-	w.Header().Add("Content-Type", "application/json")
+	w.Write([]byte(profilePicture.Url))
 
 }
 
