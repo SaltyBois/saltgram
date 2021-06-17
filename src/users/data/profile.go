@@ -11,20 +11,20 @@ const (
 )
 
 type Profile struct {
-	UserID      uint64 `gorm:"primaryKey"`
-	Username    string `json:"username" gorm:"unique"`
-	User        User
-	Public      bool       `json:"isPublic"`
-	Taggable    bool       `json:"isTaggable"`
-	Description string     `json:"description"`
-	Following   []*Profile `gorm:"many2many:profile_following;"`
-	Profiles    []FollowRequest
-	Requests    []FollowRequest
-	PhoneNumber string    `json:"phoneNumber"`
-	Gender      string    `json:"gender"`
-	DateOfBirth time.Time `json:"dateOfBirth"`
-	WebSite 	string 	  `json:"webSite"`
-	PrivateProfile bool   `json:"privateProfile"`
+	UserID         uint64 `gorm:"primaryKey"`
+	Username       string `json:"username" gorm:"unique"`
+	User           User
+	Public         bool       `json:"isPublic"`
+	Taggable       bool       `json:"isTaggable"`
+	Description    string     `json:"description"`
+	Following      []*Profile `gorm:"many2many:profile_following;"`
+	Profiles       []FollowRequest
+	Requests       []FollowRequest
+	PhoneNumber    string    `json:"phoneNumber"`
+	Gender         string    `json:"gender"`
+	DateOfBirth    time.Time `json:"dateOfBirth"`
+	WebSite        string    `json:"webSite"`
+	PrivateProfile bool      `json:"privateProfile"`
 }
 
 type FollowRequest struct {
@@ -78,20 +78,26 @@ func CheckIfFollowing(db *DBConn, profile_username string, following_user_id uin
 func GetFollowerCount(db *DBConn, username string) (int64, error) {
 	var count int64
 	// err := db.DB.Table("profile_followers").Where("follower_username = ?", username).Count(&count).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Count(&count).Error
+	err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
+	// if count == 0 {
+	// 	return -1, nil
+	// }
 	return count, nil
 }
 
 func GetFollowingCount(db *DBConn, username string) (int64, error) {
 	var count int64
 	// err := db.DB.Table("profile_followers").Where("profile_username = ?", username).Count(&count).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Count(&count).Error
+	err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
+	// if count == 0 {
+	// 	return -1, nil
+	// }
 	return count, nil
 }
 

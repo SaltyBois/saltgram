@@ -16,7 +16,7 @@
                     justify-center
                     column>
 
-            <ProfileHeader />
+            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers"/>
 
           </v-layout>
 

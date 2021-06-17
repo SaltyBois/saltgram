@@ -151,8 +151,6 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-
 	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user, Username: profileUsername})
 	if err != nil {
 		u.l.Println("[ERROR] fetching profile")
@@ -160,7 +158,7 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saltdata.ToJSON(profile, w)
+	saltdata.ToPtorJSON(profile, w)
 
 }
 
