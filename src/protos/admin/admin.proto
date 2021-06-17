@@ -35,7 +35,6 @@ message ReviewVerificatonResponse {}
 
 message InappropriateContentReportRequest {
     uint64 userId = 1;
-    string reason = 2;
     //SharedMedia sharedMedia = 3;
 }
 

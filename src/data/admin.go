@@ -21,7 +21,6 @@ type VerificationRequestDTO struct {
 type InappropriateContentReportDTO struct {
 	SharedMedia SharedMediaDTO `json:"sharedMedia"`
 	User        UserDTO        `json:"user"`
-	Reason      string         `json:"reason"`
 }
 
 type ReviewRequestDTO struct {

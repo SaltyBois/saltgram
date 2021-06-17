@@ -24,7 +24,6 @@ type VerificationRequest struct {
 	Fullname string `json:"fullname" validate:"required"`
 	Media    Media  `json:"media"`
 	MediaID  uint64 `json:"mediaId"`
-	User     User   `json:"user"`
 	UserID   uint64 `json:"userId"`
 	Category string `validate:"required"`
 	Status   string `validate:"required"`

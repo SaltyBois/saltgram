@@ -78,7 +78,6 @@ func (a *Admin) SendInappropriateContentReport(ctx context.Context, r *pradmin.I
 	inappropriateContentReport := data.InappropriateContentReport{
 		UserID: r.UserId,
 		Status: data.PENDING,
-		Reason: r.Reason,
 		//SharedMedia:    r.SharedMedia,
 	}
 	err := a.db.AddInappropriateContentReport(&inappropriateContentReport)
