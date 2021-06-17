@@ -18,6 +18,8 @@
                         id="search-bar"
                         prepend-icon="fa fa-search"
                         v-model="searchQuery"
+                        @focus="searchFocusFlag = true;"
+                        @blur="searchFocusFlag = false;"
                         @click:prepend="$router.push('/user/' + searchQuery)"/>
         </div>
       </div>
@@ -97,12 +99,23 @@
 
       </div>
     </div>
+    <transition name="fade">
+      <SearchPanel class="search-panel mt-5" v-if="isSearchPanelVisible"/>
+    </transition>
   </div>
 </template>
 
 <script>
+import SearchPanel from "@/components/SearchPanel";
+
 export default {
   name: "TopBar",
+  components: { SearchPanel },
+  computed: {
+    isSearchPanelVisible: function () {
+      return this.searchQuery !== '' && this.searchFocusFlag
+    }
+  },
   data: function() {
     return {
       profileDropDownMenuActive: false,
@@ -110,7 +123,8 @@ export default {
       numberOfNewNotifications: 100,
       numberOfNewChats: 20,
       username: '',
-      searchQuery: ''
+      searchQuery: '',
+      searchFocusFlag: false,
     }
   },
   mounted() {
@@ -380,6 +394,26 @@ export default {
   padding-right: 1px;
   padding-top: 2px;
 
+}
+
+.search-panel {
+  position: sticky;
+  z-index: 5;
+  margin-top: 5px;
+  left: 33vw;
+  width: 23vw;
+  height: 200px;
+  transition: 0.3s;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity .5s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 
 </style>
