@@ -91,7 +91,13 @@ func main() {
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
-	contentRouter.HandleFunc("/user/profile", contentHandler.PostProfile).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/profilepicture/{id}", contentHandler.GetProfilePictureByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost) // Mora se impl
+	contentRouter.HandleFunc("/post/{id}", contentHandler.GetPostsByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
@@ -103,8 +109,8 @@ func main() {
 
 	server := http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_API_PORT")),
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Handler:      c.Handler(s.S),
 		TLSConfig:    s.TLS.TC,

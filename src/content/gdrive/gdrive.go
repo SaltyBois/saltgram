@@ -8,6 +8,7 @@ import (
 	"saltgram/internal"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
@@ -21,13 +22,45 @@ type GDrive struct {
 
 var (
 	serviceCreds = internal.GetEnvOrDefault("SALT_GDRIVE_CREDS", "../../secrets/saltgram-service-key.json")
+	publicId     string
+	profilesId   string
 )
 
 func NewGDrive(l *logrus.Logger) *GDrive {
 	ctx := context.Background()
 	gDrive := &GDrive{l: l, ctx: ctx}
 	gDrive.getServiceClient()
+	gDrive.initFolders()
 	return gDrive
+}
+
+func (g *GDrive) initFolders() {
+	folders, err := g.QueryFiles("name='public'")
+	if err != nil {
+		g.l.Fatalf("failed to query public folder: %v", err)
+	}
+	if len(folders) == 0 {
+		public, err := g.CreateFolder("public", []string{"root"}, true)
+		if err != nil {
+			g.l.Fatalf("failed to create public folder: %v", err)
+		}
+		publicId = public.Id
+	} else {
+		publicId = folders[0].Id
+	}
+	folders, err = g.QueryFiles("name='profiles' and '" + publicId + "' in parents")
+	if err != nil {
+		g.l.Fatalf("failed to query profiles folder: %v", err)
+	}
+	if len(folders) == 0 {
+		profile, err := g.CreateFolder("profiles", []string{publicId}, true)
+		if err != nil {
+			g.l.Fatalf("failedto create profiles folder: %v", err)
+		}
+		profilesId = profile.Id
+	} else {
+		profilesId = folders[0].Id
+	}
 }
 
 func (g *GDrive) getServiceClient() {
@@ -46,13 +79,40 @@ func (g *GDrive) getServiceClient() {
 		Scopes: []string{
 			drive.DriveScope,
 		},
+		TokenURL: google.JWTTokenURL,
 	}
+
 	client := config.Client(context.Background())
 	srv, err := drive.NewService(g.ctx, option.WithHTTPClient(client))
 	if err != nil {
 		g.l.Fatalf("failed to get gdrive service: %v\n", err)
 	}
 	g.s = srv
+}
+
+func (g *GDrive) UploadProfilePicture(userId string, data io.Reader) (string, error) {
+	var userFolderId string
+	userFolders, err := g.QueryFiles("name='" + userId + "' and '" + profilesId + "' in parents")
+	if err != nil {
+		g.l.Errorf("failed to query user profile folder: %v", err)
+		return "", err
+	}
+	if len(userFolders) == 0 {
+		userFolder, err := g.CreateFolder(userId, []string{profilesId}, true)
+		if err != nil {
+			g.l.Errorf("failed to create user profile folder: %v", err)
+			return "", err
+		}
+		userFolderId = userFolder.Id
+	} else {
+		userFolderId = userFolders[0].Id
+	}
+	profile, err := g.CreateFile("profile", []string{userFolderId}, data, true)
+	if err != nil {
+		g.l.Errorf("failed to create user profile: %v", err)
+		return "", err
+	}
+	return "https://drive.google.com/uc?export=view&id=" + profile.Id, nil
 }
 
 func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*drive.File, error) {
@@ -62,37 +122,38 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 		Parents:  parentIds,
 	}
 
-	createdFile, err := g.s.Files.Create(f).Do()
+	createdFolder, err := g.s.Files.Create(f).Do()
 	if err != nil {
 		return nil, err
 	}
+
+	_, err = g.s.Permissions.Create(createdFolder.Id, &drive.Permission{
+		Type:         "user",
+		EmailAddress: "bezbednovic@gmail.com",
+		Role:         "reader",
+	}).Do()
+	if err != nil {
+		g.l.Errorf("failed to create bezbednovic permissions for folder: %v, error: %v\n", f.Name, err)
+		return createdFolder, err
+	}
+
 	if isPublic {
-		_, err := g.s.Permissions.Create(createdFile.Id, &drive.Permission{
+		_, err := g.s.Permissions.Create(createdFolder.Id, &drive.Permission{
 			Type: "anyone",
 			Role: "reader",
 			// AllowFileDiscovery: true, Maybe too much?
 		}).Do()
 		if err != nil {
-			g.l.Errorf("failed to create public permissions for file: %v, error: %v\n", f.Name, err)
-			return createdFile, err
-		}
-	} else {
-		_, err := g.s.Permissions.Create(createdFile.Id, &drive.Permission{
-			Type:         "user",
-			EmailAddress: "bezbednovic@gmail.com",
-			Role:         "reader",
-		}).Do()
-		if err != nil {
-			g.l.Errorf("failed to create private permissions for file: %v, error: %v\n", f.Name, err)
-			return createdFile, err
+			g.l.Errorf("failed to create public permissions for folder: %v, error: %v\n", f.Name, err)
+			return createdFolder, err
 		}
 	}
-	return createdFile, nil
+	return createdFolder, nil
 }
 
 func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isPublic bool) (*drive.File, error) {
+
 	f := &drive.File{
-		MimeType: "application/vnd.google-apps.photo",
 		Name:     name,
 		Parents:  parentIds,
 	}
@@ -101,6 +162,18 @@ func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isP
 		g.l.Errorf("failed to upload file: %v, error:%v", f.Name, err)
 		return nil, err
 	}
+
+	_, err = g.s.Permissions.Create(createdFile.Id, &drive.Permission{
+		Type:         "user",
+		EmailAddress: "bezbednovic@gmail.com",
+		Role:         "reader",
+	}).Fields("id").Do()
+
+	if err != nil {
+		g.l.Errorf("failed to create bezbednovic permissions for folder: %v, error: %v", createdFile.Name, err)
+		return createdFile, err
+	}
+
 	if isPublic {
 		_, err = g.s.Permissions.Create(createdFile.Id, &drive.Permission{
 			Type: "anyone",
@@ -110,17 +183,13 @@ func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isP
 			g.l.Errorf("failed to set public permissions for file: %v, error: %v", createdFile.Id, err)
 			return createdFile, err
 		}
-	} else {
-		_, err = g.s.Permissions.Create(createdFile.Id, &drive.Permission{
-			Type:         "user",
-			EmailAddress: "bezbednovic@gmail.com",
-			Role:         "reader",
-		}).Do()
-		if err != nil {
-			g.l.Errorf("failed to create private permissions for file: %v, error: %v", createdFile.Id, err)
-			return createdFile, err
-		}
 	}
+
+	if err != nil {
+		g.l.Errorf("failed to create private permissions for file: %v, error: %v", createdFile.Id, err)
+		return createdFile, err
+	}
+
 	return createdFile, nil
 }
 
@@ -128,7 +197,12 @@ func (g *GDrive) DeleteFile(fileId string) error {
 	return g.s.Files.Delete(fileId).Do()
 }
 
+func (g *GDrive) QueryFiles(query string) ([]*drive.File, error) {
+	r, err := g.s.Files.List().Q(query).Do()
+	return r.Files, err
+}
+
 func (g *GDrive) GetFiles() ([]*drive.File, error) {
-	r, err := g.s.Files.List().Fields("files(id, name)").Do()
+	r, err := g.s.Files.List().Fields("files(id, name, parents)").Do()
 	return r.Files, err
 }

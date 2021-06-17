@@ -51,6 +51,7 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 	}
 
 	return &prusers.GetByUsernameResponse{
+		Id: 			user.ID,
 		Email:          user.Email,
 		FullName:       user.FullName,
 		Username:       user.Username,
@@ -125,17 +126,19 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 	}
 
 	profile := data.Profile{
-		Username: r.Username,
-		Taggable: false,
-		Public:   false,
-		Description: r.Description,
-		PhoneNumber: r.PhoneNumber,
-		Gender: r.Gender,
-		DateOfBirth: time.Unix(r.DateOfBirth, 0),
-		WebSite: r.WebSite,
+		Username:       r.Username,
+		UserID: 		user.ID,
+		Taggable:       false,
+		Public:         false,
+		Description:    r.Description,
+		PhoneNumber:    r.PhoneNumber,
+		Gender:         r.Gender,
+		DateOfBirth:    time.Unix(r.DateOfBirth, 0),
+		WebSite:        r.WebSite,
 		PrivateProfile: r.PrivateProfile,
 	}
 
+	u.l.Print("Creating profile?")
 	err = u.db.AddProfile(&profile)
 	if err != nil {
 		u.l.Printf("[ERROR] adding profile: %v\n", err)
@@ -186,8 +189,6 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
-
-
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
@@ -222,9 +223,9 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		IsFollowing: isFollowing,
 		IsPublic:    profile.Public,
 		PhoneNumber: profile.PhoneNumber,
-		Gender: profile.Gender,
+		Gender:      profile.Gender,
 		DateOfBirth: date,
-		WebSite: profile.WebSite,
+		WebSite:     profile.WebSite,
 	}, nil
 }
 

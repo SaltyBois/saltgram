@@ -3,9 +3,9 @@
     <div class="item-container">
       <div class="profile-head-layout">
         <ImageMessage v-if="showContent" :image-src="this.profileImage" @toggle-image-message="showContent = false"/>
-        <v-img  class="head"
+        <v-img v-if="profilePicture" class="head"
                 @click="showContent = true"
-                :src="this.profileImage"
+                :src="profilePicture"
                 alt="Profile picture"/>
         <b style="color: #2b80e0; margin-top: 5px; cursor:pointer;" @click="$refs.file.click()">Change profile photo</b>
       </div>
@@ -17,7 +17,7 @@
              ref="file"
              style="display: none"
              @change="onSelectedFile($event)"
-             accept="image/*,video/*">
+             accept="image/*">
 
     </div>
     <div class="item-container ">
@@ -124,7 +124,7 @@ export default {
   components: {ImageMessage},
   data: function () {
     return {
-      profileImage: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg',
+      profilePicture: null,
       showContent: false,
       genderRoles: [ 'Male', 'Female' ],
       profile : {
@@ -147,14 +147,6 @@ export default {
       var files = event.target.files || event.dataTransfer.files;
       if (!files.length)
         return;
-      console.log(files.length)
-      console.log(files[0])
-      // event.item.image = URL.createObjectURL(files[0]) // Baca error
-      // console.log(this.item.image) // ne postoji this.item, baca error
-      // baca errore
-      // if (files[0]['type'].includes('image')) this.typeContent = 'image';
-      // else this.typeContent = 'video';
-      // console.log(this.typeContent)
 
       this.refreshToken(this.getAHeader())
         .then(rr => {
@@ -168,7 +160,8 @@ export default {
               'Authorization': 'Bearer ' + this.$store.state.jws,
             },
           };
-          this.axios.post("content/user/profile", data, config)
+          // Vratiti nazad
+          this.axios.post("content/profilepicture", data, config)
             .then(() => this.isUploadedContent = true)
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));
@@ -182,6 +175,10 @@ export default {
                   this.user = r.data
                   this.profile.email = this.user.email
                   this.getProfileInfo();
+                  this.axios.get('content/profilepicture/' + r.data.id)
+                  .then(r => {                           
+                    this.profilePicture = r.data;
+                  });
                 });
 
           }).catch(() => this.$router.push('/'));
@@ -189,7 +186,6 @@ export default {
     getProfileInfo: function() {
       this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
           .then(r => {
-            // console.log(r.data)
             this.profile.privateUser = !r.data.isPublic;
             this.profile.username = r.data.username;
             this.profile.fullName = r.data.fullName;
@@ -198,7 +194,6 @@ export default {
             this.profile.phoneNumber = r.data.phoneNumber;
             this.profile.gender = r.data.gender;
             this.profile.dateOfBirth = r.data.dateOfBirth * 1000;
-            // console.log(this.profile.dateOfBirth);
             this.dateFunc();
           }).catch(err => {
         console.log(err)
