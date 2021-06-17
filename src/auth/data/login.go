@@ -21,11 +21,15 @@ func AddRefreshToken(db *DBConn, username, token string) error {
 	return db.DB.Create(&Refresh{username, token}).Error
 }
 
+func UpdateRefreshTokenUsername(db *DBConn, oldUsername string, newUsername string) error {
+	return db.DB.Model(&Refresh{}).Where("username = ?", oldUsername).Update("username", newUsername).Error
+}
+
 var ErrorRefreshTokenNotFound = fmt.Errorf("refresh token not found")
 
 func GetRefreshToken(db *DBConn, username string) (string, error) {
 	r := Refresh{}
-	err := db.DB.First(&r).Error
+	err := db.DB.First(&r).Where("username = ?", username).Error
 	if err != nil {
 		return "", ErrorRefreshTokenNotFound
 	}

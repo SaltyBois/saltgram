@@ -2,7 +2,6 @@ package servers
 
 import (
 	"context"
-	"log"
 	"os"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/email/premail"
@@ -12,19 +11,20 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Users struct {
 	prusers.UnimplementedUsersServer
-	l  *log.Logger
+	l  *logrus.Logger
 	db *data.DBConn
 	ac prauth.AuthClient
 	ec premail.EmailClient
 }
 
-func NewUsers(l *log.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient) *Users {
+func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient) *Users {
 	return &Users{
 		l:  l,
 		db: db,
@@ -36,7 +36,7 @@ func NewUsers(l *log.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.E
 func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) (*prusers.UserResetResponse, error) {
 	err := data.ResetPassword(u.db, r.Email, r.Password)
 	if err != nil {
-		u.l.Printf("[ERROR] resetting password: %v\n", err)
+		u.l.Errorf("failure resetting password: %v\n", err)
 		return &prusers.UserResetResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 	return &prusers.UserResetResponse{}, nil
@@ -45,7 +45,8 @@ func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) 
 func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameRequest) (*prusers.GetByUsernameResponse, error) {
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
-		u.l.Printf("[ERROR] getting user by username: %v\n", err)
+		u.l.Printf("[ERROR] username: %v\n", r.Username)
+		u.l.Errorf("failure getting user by username: %v\n", err)
 		return &prusers.GetByUsernameResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -61,7 +62,7 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 func (u *Users) GetRole(ctx context.Context, r *prusers.RoleRequest) (*prusers.RoleResponse, error) {
 	role, err := data.GetRole(u.db, r.Username)
 	if err != nil {
-		u.l.Printf("[ERROR] getting role: %v\n", err)
+		u.l.Errorf("failure getting role: %v\n", err)
 		return &prusers.RoleResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -69,21 +70,21 @@ func (u *Users) GetRole(ctx context.Context, r *prusers.RoleRequest) (*prusers.R
 }
 
 func (u *Users) ChangePassword(ctx context.Context, r *prusers.ChangeRequest) (*prusers.ChangeResponse, error) {
-	u.l.Println("Changing password")
+	u.l.Infof("changing password for: %v\n", r.Username)
 	err := data.ChangePassword(u.db, r.Username, r.OldPlainPassword, r.NewPlainPassword)
 	if err != nil {
-		u.l.Printf("[ERROR] attepmting to change password: %v\n", err)
+		u.l.Errorf("failure attepmting to change password: %v\n", err)
 		return &prusers.ChangeResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 	return &prusers.ChangeResponse{}, nil
 }
 
 func (u *Users) VerifyEmail(ctx context.Context, r *prusers.VerifyEmailRequest) (*prusers.VerifyEmailResponse, error) {
-	u.l.Print("Verifying email")
+	u.l.Infof("Verifying email: %v\n", r.Email)
 
 	err := data.VerifyEmail(u.db, r.Email)
 	if err != nil {
-		u.l.Printf("[ERROR] verifying email: %v\n", err)
+		u.l.Errorf("failure verifying email: %v\n", err)
 		return &prusers.VerifyEmailResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -91,7 +92,7 @@ func (u *Users) VerifyEmail(ctx context.Context, r *prusers.VerifyEmailRequest) 
 }
 
 func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prusers.RegisterResponse, error) {
-	u.l.Println("Handling POST Users")
+	u.l.Infof("registering %v\n", r.Email)
 
 	refreshClaims := data.RefreshClaims{
 		Username: r.Username,
@@ -105,7 +106,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 	jws, err := token.SignedString([]byte(os.Getenv("REF_SECRET_KEY")))
 
 	if err != nil {
-		u.l.Println("[ERROR] signing refresh token")
+		u.l.Errorf("failure signing refresh token")
 		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
@@ -119,7 +120,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 
 	err = u.db.AddUser(&user)
 	if err != nil {
-		u.l.Printf("[ERROR] adding user: %v\n", err)
+		u.l.Errorf("failure adding user: %v\n", err)
 		return &prusers.RegisterResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
@@ -147,14 +148,14 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 	})
 
 	if err != nil {
-		u.l.Printf("[ERROR] adding refresh token: %v\n", err)
+		u.l.Errorf("failure adding refresh token: %v\n", err)
 		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
 	go func() {
 		_, err := u.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: r.Email})
 		if err != nil {
-			u.l.Printf("[ERROR] sending activation request: %v\n", err)
+			u.l.Errorf("failure sending activation request: %v\n", err)
 		}
 	}()
 
@@ -164,7 +165,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 func (u *Users) CheckPassword(ctx context.Context, r *prusers.CheckPasswordRequest) (*prusers.CheckPasswordResponse, error) {
 	hashedPass, err := data.IsPasswordValid(u.db, r.Username, r.Password)
 	if err != nil {
-		u.l.Printf("[ERROR] checking password: %v\n", err)
+		u.l.Errorf("failure checking password: %v\n", err)
 		return &prusers.CheckPasswordResponse{}, err
 	}
 	return &prusers.CheckPasswordResponse{HashedPass: hashedPass}, nil

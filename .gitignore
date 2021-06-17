@@ -32,5 +32,12 @@ tsconfig.json
 
 *.env
 
+# Log and Keystore
 src/log
 src/keystore
+
+# Secrets
+secrets
+
+# Logs
+*.log

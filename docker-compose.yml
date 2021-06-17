@@ -1,0 +1,152 @@
+services:
+  dependencies:
+    build: 
+      context: .
+      dockerfile: dependencies.Dockerfile
+    image: dependencies
+  pkidb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltpkidb
+      - POSTGRES_USER=saltpki
+      - POSTGRES_PASSWORD=saltpki
+    ports:
+      - "9094:9094"
+    command: -p 9094
+
+  webserver:
+    build: src/webserver/
+    image: webserver
+    ports:
+      - "${SALT_WEB_PORT}:443"
+    environment:
+      - SALT_WEB_PORT=443
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
+  api:
+    build: src/api/
+    image: api
+    ports:
+      - "${SALT_API_PORT}:443"
+    environment:
+      - SALT_API_PORT=443
+      - SALT_AUTH_PORT=${SALT_AUTH_PORT}
+      - SALT_AUTH_ADDR=auth
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_USERS_ADDR=users
+      - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
+      - SALT_EMAIL_ADDR=email
+      - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
+      - SALT_CONTENT_ADDR=contents
+      - SALT_WEB_PORT=${SALT_WEB_PORT}
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcred
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
+      - RECAPTCHA_PROJECT=${RECAPTCHA_PROJECT}
+    secrets:
+      - gcred
+  authdb:
+    image: postgres
+      #volumes:
+      #- ./data/authdb:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=saltauthdb
+      - POSTGRES_USER=saltauth
+      - POSTGRES_PASSWORD=saltauth
+    ports:
+      - "9090:9090"
+    command: -p 9090
+  auth:
+    build: src/auth/
+    image: auth
+    ports:
+      - "${SALT_AUTH_PORT}:${SALT_AUTH_PORT}"
+    environment:
+      - SALT_AUTH_PORT=${SALT_AUTH_PORT}
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_USERS_ADDR=users
+      - AUTHDB_HOST=authdb
+      - AUTHDB_PORT=9090
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcred
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
+      - RECAPTCHA_PROJECT=${RECAPTCHA_PROJECT}
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
+    secrets:
+      - gcred
+  usersdb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltusersdb
+      - POSTGRES_USER=saltusers
+      - POSTGRES_PASSWORD=saltusers
+    ports:
+      - "9091:9091"
+    command: -p 9091
+  users:
+    build: src/users
+    image: users
+    ports:
+      - "${SALT_USERS_PORT}:${SALT_USERS_PORT}"
+    environment:
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_AUTH_PORT=${SALT_AUTH_PORT}
+      - SALT_AUTH_ADDR=auth
+      - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
+      - SALT_EMAIL_ADDR=email
+      - USERSDB_HOST=usersdb
+      - USERSDB_PORT=9091
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
+  emaildb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltemaildb
+      - POSTGRES_USER=saltemail
+      - POSTGRES_PASSWORD=saltemail
+    ports:
+      - "9092:9092"
+    command: -p 9092
+  email:
+    build: src/email
+    image: email
+    ports:
+      - "${SALT_EMAIL_PORT}:${SALT_EMAIL_PORT}"
+    environment:
+      - SALT_EMAIL_PORT=${SALT_EMAIL_PORT}
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_USERS_ADDR=users
+      - EMAILDB_HOST=emaildb
+      - EMAILDB_PORT=9092
+      - SALT_WEB_PORT=${SALT_WEB_PORT}
+      - TIME_LAYOUT=${TIME_LAYOUT}
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
+  contentsdb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltcontentsdb
+      - POSTGRES_USER=saltcontents
+      - POSTGRES_PASSWORD=saltcontents
+    ports:
+      - "9093:9093"
+    command: -p 9093
+
+  contents:
+    build: src/content
+    image: contents
+    ports:
+      - "${SALT_CONTENT_PORT}:${SALT_CONTENT_PORT}"
+    depends_on:
+      - "users"
+    environment:
+      - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
+      - CONTENTSDB_HOST=contentsdb
+      - CONTENTSDB_PORT=9093
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
+
+secrets:
+  gcred:
+    file: ./secrets/saltgram-c0751de619fa.json

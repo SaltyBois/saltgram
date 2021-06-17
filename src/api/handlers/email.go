@@ -1,17 +1,18 @@
 package handlers
 
 import (
-	"log"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Email struct {
-	l  *log.Logger
+	l  *logrus.Logger
 	ec premail.EmailClient
 	uc prusers.UsersClient
 }
 
-func NewEmail(l *log.Logger, ec premail.EmailClient, uc prusers.UsersClient) *Email {
+func NewEmail(l *logrus.Logger, ec premail.EmailClient, uc prusers.UsersClient) *Email {
 	return &Email{l: l, ec: ec, uc: uc}
 }

@@ -149,12 +149,29 @@ export default {
         return;
       console.log(files.length)
       console.log(files[0])
-      this.item.image = URL.createObjectURL(files[0])
-      console.log(this.item.image)
-      if (files[0]['type'].includes('image')) this.typeContent = 'image';
-      else this.typeContent = 'video';
-      console.log(this.typeContent)
-      this.isUploadedContent = true;
+      // event.item.image = URL.createObjectURL(files[0]) // Baca error
+      // console.log(this.item.image) // ne postoji this.item, baca error
+      // baca errore
+      // if (files[0]['type'].includes('image')) this.typeContent = 'image';
+      // else this.typeContent = 'video';
+      // console.log(this.typeContent)
+
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data
+
+          let data = new FormData();
+          data.append('profileImg', files[0]);
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          this.axios.post("content/user/profile", data, config)
+            .then(() => this.isUploadedContent = true)
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
     },
     getUserInfo: function() {
       this.refreshToken(this.getAHeader())
@@ -172,7 +189,7 @@ export default {
     getProfileInfo: function() {
       this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
           .then(r => {
-            console.log(r.data)
+            // console.log(r.data)
             this.profile.privateUser = !r.data.isPublic;
             this.profile.username = r.data.username;
             this.profile.fullName = r.data.fullName;
@@ -233,10 +250,10 @@ export default {
       // console.log(this.maxDate)
     },
     changeUserInfo() {
-      console.log(this.profile.dateOfBirth)
+      // console.log(this.profile.dateOfBirth)
       let parts = this.profile.dateOfBirth.split('-')
       this.profile.dateOfBirth = new Date(parts[0], parts[1] - 1, parts[2])
-      console.log(this.profile.dateOfBirth)
+      // console.log(this.profile.dateOfBirth)
       let profileData = {
             privateProfile: this.profile.privateUser,
             description: this.profile.description,
@@ -249,8 +266,17 @@ export default {
             email: this.profile.email
         }
       this.axios.put("users/profile/" + this.$route.params.username, profileData, {headers: this.getAHeader()} )
-      .then(r => {
-        console.log(r)
+      .then(() => {
+        // console.log(r)
+        let authData = {
+          newUsername: this.profile.username
+        }
+        this.axios.put("auth/update", authData, {headers: this.getAHeader()} )
+        .then(r => {
+          this.$store.state.jws = r.data;
+          this.$router.push('/user/settings/' + this.profile.username)
+        })
+        .catch(() => this.$router.push('/'))
       })
       .catch(() => this.$router.push('/'))
     }

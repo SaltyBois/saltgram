@@ -70,6 +70,7 @@ message GetByUsernameResponse {
 	string username = 3;
 	string role = 4;
     string hashedPassword = 5;
+    uint64 id = 6;
 }
 
 message ChangeRequest {
