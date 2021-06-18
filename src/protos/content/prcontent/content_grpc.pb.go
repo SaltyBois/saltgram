@@ -23,7 +23,7 @@ type ContentClient interface {
 	GetStories(ctx context.Context, in *GetStoryRequest, opts ...grpc.CallOption) (Content_GetStoriesClient, error)
 	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error)
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error)
-	//rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
+	GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error)
 	AddSharedMedia(ctx context.Context, in *AddSharedMediaRequest, opts ...grpc.CallOption) (*AddSharedMediaResponse, error)
 	AddPost(ctx context.Context, in *AddPostRequest, opts ...grpc.CallOption) (*AddPostResponse, error)
@@ -178,8 +178,40 @@ func (x *contentGetCommentsClient) Recv() (*GetCommentsResponse, error) {
 	return m, nil
 }
 
+func (c *contentClient) GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/GetReactions", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &contentGetReactionsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Content_GetReactionsClient interface {
+	Recv() (*GetReactionsResponse, error)
+	grpc.ClientStream
+}
+
+type contentGetReactionsClient struct {
+	grpc.ClientStream
+}
+
+func (x *contentGetReactionsClient) Recv() (*GetReactionsResponse, error) {
+	m := new(GetReactionsResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *contentClient) GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/GetPostsByUserReaction", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/GetPostsByUserReaction", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +288,7 @@ func (c *contentClient) AddReaction(ctx context.Context, in *AddReactionRequest,
 }
 
 func (c *contentClient) AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddProfilePicture", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddProfilePicture", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +330,7 @@ type ContentServer interface {
 	GetStories(*GetStoryRequest, Content_GetStoriesServer) error
 	GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error)
 	GetComments(*GetCommentsRequest, Content_GetCommentsServer) error
-	//rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
+	GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error
 	GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error
 	AddSharedMedia(context.Context, *AddSharedMediaRequest) (*AddSharedMediaResponse, error)
 	AddPost(context.Context, *AddPostRequest) (*AddPostResponse, error)
@@ -327,6 +359,9 @@ func (UnimplementedContentServer) GetProfilePicture(context.Context, *GetProfile
 }
 func (UnimplementedContentServer) GetComments(*GetCommentsRequest, Content_GetCommentsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetComments not implemented")
+}
+func (UnimplementedContentServer) GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetReactions not implemented")
 }
 func (UnimplementedContentServer) GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetPostsByUserReaction not implemented")
@@ -461,6 +496,27 @@ type contentGetCommentsServer struct {
 }
 
 func (x *contentGetCommentsServer) Send(m *GetCommentsResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Content_GetReactions_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetReactionsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ContentServer).GetReactions(m, &contentGetReactionsServer{stream})
+}
+
+type Content_GetReactionsServer interface {
+	Send(*GetReactionsResponse) error
+	grpc.ServerStream
+}
+
+type contentGetReactionsServer struct {
+	grpc.ServerStream
+}
+
+func (x *contentGetReactionsServer) Send(m *GetReactionsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -652,6 +708,11 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetComments",
 			Handler:       _Content_GetComments_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetReactions",
+			Handler:       _Content_GetReactions_Handler,
 			ServerStreams: true,
 		},
 		{

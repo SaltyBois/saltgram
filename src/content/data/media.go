@@ -77,11 +77,12 @@ func (db *DBConn) AddPost(p *Post) error {
 }
 
 var ErrProfilePictureNotFound = fmt.Errorf("profile picture not found")
+
 func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
 	post := ProfilePicture{}
 	strId := strconv.FormatUint(id, 10)
 	res := db.DB.Where("user_id = ?", strId).Find(&post)
-	if res.Error != nil || res.RowsAffected == 0{
+	if res.Error != nil || res.RowsAffected == 0 {
 		return nil, res.Error
 	}
 	return &post, nil
