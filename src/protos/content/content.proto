@@ -16,6 +16,18 @@ service Content {
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
     rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
+
+    rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
+}
+
+message CreateUserFolderRequest {
+    string userId = 1;
+}
+
+message CreateUserFolderResponse {
+    string profileFolderId = 1;
+    string postsFolderId = 2;
+    string storyFolderId = 3;
 }
 
 message SharedMediaRequest {
@@ -110,9 +122,14 @@ message AddStoryRequest {
 
 message AddProfilePictureRequest {
     oneof data {
-        uint64 userId = 1;
+        AddProfilePictureInfo info = 1;
         bytes image = 2;
     }
+}
+
+message AddProfilePictureInfo {
+    uint64 userId = 1;
+    string profileFolderId = 2;
 }
 
 message AddProfilePictureResponse {

@@ -28,7 +28,10 @@ type Profile struct {
 	Gender         string    `json:"gender"`
 	DateOfBirth    time.Time `json:"dateOfBirth"`
 	WebSite        string    `json:"webSite"`
-	PrivateProfile bool      `json:"privateProfile"`
+	PrivateProfile bool      `json:"privateProfile"` // Why
+	ProfileFolderId string    `json:"-"`
+	PostsFolderId string `json:"-"`
+	StoriesFolderId string `json:"-"`
 }
 
 type FollowRequest struct {

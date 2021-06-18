@@ -109,8 +109,8 @@ func main() {
 
 	server := http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_API_PORT")),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Handler:      c.Handler(s.S),
 		TLSConfig:    s.TLS.TC,

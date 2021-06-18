@@ -404,14 +404,15 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	profile, err := c.uc.GetProfileByUsername(context.Background(),&prusers.ProfileRequest{Username: claims.Username, User: claims.Username})
+	
 	if err != nil {
 		c.l.Errorf("failed fetching user: %v", err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	c.l.Infof("fetched user: %v, id: %v", user.Username, user.Id)
+	c.l.Infof("fetched user: %v, id: %v", profile.Username, profile.UserId)
 
 	// TODO(Jovan): Authenticate
 
@@ -438,7 +439,10 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = stream.Send(&prcontent.AddProfilePictureRequest{
-		Data: &prcontent.AddProfilePictureRequest_UserId{UserId: user.Id},
+		Data: &prcontent.AddProfilePictureRequest_Info{Info: &prcontent.AddProfilePictureInfo{
+			UserId: profile.UserId,
+			ProfileFolderId: profile.ProfileFolderId,
+		}},
 	})
 	if err != nil {
 		c.l.Errorf("failed to send profile picture metadata: %v", err)

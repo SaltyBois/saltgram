@@ -7,7 +7,6 @@ import (
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
-	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -27,6 +26,19 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 		db: db,
 		g:  g,
 	}
+}
+
+func (c *Content) CreateUserFolder(ctx context.Context, r *prcontent.CreateUserFolderRequest) (*prcontent.CreateUserFolderResponse, error) {
+	profile, posts, stories, err := c.g.CreateUserFolder(r.UserId)
+	if err != nil {
+		c.l.Errorf("failed to create user folders: %v", err)
+		return &prcontent.CreateUserFolderResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prcontent.CreateUserFolderResponse{
+		ProfileFolderId: profile,
+		PostsFolderId: posts,
+		StoryFolderId: stories,
+	}, nil
 }
 
 func (c *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prcontent.Content_GetSharedMediaServer) error {
@@ -155,14 +167,10 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 	}
 
 	profilePicture := data.ProfilePicture{
-		UserID: r.GetUserId(),
+		UserID: r.GetInfo().UserId,
 	}
-
-	c.l.Infof("Received image metadata: %v", r.GetUserId())
-
 	imageData := bytes.Buffer{}
-
-	c.l.Info("receiving profile image...")
+	c.l.Info("receiving profile image for user: %v...", profilePicture.UserID)
 	for {
 		chunk, err := stream.Recv()
 		if err == io.EOF {
@@ -181,7 +189,7 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 		}
 	}
 
-	url, err := c.g.UploadProfilePicture(strconv.FormatUint(r.GetUserId(), 10), &imageData)
+	url, err := c.g.UploadProfilePicture(r.GetInfo().ProfileFolderId, &imageData)
 	if err != nil {
 		c.l.Errorf("failed to upload profile picture: %v", err)
 		return status.Error(codes.Internal, "Internal server error")

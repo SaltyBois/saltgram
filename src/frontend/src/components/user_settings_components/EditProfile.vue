@@ -165,7 +165,10 @@ export default {
           };
           // Vratiti nazad
           this.axios.post("content/profilepicture", data, config)
-            .then(() => this.isUploadedContent = true)
+            .then(r => {
+              this.isUploadedContent = true;
+              this.profilePicture = r.data;
+            })
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));
     },

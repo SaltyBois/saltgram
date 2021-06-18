@@ -125,6 +125,7 @@ message CheckEmailResponse {
     bool verified = 1;
 }
 
+// TODO(Jovan): Decouple
 message ProfileRequest {
     string user = 1;
     string username = 2;
@@ -142,6 +143,10 @@ message ProfileResponse {
     string gender = 9;
     int64 dateOfBirth = 10;
     string webSite = 11;
+    string profileFolderId = 12;
+    string postsFolderId = 13;
+    string storiesFolderId = 14;
+    uint64 userId = 15;
 }
 
 message ChangePublicRequest {

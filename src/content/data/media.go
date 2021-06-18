@@ -81,7 +81,10 @@ func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
 	post := ProfilePicture{}
 	strId := strconv.FormatUint(id, 10)
 	res := db.DB.Where("user_id = ?", strId).Find(&post)
-	if res.Error != nil || res.RowsAffected == 0{
+	if res.RowsAffected == 0 {
+		return nil, ErrProfilePictureNotFound
+	}
+	if res.Error != nil {
 		return nil, res.Error
 	}
 	return &post, nil
@@ -89,11 +92,11 @@ func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
 
 func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
 	oldPP, err := db.GetProfilePictureByUser(pp.UserID)
+	if err == ErrProfilePictureNotFound {
+		return db.DB.Create(pp).Error
+	}
 	if err != nil {
 		return err
-	}
-	if oldPP == nil {
-		return db.DB.Create(pp).Error
 	}
 	oldPP.URL = pp.URL
 	return db.DB.Save(&oldPP).Error

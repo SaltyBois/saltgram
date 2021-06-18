@@ -25,7 +25,7 @@ export default {
     window.addEventListener('beforeunload', () => {
       localStorage.setItem('vuexstore', JSON.stringify(this.$store.state));
     });
-    localStorage.getItem('vuexstore' && this.$store.replacestate(Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuexstore')))));
+    localStorage.getItem('vuexstore' && this.$store.replaceState(Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuexstore')))));
   },
 };
 </script>
