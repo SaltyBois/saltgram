@@ -317,3 +317,71 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte("}"))
 }
+
+func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+
+	if !ok {
+		u.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	vars := mux.Vars(r)
+	queryUsername := vars["username"]
+
+	queryResults, err := u.uc.GetSearchedUsers(context.Background(), &prusers.SearchRequest{Query: queryUsername})
+
+	if err != nil {
+		u.l.Println("[ERROR] Searching users failed")
+		http.Error(w, "Error Searching users: ", http.StatusInternalServerError)
+		return
+	}
+
+	finalResult := []*prusers.SearchedUser{}
+
+	const MAX_NUMBER_OF_RESULTS = 20
+
+	for i := 0; i < len(queryResults.SearchedUser); i++ {
+		su := queryResults.SearchedUser[i]
+		if su.Username == claims.Username {continue}
+		if i == MAX_NUMBER_OF_RESULTS {break}
+		finalResult = append(finalResult, &prusers.SearchedUser{
+			Username: su.Username,
+			ProfilePictureAddress: su.ProfilePictureAddress} )
+
+	}
+
+	err = saltdata.ToJSON(&finalResult, w)
+
+
+
+	if err != nil {
+		u.l.Println("[ERROR] Searching users failed")
+		http.Error(w, "Error Searching users: ", http.StatusInternalServerError)
+		return
+	}
+
+}

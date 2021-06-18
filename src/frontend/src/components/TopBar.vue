@@ -100,20 +100,23 @@
       </div>
     </div>
     <transition name="fade">
-      <SearchPanel class="search-panel mt-5" v-if="isSearchPanelVisible"/>
+      <SearchPanel class="search-panel mt-5"
+                   ref="searchPanel"
+                   v-if="isSearchPanelVisible"/>
     </transition>
   </div>
 </template>
 
 <script>
-import SearchPanel from "@/components/SearchPanel";
+import SearchPanel from "@/components/topbar_components/SearchPanel";
+var debounce = require('lodash.debounce');
 
 export default {
   name: "TopBar",
   components: { SearchPanel },
   computed: {
     isSearchPanelVisible: function () {
-      return this.searchQuery !== '' && this.searchFocusFlag
+      return this.searchQuery !== '' || this.searchFocusFlag
     }
   },
   data: function() {
@@ -125,12 +128,30 @@ export default {
       username: '',
       searchQuery: '',
       searchFocusFlag: false,
+      searchWindowFocusFlag : false,
+      searchedData: {
+        profiles: [],
+        tags: [],
+        locations: []
+      },
+      debouncedSearch: ''
     }
   },
   mounted() {
     if (this.$router.currentRoute.path.includes('/notifications')) this.numberOfNewNotifications = 0;
     if (this.$router.currentRoute.path.includes('/inbox')) this.numberOfNewChats = 0;
     this.loadingJWSOnMounted();
+  },
+  created() {
+    this.debouncedSearch = debounce(function () {this.getQuery()}, 500);
+  },
+  watch: {
+    searchQuery: function () {
+      if (this.searchQuery !== '') {
+        this.$refs.searchPanel.$data.processing = true
+        this.debouncedSearch()
+      }
+    }
   },
   methods: {
     logout: function() {
@@ -146,7 +167,20 @@ export default {
                   this.username = r.data.username
                 });
 
-          }).catch(() => console.log('No User was founded !?!'));
+          })
+    },
+    getQuery() {
+      console.log('Query: ' + this.searchQuery)
+      this.axios.get('users/search/' + this.searchQuery, {headers: this.getAHeader()})
+      .then( r => {
+        console.log(r.data)
+        this.searchedData.profiles = r.data
+        this.$refs.searchPanel.$data.searchedData = this.searchedData
+        this.$refs.searchPanel.$data.processing = false
+      }).catch(err => {
+        console.log(err)
+        this.$refs.searchPanel.$data.processing = false
+      })
     }
   }
 }
@@ -397,13 +431,14 @@ export default {
 }
 
 .search-panel {
-  position: sticky;
+  position: fixed;
   z-index: 5;
   margin-top: 5px;
   left: 33vw;
-  width: 23vw;
+  width: 25vw;
   height: 200px;
   transition: 0.3s;
+  overflow-y: auto;
 }
 
 .fade-enter-active,

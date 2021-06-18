@@ -35,6 +35,7 @@ type UsersClient interface {
 	UnFollow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error)
 	GetFollowers(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GetFollowersClient, error)
 	GerFollowing(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GerFollowingClient, error)
+	GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 }
 
 type usersClient struct {
@@ -244,6 +245,15 @@ func (x *usersGerFollowingClient) Recv() (*ProfileFollower, error) {
 	return m, nil
 }
 
+func (c *usersClient) GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
+	out := new(SearchResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetSearchedUsers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -265,6 +275,7 @@ type UsersServer interface {
 	UnFollow(context.Context, *FollowRequest) (*FollowRespose, error)
 	GetFollowers(*FollowerRequest, Users_GetFollowersServer) error
 	GerFollowing(*FollowerRequest, Users_GerFollowingServer) error
+	GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -322,6 +333,9 @@ func (UnimplementedUsersServer) GetFollowers(*FollowerRequest, Users_GetFollower
 }
 func (UnimplementedUsersServer) GerFollowing(*FollowerRequest, Users_GerFollowingServer) error {
 	return status.Errorf(codes.Unimplemented, "method GerFollowing not implemented")
+}
+func (UnimplementedUsersServer) GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSearchedUsers not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -648,6 +662,24 @@ func (x *usersGerFollowingServer) Send(m *ProfileFollower) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Users_GetSearchedUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetSearchedUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/GetSearchedUsers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetSearchedUsers(ctx, req.(*SearchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -714,6 +746,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnFollow",
 			Handler:    _Users_UnFollow_Handler,
+		},
+		{
+			MethodName: "GetSearchedUsers",
+			Handler:    _Users_GetSearchedUsers_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

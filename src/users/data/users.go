@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 	"golang.org/x/crypto/bcrypt"
+
 )
 
 type User struct {
@@ -201,6 +202,13 @@ func (db *DBConn) GetUserByUsername(username string) (*User, error) {
 	user := User{}
 	err := db.DB.Where("username = ?", username).First(&user).Error
 	return &user, err
+}
+
+func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]User, error) {
+	var users []User
+	query := "%" + username + "%"
+	err := db.DB.Where("username LIKE ?", query).Limit(21).Find(&users).Error
+	return users, err
 }
 
 func Seed() {
