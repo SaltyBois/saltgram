@@ -1,6 +1,9 @@
 package data
 
-import "time"
+import (
+	"saltgram/data"
+	"time"
+)
 
 type RequestStatus string
 
@@ -11,20 +14,21 @@ const (
 )
 
 type Profile struct {
-	UserID      uint64 `gorm:"primaryKey"`
-	Username    string `json:"username" gorm:"unique"`
-	User        User
-	Public      bool       `json:"isPublic"`
-	Taggable    bool       `json:"isTaggable"`
-	Description string     `json:"description"`
-	Following   []*Profile `gorm:"many2many:profile_following;"`
-	Profiles    []FollowRequest
-	Requests    []FollowRequest
-	PhoneNumber string    `json:"phoneNumber"`
-	Gender      string    `json:"gender"`
-	DateOfBirth time.Time `json:"dateOfBirth"`
-	WebSite 	string 	  `json:"webSite"`
-	PrivateProfile bool   `json:"privateProfile"`
+	data.Identifiable
+	UserID         uint64
+	User           User
+	Username       string `json:"username" gorm:"unique"`
+	Public         bool       `json:"isPublic"`
+	Taggable       bool       `json:"isTaggable"`
+	Description    string     `json:"description"`
+	Following      []*Profile `gorm:"many2many:profile_following;"`
+	Profiles       []FollowRequest
+	Requests       []FollowRequest
+	PhoneNumber    string    `json:"phoneNumber"`
+	Gender         string    `json:"gender"`
+	DateOfBirth    time.Time `json:"dateOfBirth"`
+	WebSite        string    `json:"webSite"`
+	PrivateProfile bool      `json:"privateProfile"`
 }
 
 type FollowRequest struct {

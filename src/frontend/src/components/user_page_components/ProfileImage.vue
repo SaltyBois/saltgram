@@ -108,6 +108,24 @@ export default {
       console.log(event)
       this.profilePicture = event.target.files[0]
       console.log(this.profilePicture)
+
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data
+
+          let data = new FormData();
+          data.append('profileImg', this.profilePicture);
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          this.axios.post("profilepicture", data, config)
+            .then(() => this.isUploadedContent = true)
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
+
     },
     emitToggleFollowing() {
       console.log(this.username)

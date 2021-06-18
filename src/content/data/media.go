@@ -1,7 +1,13 @@
 package data
 
+import (
+	"fmt"
+	"saltgram/data"
+	"strconv"
+)
+
 type Media struct {
-	ID            uint64   `json:"id"`
+	data.Identifiable
 	SharedMediaID uint64   `json:"sharedMediaId"`
 	Filename      string   `json:"filename" validate:"required"`
 	Tags          []Tag    `gorm:"many2many:media_tags" json:"tags" validate:"required"`
@@ -11,30 +17,34 @@ type Media struct {
 }
 
 type Tag struct {
-	ID    uint64 `json:"id"`
+	data.Identifiable
 	Value string `json:"value" validate:"required"`
 }
 
 type SharedMedia struct {
-	ID    uint64   `json:"id"`
+	data.Identifiable
 	Media []*Media `json:"media"`
 }
 
 type Story struct {
-	ID            uint64      `json:"id"`
-	User          User        `json:"user"`
-	UserID        string      `json:"userId"`
+	data.Identifiable
+	UserID        uint64      `json:"userId"`
 	SharedMedia   SharedMedia `json:"sharedMedia"`
 	SharedMediaID uint64      `json:"sharedMediaId"`
 	CloseFriends  bool        `json:"closeFriends"`
 }
 
 type Post struct {
-	ID            uint64      `json:"id"`
-	User          User        `json:"user"`
-	UserID        string      `json:"userId"`
+	data.Identifiable
+	UserID        uint64      `json:"userId"`
 	SharedMedia   SharedMedia `validate:"required"`
 	SharedMediaID uint64      `json:"sharedMediaId"`
+}
+
+type ProfilePicture struct {
+	data.Identifiable
+	UserID uint64 `gorm:"type:numeric" json:"userId"`
+	URL    string `json:"url"`
 }
 
 func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
@@ -44,7 +54,7 @@ func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
 }
 
 func (db *DBConn) AddSharedMedia(s *SharedMedia) error {
-	return db.DB.Create(SharedMedia{}).Error
+	return db.DB.Create(s).Error
 }
 
 func (db *DBConn) GetStoryByUser(id uint64) (*[]Story, error) {
@@ -54,7 +64,7 @@ func (db *DBConn) GetStoryByUser(id uint64) (*[]Story, error) {
 }
 
 func (db *DBConn) AddStory(s *Story) error {
-	return db.DB.Create(Story{}).Error
+	return db.DB.Create(s).Error
 }
 func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	post := []Post{}
@@ -62,6 +72,35 @@ func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	return &post, err
 }
 
-func (db *DBConn) AddPost(s *Post) error {
-	return db.DB.Create(Post{}).Error
+func (db *DBConn) AddPost(p *Post) error {
+	return db.DB.Create(p).Error
+}
+
+var ErrProfilePictureNotFound = fmt.Errorf("profile picture not found")
+func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
+	post := ProfilePicture{}
+	strId := strconv.FormatUint(id, 10)
+	res := db.DB.Where("user_id = ?", strId).Find(&post)
+	if res.Error != nil || res.RowsAffected == 0{
+		return nil, res.Error
+	}
+	return &post, nil
+}
+
+func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
+	oldPP, err := db.GetProfilePictureByUser(pp.UserID)
+	if err != nil {
+		return err
+	}
+	if oldPP == nil {
+		return db.DB.Create(pp).Error
+	}
+	oldPP.URL = pp.URL
+	return db.DB.Save(&oldPP).Error
+}
+
+func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
+	post := []Post{}
+	err := db.DB.Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
+	return &post, err
 }

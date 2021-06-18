@@ -122,20 +122,19 @@ func (u *Users) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = u.uc.UpdateProfile(context.Background(), &prusers.UpdateRequest{
-		OldUsername: username,
-		NewUsername: dto.Username,
-		Email:       dto.Email,
-		FullName:    dto.FullName,
-		Public:      !dto.PrivateProfile,
-		Taggable:    dto.Taggable,
-		Description: dto.Description,
-		PhoneNumber: dto.PhoneNumber,
-		Gender: dto.Gender,
-		DateOfBirth: dto.DateOfBirth.Unix(),
-		WebSite: dto.WebSite,
+		OldUsername:    username,
+		NewUsername:    dto.Username,
+		Email:          dto.Email,
+		FullName:       dto.FullName,
+		Public:         !dto.PrivateProfile,
+		Taggable:       dto.Taggable,
+		Description:    dto.Description,
+		PhoneNumber:    dto.PhoneNumber,
+		Gender:         dto.Gender,
+		DateOfBirth:    dto.DateOfBirth.Unix(),
+		WebSite:        dto.WebSite,
 		PrivateProfile: dto.PrivateProfile,
 	})
-
 
 	if err != nil {
 		u.l.Printf("[ERROR] updating profile: %v\n", err)

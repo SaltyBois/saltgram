@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"math/rand"
+	"saltgram/data"
 	"strings"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 )
 
 type User struct {
-	ID             uint64    `gorm:"primaryKey"`
+	data.Identifiable
 	Email          string    `json:"email" validate:"required" gorm:"unique"`
 	FullName       string    `json:"fullName" validate:"required"`
 	Username       string    `json:"username" validate:"required" gorm:"unique"`

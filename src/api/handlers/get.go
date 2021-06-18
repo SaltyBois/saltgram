@@ -101,7 +101,14 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = saltdata.ToJSON(user, w)
+	response := saltdata.UserDTO {
+		Id: strconv.FormatUint(user.Id, 10),
+		Email: user.Email,
+		FullName: user.FullName,
+		Username: user.Username,
+	}
+
+	err = saltdata.ToJSON(response, w)
 	if err != nil {
 		u.l.Errorf("serializing user ", err)
 		http.Error(w, "Error serializing user", http.StatusInternalServerError)
@@ -150,8 +157,6 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing URL", http.StatusBadRequest)
 		return
 	}
-
-
 
 	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user, Username: profileUsername})
 	if err != nil {
@@ -384,4 +389,88 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+func (c *Content) GetProfilePictureByUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		c.l.Println("[ERROR] converting id")
+		return
+	}
+
+	profilePicture, err := c.cc.GetProfilePicture(context.Background(), &prcontent.GetProfilePictureRequest{UserId: id})
+	if err != nil {
+		c.l.Println("[ERROR] fetching profile picture", err)
+		http.Error(w, "pp not found", http.StatusNotFound)
+		return
+	}
+
+	w.Write([]byte(profilePicture.Url))
+
+}
+
+func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("converting id")
+		return
+	}
+
+	stream, err := s.cc.GetPostsByUser(context.Background(), &prcontent.GetPostsRequest{UserId: id})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		posts, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Errorf("failed to fetch posts: %v\n", err)
+			http.Error(w, "Error couldn't fetch posts", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(posts, w)
+	}
+	w.Write([]byte("}"))
+}
+
+func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("converting id")
+		return
+	}
+
+	stream, err := s.cc.GetPostsByUserReaction(context.Background(), &prcontent.GetPostsRequest{UserId: id})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("{"))
+	for {
+		posts, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Errorf("failed to fetch posts: %v\n", err)
+			http.Error(w, "Error couldn't fetch posts", http.StatusInternalServerError)
+			return
+		}
+		saltdata.ToJSON(posts, w)
+	}
+	w.Write([]byte("}"))
 }
