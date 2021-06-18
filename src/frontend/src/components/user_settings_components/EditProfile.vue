@@ -7,6 +7,9 @@
                 @click="showContent = true"
                 :src="profilePicture"
                 alt="Profile picture"/>
+        <v-img v-else class="head"
+          @click="showContent = true"
+          :src="require('@/assets/profile_placeholder.png')"/>
         <b style="color: #2b80e0; margin-top: 5px; cursor:pointer;" @click="$refs.file.click()">Change profile photo</b>
       </div>
       <div style="padding-top: 15px; margin-left: 5px">

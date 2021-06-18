@@ -20,7 +20,13 @@ export default {
         document.title = to.meta.title || 'Saltgram';
       }
     },
-  }
+  },
+  created() {
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('vuexstore', JSON.stringify(this.$store.state));
+    });
+    localStorage.getItem('vuexstore' && this.$store.replacestate(Object.assign(this.$store.state, JSON.parse(localStorage.getItem('vuexstore')))));
+  },
 };
 </script>
 

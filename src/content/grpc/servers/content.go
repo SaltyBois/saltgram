@@ -64,7 +64,7 @@ func (c *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prconte
 func (c *Content) GetProfilePicture(ctx context.Context, r *prcontent.GetProfilePictureRequest) (*prcontent.GetProfilePictureResponse, error) {
 	profilePicture, err := c.db.GetProfilePictureByUser(r.UserId)
 	if err != nil {
-		return &prcontent.GetProfilePictureResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		return &prcontent.GetProfilePictureResponse{ Url: "" }, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
 	return &prcontent.GetProfilePictureResponse{ Url: profilePicture.URL }, nil
