@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func ToPtorJSON(m proto.Message, w io.Writer) (int, error) {
+func ToProtoJSON(m proto.Message, w io.Writer) (int, error) {
 	msopt := protojson.MarshalOptions{
 		Indent:          " ",
 		EmitUnpopulated: true,

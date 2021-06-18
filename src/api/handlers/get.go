@@ -158,7 +158,7 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saltdata.ToPtorJSON(profile, w)
+	saltdata.ToProtoJSON(profile, w)
 
 }
 
@@ -188,7 +188,7 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error couldn't fetch followers", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(profile, w)
+		saltdata.ToProtoJSON(profile, w)
 	}
 	w.Write([]byte("}"))
 }
@@ -220,6 +220,7 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		saltdata.ToJSON(profile, w)
+		saltdata.ToProtoJSON(profile, w)
 	}
 	w.Write([]byte("}"))
 }

@@ -124,15 +124,17 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		return &prusers.RegisterResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
+	//TODO Change public from fixed false
 	profile := data.Profile{
-		Username: r.Username,
-		Taggable: false,
-		Public:   false,
-		Description: r.Description,
-		PhoneNumber: r.PhoneNumber,
-		Gender: r.Gender,
-		DateOfBirth: time.Unix(r.DateOfBirth, 0),
-		WebSite: r.WebSite,
+		User:           user,
+		Username:       r.Username,
+		Taggable:       false,
+		Public:         false,
+		Description:    r.Description,
+		PhoneNumber:    r.PhoneNumber,
+		Gender:         r.Gender,
+		DateOfBirth:    time.Unix(r.DateOfBirth, 0),
+		WebSite:        r.WebSite,
 		PrivateProfile: r.PrivateProfile,
 	}
 
@@ -186,8 +188,6 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
-
-
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
@@ -222,9 +222,9 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		IsFollowing: isFollowing,
 		IsPublic:    profile.Public,
 		PhoneNumber: profile.PhoneNumber,
-		Gender: profile.Gender,
+		Gender:      profile.Gender,
 		DateOfBirth: date,
-		WebSite: profile.WebSite,
+		WebSite:     profile.WebSite,
 	}, nil
 }
 
@@ -234,7 +234,7 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.FollowRespose{}, err
 	}
-	profileToFollow, err := u.db.GetProfileByUsername(r.Username)
+	profileToFollow, err := u.db.GetProfileByUsername(r.ToFollow)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile to follow: %v\n", err)
 		return &prusers.FollowRespose{}, err
@@ -266,8 +266,14 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 }
 
 func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {
-	followers, err := data.GetFollowers(u.db, r.Username)
+	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+	followers, err := data.GetFollowers(u.db, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] query not working", err)
 		return err
 	}
 	for _, profile := range followers {
@@ -282,8 +288,14 @@ func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_Ge
 }
 
 func (u *Users) GetFollowing(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {
-	followers, err := data.GetFollowing(u.db, r.Username)
+	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+	followers, err := data.GetFollowing(u.db, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] query not working", err)
 		return err
 	}
 	for _, profile := range followers {

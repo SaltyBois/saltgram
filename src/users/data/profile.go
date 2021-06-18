@@ -67,7 +67,7 @@ func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
 func CheckIfFollowing(db *DBConn, profile_username string, following_user_id uint64) (bool, error) {
 	var count int64
 	// err := db.DB.Table("profile_followers").Where("profile_username = ? AND follower_username = ?", profile, username).Count(&count).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ? AND following_user_id = ? ", profile_username, following_user_id).Count(&count).Error
+	err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ? AND following_user_id = ? ", profile_username, following_user_id).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
@@ -102,29 +102,40 @@ func GetFollowingCount(db *DBConn, username string) (int64, error) {
 }
 
 func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
-	db.DB.Model(&profile).Association("Following").Append(&profileToFollow)
+	//db.DB.Model(&profile).Association("Following").Append(&profileToFollow)
+	profile.Following = append(profile.Following, profileToFollow)
 	return db.DB.Save(&profile).Error
 }
 
 func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
-	db.DB.Model(&profile).Association("Requests").Append(&request)
-	return db.DB.Save(&request).Error
+	//profile.Requests = append(profile.Requests, request)
+	fr := FollowRequest{
+		ProfileID:     profile.UserID,
+		RequestID:     request.UserID,
+		RequestStatus: PENDING,
+	}
+	return db.DB.Create(&fr).Error
 }
 
-func GetFollowers(db *DBConn, username string) ([]Profile, error) {
-
+func GetFollowers(db *DBConn, profile *Profile) ([]Profile, error) {
+	// TODO This does not work. Need to move to graph db
+	//
 	var followers []Profile
+	err := db.DB.Where("following_user_id = ?", profile.UserID).Association("Following").Find(&followers)
 	//err := db.DB.Preload("Followers").Where("follower_username = ?", username).Find(&followers).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Scan(&followers).Error
+	//err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Scan(&followers).Error
 	if err != nil {
 		return nil, err
 	}
 	return followers, nil
 }
 
-func GetFollowing(db *DBConn, username string) ([]Profile, error) {
+func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
+	// TODO This does not work. Need to move to graph db
+	//
 	var following []Profile
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Scan(&following).Error
+	//err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Scan(&following).Error
+	err := db.DB.Model(&profile).Where("profile_user_id = ?", profile.UserID).Association("Following").Find(&following)
 	if err != nil {
 		return nil, err
 	}
