@@ -16,6 +16,7 @@
         <h1 style="text-align: left; justify-content: center" >{{ user.username }}</h1>
       </div>
 
+      <!-- Dialog? -->
       <input type="file"
              ref="file"
              style="display: none"
