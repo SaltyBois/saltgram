@@ -89,7 +89,7 @@ func main() {
 	contentHandler := handlers.NewContent(l.L, contentClient, usersClient)
 	contentRouter := s.S.PathPrefix("/content").Subrouter()
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
-	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
+	// contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost) What?
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/profilepicture/{id}", contentHandler.GetProfilePictureByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost) // Mora se impl

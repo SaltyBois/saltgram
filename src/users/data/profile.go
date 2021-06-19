@@ -15,23 +15,23 @@ const (
 
 type Profile struct {
 	data.Identifiable
-	UserID         uint64
-	User           User
-	Username       string `json:"username" gorm:"unique"`
-	Public         bool       `json:"isPublic"`
-	Taggable       bool       `json:"isTaggable"`
-	Description    string     `json:"description"`
-	Following      []*Profile `gorm:"many2many:profile_following;"`
-	Profiles       []FollowRequest
-	Requests       []FollowRequest
-	PhoneNumber    string    `json:"phoneNumber"`
-	Gender         string    `json:"gender"`
-	DateOfBirth    time.Time `json:"dateOfBirth"`
-	WebSite        string    `json:"webSite"`
-	PrivateProfile bool      `json:"privateProfile"` // Why
+	UserID          uint64
+	User            User
+	Username        string     `json:"username" gorm:"unique"`
+	Public          bool       `json:"isPublic"`
+	Taggable        bool       `json:"isTaggable"`
+	Description     string     `json:"description"`
+	Following       []*Profile `gorm:"many2many:profile_following;"`
+	Profiles        []FollowRequest
+	Requests        []FollowRequest
+	PhoneNumber     string    `json:"phoneNumber"`
+	Gender          string    `json:"gender"`
+	DateOfBirth     time.Time `json:"dateOfBirth"`
+	WebSite         string    `json:"webSite"`
+	PrivateProfile  bool      `json:"privateProfile"` // Why
 	ProfileFolderId string    `json:"-"`
-	PostsFolderId string `json:"-"`
-	StoriesFolderId string `json:"-"`
+	PostsFolderId   string    `json:"-"`
+	StoriesFolderId string    `json:"-"`
 }
 
 type FollowRequest struct {

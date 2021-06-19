@@ -10,14 +10,19 @@ service Content {
     //rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
     rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
 
-    rpc AddSharedMedia(AddSharedMediaRequest) returns(AddSharedMediaResponse);
-    rpc AddPost(AddPostRequest) returns(AddPostResponse);
+    rpc CreateSharedMedia(CreateSharedMediaRequest) returns(CreateSharedMediaResponse);
+    rpc AddPost(stream AddPostRequest) returns(AddPostResponse);
     rpc AddStory(AddStoryRequest) returns(AddStoryResponse);
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
     rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
 
     rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
+}
+
+message CreateSharedMediaRequest {}
+message CreateSharedMediaResponse {
+    uint64 sharedMediaId = 1;
 }
 
 message CreateUserFolderRequest {
@@ -53,6 +58,7 @@ message Media {
     string addedOn = 4;
     Location location = 5;
     repeated Tag tags = 6;
+    uint64 sharedMediaId = 7;
 }
 
 message Tag {
@@ -71,11 +77,12 @@ message SharedMedia {
     repeated Media media = 1;
 }
 
-message AddSharedMediaRequest {
-    repeated Media media = 1;
-}
+// What?
+// message AddSharedMediaRequest {
+//     repeated Media media = 1;
+// }
 
-message AddSharedMediaResponse {}
+// message AddSharedMediaResponse {}
 
 message Post {
     uint64 id = 1;
@@ -107,18 +114,27 @@ message GetProfilePictureResponse {
 }
 
 message AddPostResponse {}
-message AddStoryResponse {}
 
 message AddPostRequest {
-    SharedMedia sharedMedia = 1;
-    uint64 userId = 2;
+    oneof data {
+        AddPostRequestInfo info = 1;
+        bytes image = 2;
+    }
 }
 
+message AddPostRequestInfo {
+    Media media = 1;
+    uint64 userId = 2;
+    string postsFolderId = 3;
+}
+
+message AddStoryResponse {}
 message AddStoryRequest {
     SharedMedia sharedMedia = 1;
     uint64 userId = 2;
     bool closeFriends = 3;
 }
+
 
 message AddProfilePictureRequest {
     oneof data {

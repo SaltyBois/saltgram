@@ -21,9 +21,10 @@ type GDrive struct {
 }
 
 var (
-	serviceCreds = internal.GetEnvOrDefault("SALT_GDRIVE_CREDS", "../../secrets/saltgram-service-key.json")
-	publicId     string
-	profilesId   string
+	serviceCreds  = internal.GetEnvOrDefault("SALT_GDRIVE_CREDS", "../../secrets/saltgram-service-key.json")
+	publicId      string
+	profilesId    string
+	publicBaseUrl = "https://drive.google.com/uc?export=view&id="
 )
 
 func NewGDrive(l *logrus.Logger) *GDrive {
@@ -125,7 +126,7 @@ func (g *GDrive) UploadProfilePicture(profileFolderId string, data io.Reader) (s
 		profileImgId = profile.Id
 	} else {
 		f := &drive.File{
-			Name: profileImg[0].Name,
+			Name:    profileImg[0].Name,
 			Parents: profileImg[0].Parents,
 		}
 		profile, err := g.s.Files.Update(profileImg[0].Id, f).Media(data).Do()
@@ -135,7 +136,16 @@ func (g *GDrive) UploadProfilePicture(profileFolderId string, data io.Reader) (s
 		}
 		profileImgId = profile.Id
 	}
-	return "https://drive.google.com/uc?export=view&id=" + profileImgId, nil
+	return publicBaseUrl + profileImgId, nil
+}
+
+func (g *GDrive) UploadPost(postsFolderId, filename string, data io.Reader) (string, error) {
+	post, err := g.CreateFile(filename, []string{postsFolderId}, data, true)
+	if err != nil {
+		g.l.Errorf("failed uploading post: %v", err)
+		return "", err
+	}
+	return publicBaseUrl + post.Id, nil
 }
 
 func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*drive.File, error) {
@@ -177,8 +187,8 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isPublic bool) (*drive.File, error) {
 
 	f := &drive.File{
-		Name:     name,
-		Parents:  parentIds,
+		Name:    name,
+		Parents: parentIds,
 	}
 	createdFile, err := g.s.Files.Create(f).Media(data).Do()
 	if err != nil {

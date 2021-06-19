@@ -8,12 +8,13 @@ import (
 
 type Media struct {
 	data.Identifiable
-	SharedMediaID uint64   `json:"sharedMediaId"`
+	SharedMediaID uint64   `json:"sharedMediaId" gorm:"type:numeric"`
 	Filename      string   `json:"filename" validate:"required"`
 	Tags          []Tag    `gorm:"many2many:media_tags" json:"tags" validate:"required"`
 	Description   string   `json:"description" validate:"required"`
 	AddedOn       string   `json:"addedOn"`
 	Location      Location `gorm:"embedded"`
+	URL           string   `json:"url"`
 }
 
 type Tag struct {
@@ -28,17 +29,17 @@ type SharedMedia struct {
 
 type Story struct {
 	data.Identifiable
-	UserID        uint64      `json:"userId"`
+	UserID        uint64      `json:"userId" gorm:"type:numeric"`
 	SharedMedia   SharedMedia `json:"sharedMedia"`
-	SharedMediaID uint64      `json:"sharedMediaId"`
+	SharedMediaID uint64      `json:"sharedMediaId" gorm:"type:numeric"`
 	CloseFriends  bool        `json:"closeFriends"`
 }
 
 type Post struct {
 	data.Identifiable
-	UserID        uint64      `json:"userId"`
+	UserID        uint64      `json:"userId" gorm:"type:numeric"`
 	SharedMedia   SharedMedia `validate:"required"`
-	SharedMediaID uint64      `json:"sharedMediaId"`
+	SharedMediaID uint64      `json:"sharedMediaId" gorm:"type:numeric"`
 }
 
 type ProfilePicture struct {
@@ -53,8 +54,26 @@ func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
 	return &sharedMedia, err
 }
 
+func (db *DBConn) AddMediaToSharedMedia(sharedMediaId uint64, media *Media) error {
+	sm, err := db.GetSharedMedia(sharedMediaId)
+	if err != nil {
+		return err
+	}
+	sm.Media = append(sm.Media, media)
+	return db.DB.Save(sm).Error
+}
+
 func (db *DBConn) AddSharedMedia(s *SharedMedia) error {
 	return db.DB.Create(s).Error
+}
+
+func (db *DBConn) GetSharedMedia(id uint64) (*SharedMedia, error) {
+	sm := &SharedMedia{}
+	res := db.DB.Preload("Media").First(sm, id)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return sm, nil
 }
 
 func (db *DBConn) GetStoryByUser(id uint64) (*[]Story, error) {
@@ -77,6 +96,7 @@ func (db *DBConn) AddPost(p *Post) error {
 }
 
 var ErrProfilePictureNotFound = fmt.Errorf("profile picture not found")
+
 func (db *DBConn) GetProfilePictureByUser(id uint64) (*ProfilePicture, error) {
 	post := ProfilePicture{}
 	strId := strconv.FormatUint(id, 10)
@@ -99,7 +119,7 @@ func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
 		return err
 	}
 	oldPP.URL = pp.URL
-	return db.DB.Save(&oldPP).Error
+	return db.DB.Save(oldPP).Error
 }
 
 func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {

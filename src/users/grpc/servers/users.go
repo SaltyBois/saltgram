@@ -54,7 +54,7 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 	}
 
 	return &prusers.GetByUsernameResponse{
-		Id: 			user.ID,
+		Id:             user.ID,
 		Email:          user.Email,
 		FullName:       user.FullName,
 		Username:       user.Username,
@@ -136,18 +136,18 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 	}
 
 	profile := data.Profile{
-		Username:       r.Username,
-		UserID: 		user.ID,
-		Taggable:       false,
-		Public:         false,
-		Description:    r.Description,
-		PhoneNumber:    r.PhoneNumber,
-		Gender:         r.Gender,
-		DateOfBirth:    time.Unix(r.DateOfBirth, 0),
-		WebSite:        r.WebSite,
-		PrivateProfile: r.PrivateProfile,
+		Username:        r.Username,
+		UserID:          user.ID,
+		Taggable:        false,
+		Public:          false,
+		Description:     r.Description,
+		PhoneNumber:     r.PhoneNumber,
+		Gender:          r.Gender,
+		DateOfBirth:     time.Unix(r.DateOfBirth, 0),
+		WebSite:         r.WebSite,
+		PrivateProfile:  r.PrivateProfile,
 		ProfileFolderId: resp.ProfileFolderId,
-		PostsFolderId: resp.PostsFolderId,
+		PostsFolderId:   resp.PostsFolderId,
 		StoriesFolderId: resp.StoryFolderId,
 	}
 
@@ -232,21 +232,21 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 	}
 
 	return &prusers.ProfileResponse{
-		Username:    profile.Username,
-		Followers:   followers,
-		Following:   following,
-		FullName:    user.FullName,
-		Description: profile.Description,
-		IsFollowing: isFollowing,
-		IsPublic:    profile.Public,
-		PhoneNumber: profile.PhoneNumber,
-		Gender:      profile.Gender,
-		DateOfBirth: date,
-		WebSite:     profile.WebSite,
+		Username:        profile.Username,
+		Followers:       followers,
+		Following:       following,
+		FullName:        user.FullName,
+		Description:     profile.Description,
+		IsFollowing:     isFollowing,
+		IsPublic:        profile.Public,
+		PhoneNumber:     profile.PhoneNumber,
+		Gender:          profile.Gender,
+		DateOfBirth:     date,
+		WebSite:         profile.WebSite,
 		ProfileFolderId: profile.ProfileFolderId,
-		PostsFolderId: profile.PostsFolderId,
+		PostsFolderId:   profile.PostsFolderId,
 		StoriesFolderId: profile.StoriesFolderId,
-		UserId: profile.UserID,
+		UserId:          profile.UserID,
 	}, nil
 }
 

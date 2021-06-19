@@ -24,19 +24,47 @@
           style="display:none"
           ref="fileInput"
           />  
-          <!-- <v-btn @click="uploadFiles">Add</v-btn> -->
-          <div class="add-thumbnail" @click="uploadFiles">
+          <div class="add-thumbnail" @click="selectFiles">
             +
           </div>
         </div>
       </div>
       <div class="post-form-body-right-side">
         <h2>Upload info</h2>
-        <v-textarea no-resize outlined label="Add a description" dense hide-details style="flex: 0 1 auto"/>
-        <v-text-field outlined label="Add location" dense hide-details style="flex: 0 1 auto"/>
-        <v-text-field outlined label="Tag people" dense hide-details style="flex: 0 1 auto"/>
+        <v-textarea
+        v-model="description"
+        no-resize
+        outlined
+        label="Add a description"
+        dense
+        hide-details
+        style="flex: 0 1 auto"/>
+        <v-text-field
+        
+        outlined
+        label="TODO Add location"
+        dense
+        hide-details
+        style="flex: 0 1 auto"/>
+        <v-combobox
+        v-model="tags"
+        chips
+        clearable
+        label="Tags"
+        multiple
+        append-icon=""
+        solo>
+          <template v-slot:selection="{ attrs, item }">
+              <v-chip
+              v-bind="attrs"
+              close
+              @click:close="removeTag(item)">
+                {{item}}
+              </v-chip>
+          </template>
+        </v-combobox>
         <v-spacer></v-spacer>
-        <v-btn color="accent" :disabled="!images.length">Upload</v-btn>
+        <v-btn color="accent" :disabled="!images.length" @click="uploadFiles">Upload</v-btn>
       </div>
     </div>
   </div>
@@ -48,13 +76,47 @@ export default {
   name: "PostForm",
   data: function () {
     return {
+      description: "",
+      location: {
+				country: "RS",
+				state:   "Serbia",
+				zipCode: "21000",
+				street:  "Balzakova 69",
+      },
+      tags: [],
       images: [],
       imageUrls: [],
 
     }
   },
   methods: {
+
     uploadFiles: function() {
+      let data = new FormData();
+      this.images.forEach(img => {
+        data.append('posts', img);
+      });
+      this.tags.forEach(tag => {
+        data.append('tags', tag);
+      });
+      data.append('description', this.description)
+      data.append('location', JSON.stringify(this.location))
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          this.axios.post('content/post', data, config)
+            .then(r => console.log(r))
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
+    },
+
+    selectFiles: function() {
       this.$refs.fileInput.$refs.input.click();
     },
 

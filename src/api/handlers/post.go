@@ -294,118 +294,89 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(res, w)
 }
 
-func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
+// What?
+// func (c *Content) AddSharedMedia(w http.ResponseWriter, r *http.Request) {
 
-	jws, err := getUserJWS(r)
-	if err != nil {
-		c.l.Errorf("JWS not found: %v\n", err)
-		http.Error(w, "JWS not found", http.StatusBadRequest)
-		return
-	}
+// 	jws, err := getUserJWS(r)
+// 	if err != nil {
+// 		c.l.Errorf("JWS not found: %v\n", err)
+// 		http.Error(w, "JWS not found", http.StatusBadRequest)
+// 		return
+// 	}
 
-	token, err := jwt.ParseWithClaims(
-		jws,
-		&saltdata.AccessClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-		},
-	)
+// 	token, err := jwt.ParseWithClaims(
+// 		jws,
+// 		&saltdata.AccessClaims{},
+// 		func(t *jwt.Token) (interface{}, error) {
+// 			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+// 		},
+// 	)
 
-	if err != nil {
-		c.l.Errorf("failure parsing claims: %v\n", err)
-		http.Error(w, "Error parsing claims", http.StatusBadRequest)
-		return
-	}
+// 	if err != nil {
+// 		c.l.Errorf("failure parsing claims: %v\n", err)
+// 		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+// 		return
+// 	}
 
-	claims, ok := token.Claims.(*saltdata.AccessClaims)
+// 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
-	if !ok {
-		c.l.Error("failed to parse claims")
-		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
+// 	if !ok {
+// 		c.l.Error("failed to parse claims")
+// 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+// 		return
+// 	}
 
-	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
-	if err != nil {
-		c.l.Errorf("failed fetching user: %v\n", err)
-		http.Error(w, "User not found", http.StatusNotFound)
-		return
-	}
+// 	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+// 	if err != nil {
+// 		c.l.Errorf("failed fetching user: %v\n", err)
+// 		http.Error(w, "User not found", http.StatusNotFound)
+// 		return
+// 	}
 
-	dto := saltdata.SharedMediaDTO{}
-	err = saltdata.FromJSON(&dto, r.Body)
-	if err != nil {
-		c.l.Errorf("failure adding shared media: %v\n", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
+// 	dto := saltdata.SharedMediaDTO{}
+// 	err = saltdata.FromJSON(&dto, r.Body)
+// 	if err != nil {
+// 		c.l.Errorf("failure adding shared media: %v\n", err)
+// 		http.Error(w, "Bad request", http.StatusBadRequest)
+// 		return
+// 	}
 
-	media := []*prcontent.Media{}
-	for _, m := range dto.Media {
-		tags := []*prcontent.Tag{}
-		for _, t := range m.Tags {
-			tags = append(tags, &prcontent.Tag{
-				Value: t.Value,
-				Id:    t.ID,
-			})
-		}
-		media = append(media, &prcontent.Media{
-			UserId:      user.Id,
-			Filename:    m.Filename,
-			Tags:        tags,
-			Description: m.Description,
-			Location: &prcontent.Location{
-				Country: m.Location.Country,
-				State:   m.Location.State,
-				ZipCode: m.Location.ZipCode,
-				Street:  m.Location.Street,
-			},
-			AddedOn: m.AddedOn,
-		})
-	}
+// 	media := []*prcontent.Media{}
+// 	for _, m := range dto.Media {
+// 		tags := []*prcontent.Tag{}
+// 		for _, t := range m.Tags {
+// 			tags = append(tags, &prcontent.Tag{
+// 				Value: t.Value,
+// 				Id:    t.ID,
+// 			})
+// 		}
+// 		media = append(media, &prcontent.Media{
+// 			UserId:      user.Id,
+// 			Filename:    m.Filename,
+// 			Tags:        tags,
+// 			Description: m.Description,
+// 			Location: &prcontent.Location{
+// 				Country: m.Location.Country,
+// 				State:   m.Location.State,
+// 				ZipCode: m.Location.ZipCode,
+// 				Street:  m.Location.Street,
+// 			},
+// 			AddedOn: m.AddedOn,
+// 		})
+// 	}
 
-	_, err = c.cc.AddSharedMedia(context.Background(), &prcontent.AddSharedMediaRequest{Media: media})
+// 	_, err = c.cc.AddSharedMedia(context.Background(), &prcontent.AddSharedMediaRequest{Media: media})
 
-	if err != nil {
-		c.l.Errorf("failed to add shared media: %v\n", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-}
+// 	if err != nil {
+// 		c.l.Errorf("failed to add shared media: %v\n", err)
+// 		http.Error(w, "Bad request", http.StatusBadRequest)
+// 		return
+// 	}
+// }
 
 func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 
-	jws, err := getUserJWS(r)
-	if err != nil {
-		c.l.Println("[ERROR] JWS not found")
-		http.Error(w, "JWS not found", http.StatusBadRequest)
-		return
-	}
-
-	token, err := jwt.ParseWithClaims(
-		jws,
-		&saltdata.AccessClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-		},
-	)
-
-	if err != nil {
-		c.l.Printf("[ERROR] parsing claims: %v", err)
-		http.Error(w, "Error parsing claims", http.StatusBadRequest)
-		return
-	}
-
-	claims, ok := token.Claims.(*saltdata.AccessClaims)
-
-	if !ok {
-		c.l.Println("[ERROR] unable to parse claims")
-		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
-
-	profile, err := c.uc.GetProfileByUsername(context.Background(),&prusers.ProfileRequest{Username: claims.Username, User: claims.Username})
-	
+	profile, err := getProfileByJWS(r, c.uc)
 	if err != nil {
 		c.l.Errorf("failed fetching user: %v", err)
 		http.Error(w, "User not found", http.StatusNotFound)
@@ -440,7 +411,7 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 
 	err = stream.Send(&prcontent.AddProfilePictureRequest{
 		Data: &prcontent.AddProfilePictureRequest_Info{Info: &prcontent.AddProfilePictureInfo{
-			UserId: profile.UserId,
+			UserId:          profile.UserId,
 			ProfileFolderId: profile.ProfileFolderId,
 		}},
 	})
@@ -470,84 +441,114 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 
 func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
-	jws, err := getUserJWS(r)
-	if err != nil {
-		c.l.Errorf("JWS not found: %v\n", err)
-		http.Error(w, "JWS not found", http.StatusBadRequest)
-		return
-	}
-
-	token, err := jwt.ParseWithClaims(
-		jws,
-		&saltdata.AccessClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-		},
-	)
-
-	if err != nil {
-		c.l.Errorf("failure parsing claims: %v\n", err)
-		http.Error(w, "Error parsing claims", http.StatusBadRequest)
-		return
-	}
-
-	claims, ok := token.Claims.(*saltdata.AccessClaims)
-
-	if !ok {
-		c.l.Error("failed to parse claims")
-		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
-
-	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	profile, err := getProfileByJWS(r, c.uc)
 	if err != nil {
 		c.l.Errorf("failed fetching user: %v\n", err)
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	dto := saltdata.PostDTO{}
-	err = saltdata.FromJSON(&dto, r.Body)
-	if err != nil {
-		c.l.Errorf("failure adding post: %v\n", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
+	r.ParseMultipartForm(10 * 10 << 20) // Max 10 * 10MB
+	formdata := r.MultipartForm
+	files := formdata.File["posts"]
+	if len(files) == 0 {
+		c.l.Error("empty files form")
+		http.Error(w, "Empty files form", http.StatusBadRequest)
 		return
 	}
 
-	media := []*prcontent.Media{}
-	for _, m := range dto.SharedMedia.Media {
-		tags := []*prcontent.Tag{}
-		for _, t := range m.Tags {
-			tags = append(tags, &prcontent.Tag{
-				Value: t.Value,
-				Id:    t.ID,
-			})
+	// TODO(Jovan): Tag value as ID or predefined tags
+	tags := []*prcontent.Tag{}
+	// TODO(Jovan): Pass location as object
+	// location := r.PostForm["location"]
+	description := ""
+	if len(r.PostForm["description"]) > 0 {
+		description = r.PostForm["description"][0]
+	}
+
+	// NOTE(Jovan): default
+	location := &prcontent.Location{
+		Country: "RS",
+		State:   "Serbia",
+		ZipCode: "21000",
+		Street:  "Balzakova 69",
+	}
+
+	if len(r.PostForm["location"]) > 0 {
+		err = json.Unmarshal([]byte(r.PostForm["location"][0]), &location)
+		if err != nil {
+			c.l.Errorf("failed to unmarshal location: %v", err)
+			http.Error(w, "Failed to parse location", http.StatusBadRequest)
+			return
 		}
-		media = append(media, &prcontent.Media{
-			UserId:      user.Id,
-			Filename:    m.Filename,
-			Tags:        tags,
-			Description: m.Description,
-			Location: &prcontent.Location{
-				Country: m.Location.Country,
-				State:   m.Location.State,
-				ZipCode: m.Location.ZipCode,
-				Street:  m.Location.Street,
-			},
-			AddedOn: m.AddedOn,
-		})
-	}
-	sharedMedia := &prcontent.SharedMedia{
-		Media: media,
 	}
 
-	_, err = c.cc.AddPost(context.Background(), &prcontent.AddPostRequest{SharedMedia: sharedMedia, UserId: user.Id})
-
+	resp, err := c.cc.CreateSharedMedia(context.Background(), &prcontent.CreateSharedMediaRequest{})
 	if err != nil {
-		c.l.Errorf("failed to add post: %v\n", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		c.l.Errorf("failed to create shared media: %v", err)
+		http.Error(w, "Failed to create shared media", http.StatusInternalServerError)
 		return
 	}
+
+	for _, f := range files {
+		media := &prcontent.Media{
+			UserId:        profile.UserId,
+			Filename:      f.Filename,
+			Tags:          tags,
+			Description:   description,
+			Location:      location,
+			AddedOn:       time.Now().String(),
+			SharedMediaId: resp.SharedMediaId,
+		}
+		stream, err := c.cc.AddPost(context.Background())
+		if err != nil {
+			c.l.Errorf("failed to add post: %v", err)
+			http.Error(w, "Failed to add post", http.StatusInternalServerError)
+			return
+		}
+
+		err = stream.Send(&prcontent.AddPostRequest{Data: &prcontent.AddPostRequest_Info{
+			Info: &prcontent.AddPostRequestInfo{
+				Media:         media,
+				UserId:        profile.UserId,
+				PostsFolderId: profile.ProfileFolderId,
+			},
+		}})
+		if err != nil {
+			c.l.Errorf("failed to send post meta: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		file, err := f.Open()
+		if err != nil {
+			c.l.Errorf("failed to open file: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		imgBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			c.l.Errorf("failed to read file bytes: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		err = stream.Send(&prcontent.AddPostRequest{Data: &prcontent.AddPostRequest_Image{
+			Image: imgBytes,
+		}})
+
+		if err != nil {
+			c.l.Errorf("failed to send image data: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = stream.CloseAndRecv()
+		if err != nil {
+			c.l.Errorf("failed to close and recieve: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Write([]byte("Added"))
 }
 
 func (c *Content) AddComment(w http.ResponseWriter, r *http.Request) {

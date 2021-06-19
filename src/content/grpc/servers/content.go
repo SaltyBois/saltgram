@@ -28,6 +28,16 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
+func (c *Content) CreateSharedMedia(ctx context.Context, r *prcontent.CreateSharedMediaRequest) (*prcontent.CreateSharedMediaResponse, error) {
+	sharedMedia := &data.SharedMedia{}
+	err := c.db.AddSharedMedia(sharedMedia)
+	if err != nil {
+		c.l.Errorf("failed to create shared media: %v", err)
+		return &prcontent.CreateSharedMediaResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prcontent.CreateSharedMediaResponse{SharedMediaId: sharedMedia.ID}, nil
+}
+
 func (c *Content) CreateUserFolder(ctx context.Context, r *prcontent.CreateUserFolderRequest) (*prcontent.CreateUserFolderResponse, error) {
 	profile, posts, stories, err := c.g.CreateUserFolder(r.UserId)
 	if err != nil {
@@ -36,8 +46,8 @@ func (c *Content) CreateUserFolder(ctx context.Context, r *prcontent.CreateUserF
 	}
 	return &prcontent.CreateUserFolderResponse{
 		ProfileFolderId: profile,
-		PostsFolderId: posts,
-		StoryFolderId: stories,
+		PostsFolderId:   posts,
+		StoryFolderId:   stories,
 	}, nil
 }
 
@@ -76,10 +86,10 @@ func (c *Content) GetSharedMedia(r *prcontent.SharedMediaRequest, stream prconte
 func (c *Content) GetProfilePicture(ctx context.Context, r *prcontent.GetProfilePictureRequest) (*prcontent.GetProfilePictureResponse, error) {
 	profilePicture, err := c.db.GetProfilePictureByUser(r.UserId)
 	if err != nil {
-		return &prcontent.GetProfilePictureResponse{ Url: "" }, status.Error(codes.InvalidArgument, "Bad request")
+		return &prcontent.GetProfilePictureResponse{Url: ""}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
-	return &prcontent.GetProfilePictureResponse{ Url: profilePicture.URL }, nil
+	return &prcontent.GetProfilePictureResponse{Url: profilePicture.URL}, nil
 }
 
 func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserServer) error {
@@ -211,67 +221,115 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 	return err
 }
 
-func (c *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {
+// What?
+// func (c *Content) AddSharedMedia(ctx context.Context, r *prcontent.AddSharedMediaRequest) (*prcontent.AddSharedMediaResponse, error) {
 
-	media := []*data.Media{}
-	for _, m := range r.Media {
-		media = append(media, &data.Media{
-			Filename:    m.Filename,
-			Tags:        []data.Tag{}, // TODO
-			Description: m.Description,
-			Location: data.Location{
-				Country: m.Location.Country,
-				State:   m.Location.State,
-				ZipCode: m.Location.ZipCode,
-				Street:  m.Location.Street,
-			},
-			AddedOn: m.AddedOn,
-		})
-	}
-	sharedMedia := data.SharedMedia{
-		Media: media,
-	}
+// 	media := []*data.Media{}
+// 	for _, m := range r.Media {
+// 		media = append(media, &data.Media{
+// 			Filename:    m.Filename,
+// 			Tags:        []data.Tag{}, // TODO
+// 			Description: m.Description,
+// 			Location: data.Location{
+// 				Country: m.Location.Country,
+// 				State:   m.Location.State,
+// 				ZipCode: m.Location.ZipCode,
+// 				Street:  m.Location.Street,
+// 			},
+// 			AddedOn: m.AddedOn,
+// 		})
+// 	}
+// 	sharedMedia := data.SharedMedia{
+// 		Media: media,
+// 	}
 
-	err := c.db.AddSharedMedia(&sharedMedia)
+// 	err := c.db.AddSharedMedia(&sharedMedia)
+// 	if err != nil {
+// 		c.l.Errorf("failure adding user: %v\n", err)
+// 		return &prcontent.AddSharedMediaResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+// 	}
+
+// 	return &prcontent.AddSharedMediaResponse{}, nil
+// }
+
+func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
+	r, err := stream.Recv()
 	if err != nil {
-		c.l.Errorf("failure adding user: %v\n", err)
-		return &prcontent.AddSharedMediaResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		c.l.Errorf("failed to recieve profile metadata: %v", err)
 	}
 
-	return &prcontent.AddSharedMediaResponse{}, nil
-}
-
-func (u *Content) AddPost(ctx context.Context, r *prcontent.AddPostRequest) (*prcontent.AddPostResponse, error) {
-
-	media := []*data.Media{}
-	for _, m := range r.SharedMedia.Media {
-		media = append(media, &data.Media{
-			Filename:    m.Filename,
-			Tags:        []data.Tag{},
-			Description: m.Description,
-			Location: data.Location{
-				Country: m.Location.Country,
-				State:   m.Location.State,
-				ZipCode: m.Location.ZipCode,
-				Street:  m.Location.Street,
-			},
-			AddedOn: m.AddedOn,
+	tags := []data.Tag{}
+	for _, tag := range r.GetInfo().Media.Tags {
+		tags = append(tags, data.Tag{
+			Value: tag.Value,
 		})
 	}
-	post := data.Post{
-		SharedMedia: data.SharedMedia{
-			Media: media,
+
+	location := r.GetInfo().Media.Location
+
+	media := &data.Media{
+		SharedMediaID: r.GetInfo().Media.SharedMediaId,
+		Filename:      r.GetInfo().Media.Filename,
+		Tags:          tags,
+		Description:   r.GetInfo().Media.Description,
+		Location: data.Location{
+			Country: location.Country,
+			State:   location.State,
+			ZipCode: location.ZipCode,
+			Street:  location.Street,
 		},
-		UserID: r.UserId,
+		AddedOn: r.GetInfo().Media.AddedOn,
 	}
 
-	err := u.db.AddPost(&post)
+	post := data.Post{
+		UserID:        r.GetInfo().UserId,
+		SharedMediaID: r.GetInfo().Media.SharedMediaId,
+	}
+
+	err = c.db.AddPost(&post)
 	if err != nil {
-		u.l.Errorf("failure adding post: %v\n", err)
-		return &prcontent.AddPostResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+		c.l.Errorf("failure adding post: %v\n", err)
+		return status.Error(codes.Internal, "Internal error")
 	}
 
-	return &prcontent.AddPostResponse{}, nil
+	imageData := bytes.Buffer{}
+	for {
+		chunk, err := stream.Recv()
+		if err == io.EOF {
+			c.l.Info("profile image received")
+			break
+		}
+		if err != nil {
+			c.l.Errorf("error while receiving image data: %v", err)
+			return status.Error(codes.InvalidArgument, "Bad request")
+		}
+		// TODO(Jovan): Prevent large uploads?
+		_, err = imageData.Write(chunk.GetImage())
+		if err != nil {
+			c.l.Errorf("error appending image chunk data: %v", err)
+			return status.Error(codes.Internal, "Internal server error")
+		}
+	}
+
+	url, err := c.g.UploadPost(r.GetInfo().PostsFolderId, media.Filename, &imageData)
+	if err != nil {
+		c.l.Errorf("failure to upload post: %v", err)
+		return status.Error(codes.Internal, "Internal error")
+	}
+
+	media.URL = url
+	err = c.db.AddMediaToSharedMedia(r.GetInfo().Media.SharedMediaId, media)
+	if err != nil {
+		c.l.Errorf("failed to add media to shared media: %v", err)
+		return status.Error(codes.Internal, "Internal error")
+	}
+
+	err = stream.SendAndClose(&prcontent.AddPostResponse{})
+	if err != nil {
+		c.l.Errorf("failure to send and close: %v", err)
+		return status.Error(codes.Internal, "Internal error")
+	}
+	return nil
 }
 
 func (c *Content) AddComment(ctx context.Context, r *prcontent.AddCommentRequest) (*prcontent.AddCommentResponse, error) {
