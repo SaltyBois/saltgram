@@ -23,9 +23,9 @@
              :src="[this.reportData.reportedMedia]"/>
       <v-textarea no-resize height="150px" outlined style="width: 90%" readonly v-model="reportData.description"/>
       <div style="display: inline-flex; text-align: -webkit-center; width: 100%;">
-        <v-btn class="sanction-button mx-2" width="130px" style="font-size: 12px; letter-spacing: 0" @click="removeContent">Remove content</v-btn>
-        <v-btn class="sanction-button" width="130px" style="font-size: 12px; letter-spacing: 0" @click="removeUser">Remove user</v-btn>
-        <v-btn class="reject-button mx-2" width="130px" style="font-size: 12px; letter-spacing: 0" @click="rejectReport">Reject report</v-btn>
+        <v-btn class="sanction-button mx-2" width="30%" style="font-size: 12px; letter-spacing: 0" @click="removeContent">Remove content</v-btn>
+        <v-btn class="sanction-button" width="30%" style="font-size: 12px; letter-spacing: 0" @click="removeUser">Remove user</v-btn>
+        <v-btn class="reject-button mx-2" width="30%" style="font-size: 12px; letter-spacing: 0" @click="rejectReport">Reject report</v-btn>
       </div>
     </div>
 
@@ -45,6 +45,7 @@ export default {
         profilePictureAddress: 'https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg',
         reportedMedia: 'https://static.onecms.io/wp-content/uploads/sites/20/2018/05/21042210_264995290674140_8840525631411191808_n.jpg',
         typeMedia: 'image',
+        description: 'Report description'
       },
       showContent: false,
     }
@@ -81,7 +82,6 @@ export default {
 }
 
 .reject-button, .sanction-button  {
-  margin: 10px 0;
   width: 100px;
   height: 50px;
   background-color: transparent;
