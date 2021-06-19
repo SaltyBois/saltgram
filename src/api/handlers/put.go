@@ -239,10 +239,10 @@ func (a *Admin) ReviewVerificationRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	_, err = a.ac.ReviewVerificatonReq(context.Background(), &pradmin.ReviewVerificatonRequest{Id: dto.Id, Status: dto.Status})
+	_, err = a.ac.ReviewVerificationReq(context.Background(), &pradmin.ReviewVerificatonRequest{Id: dto.Id, Status: dto.Status})
 
 	if err != nil {
-		a.l.Errorf("failed to add verification request: %v\n", err)
+		a.l.Errorf("failed to review verification request: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}

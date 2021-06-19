@@ -51,7 +51,7 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 	}
 
 	return &prusers.GetByUsernameResponse{
-		Id: 			user.ID,
+		Id:             user.ID,
 		Email:          user.Email,
 		FullName:       user.FullName,
 		Username:       user.Username,
@@ -127,7 +127,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 
 	profile := data.Profile{
 		Username:       r.Username,
-		UserID: 		user.ID,
+		UserID:         user.ID,
 		Taggable:       false,
 		Public:         false,
 		Description:    r.Description,
@@ -337,4 +337,22 @@ func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*p
 
 	return &prusers.UpdateResponse{}, nil
 
+}
+
+func (u *Users) GetByUserId(ctx context.Context, r *prusers.GetByIdRequest) (*prusers.GetByIdResponse, error) {
+	user, err := u.db.GetUserById(r.Id)
+	if err != nil {
+		u.l.Printf("[ERROR] username: %v\n", r.Id)
+		u.l.Errorf("failure getting user by id: %v\n", err)
+		return &prusers.GetByIdResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prusers.GetByIdResponse{
+		Id:             user.ID,
+		Email:          user.Email,
+		FullName:       user.FullName,
+		Username:       user.Username,
+		Role:           user.Role,
+		HashedPassword: user.HashedPassword,
+	}, nil
 }

@@ -46,5 +46,5 @@ func (db *DBConn) ConnectToDb() error {
 }
 
 func (db *DBConn) MigradeData() {
-
+	db.DB.AutoMigrate(&VerificationRequest{})
 }

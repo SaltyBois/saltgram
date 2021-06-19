@@ -19,8 +19,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminClient interface {
 	AddVerificationReq(ctx context.Context, in *AddVerificationRequest, opts ...grpc.CallOption) (*AddVerificationResponse, error)
-	GetPendingVerifications(ctx context.Context, in *GetVerificationRequest, opts ...grpc.CallOption) (Admin_GetPendingVerificationsClient, error)
-	ReviewVerificatonReq(ctx context.Context, in *ReviewVerificatonRequest, opts ...grpc.CallOption) (*ReviewVerificatonResponse, error)
+	GetPendingVerifications(ctx context.Context, in *GetVerificationRequest, opts ...grpc.CallOption) (*GetVerificationResponse, error)
+	ReviewVerificationReq(ctx context.Context, in *ReviewVerificatonRequest, opts ...grpc.CallOption) (*ReviewVerificatonResponse, error)
 	SendInappropriateContentReport(ctx context.Context, in *InappropriateContentReportRequest, opts ...grpc.CallOption) (*InappropriateContentReportResponse, error)
 }
 
@@ -41,41 +41,18 @@ func (c *adminClient) AddVerificationReq(ctx context.Context, in *AddVerificatio
 	return out, nil
 }
 
-func (c *adminClient) GetPendingVerifications(ctx context.Context, in *GetVerificationRequest, opts ...grpc.CallOption) (Admin_GetPendingVerificationsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Admin_ServiceDesc.Streams[0], "/Admin/GetPendingVerifications", opts...)
+func (c *adminClient) GetPendingVerifications(ctx context.Context, in *GetVerificationRequest, opts ...grpc.CallOption) (*GetVerificationResponse, error) {
+	out := new(GetVerificationResponse)
+	err := c.cc.Invoke(ctx, "/Admin/GetPendingVerifications", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &adminGetPendingVerificationsClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
 
-type Admin_GetPendingVerificationsClient interface {
-	Recv() (*GetVerificationResponse, error)
-	grpc.ClientStream
-}
-
-type adminGetPendingVerificationsClient struct {
-	grpc.ClientStream
-}
-
-func (x *adminGetPendingVerificationsClient) Recv() (*GetVerificationResponse, error) {
-	m := new(GetVerificationResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *adminClient) ReviewVerificatonReq(ctx context.Context, in *ReviewVerificatonRequest, opts ...grpc.CallOption) (*ReviewVerificatonResponse, error) {
+func (c *adminClient) ReviewVerificationReq(ctx context.Context, in *ReviewVerificatonRequest, opts ...grpc.CallOption) (*ReviewVerificatonResponse, error) {
 	out := new(ReviewVerificatonResponse)
-	err := c.cc.Invoke(ctx, "/Admin/ReviewVerificatonReq", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/Admin/ReviewVerificationReq", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +73,8 @@ func (c *adminClient) SendInappropriateContentReport(ctx context.Context, in *In
 // for forward compatibility
 type AdminServer interface {
 	AddVerificationReq(context.Context, *AddVerificationRequest) (*AddVerificationResponse, error)
-	GetPendingVerifications(*GetVerificationRequest, Admin_GetPendingVerificationsServer) error
-	ReviewVerificatonReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error)
+	GetPendingVerifications(context.Context, *GetVerificationRequest) (*GetVerificationResponse, error)
+	ReviewVerificationReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error)
 	SendInappropriateContentReport(context.Context, *InappropriateContentReportRequest) (*InappropriateContentReportResponse, error)
 	mustEmbedUnimplementedAdminServer()
 }
@@ -109,11 +86,11 @@ type UnimplementedAdminServer struct {
 func (UnimplementedAdminServer) AddVerificationReq(context.Context, *AddVerificationRequest) (*AddVerificationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddVerificationReq not implemented")
 }
-func (UnimplementedAdminServer) GetPendingVerifications(*GetVerificationRequest, Admin_GetPendingVerificationsServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetPendingVerifications not implemented")
+func (UnimplementedAdminServer) GetPendingVerifications(context.Context, *GetVerificationRequest) (*GetVerificationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPendingVerifications not implemented")
 }
-func (UnimplementedAdminServer) ReviewVerificatonReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReviewVerificatonReq not implemented")
+func (UnimplementedAdminServer) ReviewVerificationReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReviewVerificationReq not implemented")
 }
 func (UnimplementedAdminServer) SendInappropriateContentReport(context.Context, *InappropriateContentReportRequest) (*InappropriateContentReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendInappropriateContentReport not implemented")
@@ -149,41 +126,38 @@ func _Admin_AddVerificationReq_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Admin_GetPendingVerifications_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetVerificationRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _Admin_GetPendingVerifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVerificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(AdminServer).GetPendingVerifications(m, &adminGetPendingVerificationsServer{stream})
+	if interceptor == nil {
+		return srv.(AdminServer).GetPendingVerifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/GetPendingVerifications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).GetPendingVerifications(ctx, req.(*GetVerificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-type Admin_GetPendingVerificationsServer interface {
-	Send(*GetVerificationResponse) error
-	grpc.ServerStream
-}
-
-type adminGetPendingVerificationsServer struct {
-	grpc.ServerStream
-}
-
-func (x *adminGetPendingVerificationsServer) Send(m *GetVerificationResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _Admin_ReviewVerificatonReq_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Admin_ReviewVerificationReq_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReviewVerificatonRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServer).ReviewVerificatonReq(ctx, in)
+		return srv.(AdminServer).ReviewVerificationReq(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Admin/ReviewVerificatonReq",
+		FullMethod: "/Admin/ReviewVerificationReq",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServer).ReviewVerificatonReq(ctx, req.(*ReviewVerificatonRequest))
+		return srv.(AdminServer).ReviewVerificationReq(ctx, req.(*ReviewVerificatonRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -218,20 +192,18 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Admin_AddVerificationReq_Handler,
 		},
 		{
-			MethodName: "ReviewVerificatonReq",
-			Handler:    _Admin_ReviewVerificatonReq_Handler,
+			MethodName: "GetPendingVerifications",
+			Handler:    _Admin_GetPendingVerifications_Handler,
+		},
+		{
+			MethodName: "ReviewVerificationReq",
+			Handler:    _Admin_ReviewVerificationReq_Handler,
 		},
 		{
 			MethodName: "SendInappropriateContentReport",
 			Handler:    _Admin_SendInappropriateContentReport_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "GetPendingVerifications",
-			Handler:       _Admin_GetPendingVerifications_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "admin/admin.proto",
 }

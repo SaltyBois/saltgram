@@ -23,25 +23,23 @@ func NewAdmin(l *logrus.Logger, db *data.DBConn) *Admin {
 	}
 }
 
-func (a *Admin) GetPendingVerifications(r *pradmin.GetVerificationRequest, stream pradmin.Admin_GetPendingVerificationsServer) error {
+func (a *Admin) GetPendingVerifications(ctx context.Context, r *pradmin.GetVerificationRequest) (*pradmin.GetVerificationResponse, error) {
 	verificationRequests, err := a.db.GetPendingVerificationRequests()
 	if err != nil {
 		a.l.Errorf("failure getting verification requests: %v\n", err)
-		return err
+		return &pradmin.GetVerificationResponse{}, err
 	}
+	requests := []*pradmin.VerificationRequest{}
 	for _, vr := range *verificationRequests {
-		err = stream.Send(&pradmin.GetVerificationResponse{
+		requests = append(requests, &pradmin.VerificationRequest{
 			Id:       vr.ID,
 			FullName: vr.Fullname,
 			Category: vr.Category,
 			Url:      vr.URL,
+			UserId:   vr.UserID,
 		})
-		if err != nil {
-			a.l.Errorf("failure sending verification request response: %v\n", err)
-			return err
-		}
 	}
-	return nil
+	return &pradmin.GetVerificationResponse{VerificationRequest: requests}, nil
 }
 
 func (a *Admin) AddVerificationReq(ctx context.Context, r *pradmin.AddVerificationRequest) (*pradmin.AddVerificationResponse, error) {

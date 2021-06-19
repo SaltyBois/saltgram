@@ -6,10 +6,11 @@
     <div style="display: inline-flex; height: 90%; width: 100%">
       <div class="dropdown-list">
         <div class="inner-layout">
-          <div v-for="index in 15" :key="index">
+          <div v-for="index in pendingVerificationRequests" :key="index"
+            @click="selectedApplication(index)">
             <ProfessionalAccountApplication :username-prop="index.username"
                           :profile-picture-address-prop="index.profilePictureAddress"
-                          @click="selectedApplication(index)"/>
+                          />
             <v-divider/>
           </div>
         </div>
@@ -30,13 +31,41 @@ export default {
   components: { ProfessionalAccountApplication, ProfessionalAccountDetails },
   data: function () {
     return {
-
+      pendingVerificationRequests: [],
     }
   },
   methods: {
-    selectedApplication(applicationData) {
-      this.$refs.professionalAccountDetails.$data.applicationData = applicationData
-    }
+    /*applicationData: {
+        username: '{{USERNAME}}',
+        profilePictureAddress: 'https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg',
+        documentMedia: 'https://www.ozonpress.net/wp-content/uploads/2016/09/licna-karata.jpg',
+        fullName: 'Imen Prezimenovic',
+        accountType: 'Business'
+      },*/
+    selectedApplication(appData) {
+      this.$refs.professionalAccountDetails.$data.applicationData.username = appData.username;
+      console.log(this.$refs.professionalAccountDetails.$data.applicationData.username);
+      console.log(appData);
+      this.$refs.professionalAccountDetails.$data.applicationData.profilePictureAddress = appData.profilepicture;
+      this.$refs.professionalAccountDetails.$data.applicationData.documentMedia = appData.url;
+      this.$refs.professionalAccountDetails.$data.applicationData.fullName = appData.fullName;
+      this.$refs.professionalAccountDetails.$data.applicationData.accountType = appData.category;
+      this.$refs.professionalAccountDetails.$data.applicationData.userId = appData.userId;
+      this.$refs.professionalAccountDetails.$data.applicationData.requestId = appData.id;
+    },
+    getPendingVerificationRequests() {
+      this.axios.get("admin/verificationrequest")
+        .then(r => {
+          console.log(r);
+          this.pendingVerificationRequests = r.data;
+        } 
+        ).catch( err => {
+          console.log("Failed to get pending requests.", err);
+        })
+    },
+  },
+  mounted() {
+    this.getPendingVerificationRequests();
   }
 }
 </script>

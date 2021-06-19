@@ -35,17 +35,35 @@ export default {
         profilePictureAddress: 'https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg',
         documentMedia: 'https://www.ozonpress.net/wp-content/uploads/2016/09/licna-karata.jpg',
         fullName: 'Imen Prezimenovic',
-        accountType: 'Business'
+        accountType: 'Business',
+        userId: '',
+        requestId: '',
       },
       showContent: false,
     }
   },
   methods: {
     acceptApplication() {
-
+      let acceptrequest = {id: this.applicationData.requestId, status: 'ACCEPTED'}
+      this.axios.put("admin/verificationrequest", acceptrequest)
+        .then(r => {
+          console.log(r);
+          this.$router.go(0);
+        } 
+        ).catch( err => {
+          console.log("Failed to accept requests.", err);
+        })
     },
     rejectApplication() {
-
+      let rejectrequest = {id: this.applicationData.requestId, status: 'REJECTED'}
+      this.axios.put("admin/verificationrequest", rejectrequest)
+        .then(r => {
+          console.log(r);
+          this.$router.go(0);
+        } 
+        ).catch( err => {
+          console.log("Failed to reject requests.", err);
+        })
     }
   }
 }

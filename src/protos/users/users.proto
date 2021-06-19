@@ -19,6 +19,9 @@ service Users {
     rpc UnFollow(FollowRequest) returns (FollowRespose);
     rpc GetFollowers(FollowerRequest) returns(stream ProfileFollower);
     rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
+
+    rpc GetByUserId(GetByIdRequest) returns (GetByIdResponse);
+
 }
 
 message RoleRequest {
@@ -65,6 +68,19 @@ message GetByUsernameRequest {
 }
 
 message GetByUsernameResponse {
+    string email = 1;
+	string fullName = 2;
+	string username = 3;
+	string role = 4;
+    string hashedPassword = 5;
+    uint64 id = 6;
+}
+
+message GetByIdRequest {
+    uint64 id = 1;
+}
+
+message GetByIdResponse {
     string email = 1;
 	string fullName = 2;
 	string username = 3;

@@ -3,8 +3,8 @@ option go_package = "./admin/pradmin";
 
 service Admin {
     rpc AddVerificationReq(AddVerificationRequest) returns (AddVerificationResponse);
-    rpc GetPendingVerifications(GetVerificationRequest) returns (stream GetVerificationResponse);
-    rpc ReviewVerificatonReq(ReviewVerificatonRequest) returns (ReviewVerificatonResponse);
+    rpc GetPendingVerifications(GetVerificationRequest) returns (GetVerificationResponse);
+    rpc ReviewVerificationReq(ReviewVerificatonRequest) returns (ReviewVerificatonResponse);
     rpc SendInappropriateContentReport(InappropriateContentReportRequest) returns (InappropriateContentReportResponse);
 }
 
@@ -19,11 +19,18 @@ message AddVerificationResponse {}
 
 message GetVerificationRequest {}
 
-message GetVerificationResponse {
+message VerificationRequest{
     uint64 id = 1;
     string fullName = 2;
     string category = 3;
     string url = 4;
+    uint64 userId = 5;
+    string username = 6;
+    string profilePicture = 7;
+}
+
+message GetVerificationResponse {
+    repeated VerificationRequest verificationRequest = 1;
 }
 
 message ReviewVerificatonRequest {

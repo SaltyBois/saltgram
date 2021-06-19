@@ -9,10 +9,10 @@
     <div class="item-container ">
       <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
         <div style="width: 50%;">
-          <h3 style="margin-top: 14px;">Name</h3>
+          <h3 style="margin-top: 14px;">Full Name</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined value="Name and Lastname" style="width: 400px"/>
+          <v-text-field outlined value="Name and Lastname" v-model="fullName" style="width: 400px"/>
         </div>
       </div>
     </div>
@@ -22,7 +22,7 @@
           <h3 style="margin-top: 14px; ">Category</h3>
         </div>
         <div style="width: 50%;">
-          <v-select outlined :items="roles"  style="width: 400px"/>
+          <v-select outlined :items="roles" v-model="category" style="width: 400px"/>
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@
       </div>
     </div>
     <div class="item-container ">
-      <v-btn class="primary my-5">Send request</v-btn>
+      <v-btn class="primary my-5" @click="sendRequest()">Send request</v-btn>
     </div>
   </div>
 </template>
@@ -58,12 +58,14 @@ export default {
   components: {ImageMessage},
   data: function () {
     return {
-      roles : [ 'Influencer', 'Sports', 'New/Media', 'Business', 'Brand', 'Organization'],
+      roles : [ 'INFLUENCER', 'SPORTS', 'MEDIA', 'BUSINESS', 'BRAND', 'ORGANIZATION'],
       isUploadedContent: false,
       item: {
         image: ''
       },
-      showContent: false
+      showContent: false,
+      fullname: '',
+      category: '',
     }
   },
   methods: {
@@ -79,6 +81,17 @@ export default {
       console.log(files.length)
       this.item.image = URL.createObjectURL(files[0])
       this.isUploadedContent = true;
+    },
+    sendRequest() {
+      this.refreshToken(this.getAHeader())
+          .then(rr => {
+            this.$store.state.jws = rr.data;
+            let verificationReq = {/*fullname: this.fullname, category: this.category, url: */};
+            this.axios.post("admin/verificationrequest", verificationReq, {headers: this.getAHeader()})
+                .then(r =>{
+                  console.log(r);
+                });
+          }).catch(() => this.$router.push('/'));
     },
   }
 }

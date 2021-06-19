@@ -26,8 +26,8 @@ type VerificationRequest struct {
 	Fullname string `json:"fullname" validate:"required"`
 	URL      string `json:"url"`
 	UserID   uint64 `json:"userId"`
-	Category string `validate:"required"`
-	Status   string `validate:"required"`
+	Category string `json:"category" validate:"required"`
+	Status   string `json:"status" validate:"required"`
 }
 
 func (db *DBConn) AddVerificationRequest(verificationRequest *VerificationRequest) error {

@@ -411,24 +411,35 @@ func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request)
 
 func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) {
 
-	stream, err := a.ac.GetPendingVerifications(context.Background(), &pradmin.GetVerificationRequest{})
+	verificationRequests, err := a.ac.GetPendingVerifications(context.Background(), &pradmin.GetVerificationRequest{})
 	if err != nil {
 		a.l.Errorf("failed fetching pending verifications %v\n", err)
 		http.Error(w, "Pending verifications error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
-	for {
-		verificationRequest, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
+
+	requests := []*pradmin.VerificationRequest{}
+
+	for i := 0; i < len(verificationRequests.VerificationRequest); i++ {
+		vr := verificationRequests.VerificationRequest[i]
+
+		user, err := a.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: vr.UserId})
+
 		if err != nil {
-			a.l.Errorf("failed to fetch verification requests: %v\n", err)
-			http.Error(w, "Error couldn't fetch verification requests", http.StatusInternalServerError)
+			a.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(verificationRequest, w)
+
+		requests = append(requests, &pradmin.VerificationRequest{
+			Id:       vr.Id,
+			FullName: vr.FullName,
+			Category: vr.Category,
+			Url:      vr.Url,
+			UserId:   vr.UserId,
+			Username: user.Username,
+		})
 	}
-	w.Write([]byte("}"))
+
+	saltdata.ToJSON(&requests, w)
 }
