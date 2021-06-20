@@ -338,6 +338,28 @@ func (u *Users) GerFollowing(r *prusers.FollowerRequest, stream prusers.Users_Ge
 	return nil
 }
 
+func (u *Users) GetFollowRequests(r *prusers.Profile, stream prusers.Users_GetFollowRequestsServer) error {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+	profiles, err := data.GetFollowRequests(u.db, profile)
+	if err != nil {
+		return err
+	}
+	for _, profile_request := range profiles {
+		err = stream.Send(&prusers.FollowingRequest{
+			Username: profile_request.Username,
+			UserId:   profile_request.UserID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*prusers.UpdateResponse, error) {
 	user, err := u.db.GetUserByUsername(r.OldUsername)
 	if err != nil {
@@ -397,4 +419,30 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 
 	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil
 
+}
+
+func (u *Users) SetFollowRequestRespond(ctx context.Context, r *prusers.FollowRequestRespond) (*prusers.FollowRequestSet, error) {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.FollowRequestSet{}, err
+	}
+
+	profile_request, err := u.db.GetProfileByUsername(r.RequestUsername)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.FollowRequestSet{}, err
+	}
+
+	err = data.FollowRequestRespond(u.db, profile, profile_request, r.Accepted)
+	if err != nil {
+		u.l.Printf("[ERROR] Seting respond")
+		return &prusers.FollowRequestSet{}, err
+	}
+
+	if r.Accepted {
+		data.SetFollow(u.db, profile, profile_request)
+	}
+
+	return &prusers.FollowRequestSet{}, nil
 }

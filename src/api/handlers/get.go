@@ -231,6 +231,60 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(profiles, w)
 }
 
+func (u *Users) GetFollowingRequest(w http.ResponseWriter, r *http.Request) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("getting jws: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Errorf("parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Errorf("unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	stream, err := u.uc.GetFollowRequests(context.Background(), &prusers.Profile{Username: claims.Username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching follower request")
+		http.Error(w, "Follower request fetching error", http.StatusInternalServerError)
+		return
+	}
+
+	var profiles []*prusers.FollowingRequest
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching following", err)
+			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+			return
+		}
+		profiles = append(profiles, profile)
+	}
+	saltdata.ToJSON(profiles, w)
+
+}
+
 func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
 
 	jws, err := getUserJWS(r)
@@ -347,7 +401,6 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
-
 	if !ok {
 		u.l.Println("[ERROR] unable to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
@@ -371,17 +424,19 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < len(queryResults.SearchedUser); i++ {
 		su := queryResults.SearchedUser[i]
-		if su.Username == claims.Username {continue}
-		if i == MAX_NUMBER_OF_RESULTS {break}
+		if su.Username == claims.Username {
+			continue
+		}
+		if i == MAX_NUMBER_OF_RESULTS {
+			break
+		}
 		finalResult = append(finalResult, &prusers.SearchedUser{
-			Username: su.Username,
-			ProfilePictureAddress: su.ProfilePictureAddress} )
+			Username:              su.Username,
+			ProfilePictureAddress: su.ProfilePictureAddress})
 
 	}
 
 	err = saltdata.ToJSON(&finalResult, w)
-
-
 
 	if err != nil {
 		u.l.Println("[ERROR] Searching users failed")

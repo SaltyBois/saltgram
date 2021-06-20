@@ -835,3 +835,62 @@ func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Following %s"))
 
 }
+
+func (u *Users) FollowRespond(w http.ResponseWriter, r *http.Request) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("[ERROR] JWS not found")
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Printf("[ERROR] parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Println("[ERROR] unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	username := claims.Username
+
+	dto := saltdata.FollowRequestDOT{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.SetFollowRequestRespond(context.Background(), &prusers.FollowRequestRespond{
+		Username:        username,
+		RequestUsername: dto.RequestProfile,
+		Accepted:        dto.IsAccepted,
+	})
+	if err != nil {
+		u.l.Printf("[ERROR] follow request respond: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+}

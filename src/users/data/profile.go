@@ -8,9 +8,9 @@ import (
 type RequestStatus string
 
 const (
-	PENDING RequestStatus = "PENDING"
-	ACCEPTED
-	DENIED
+	PENDING  RequestStatus = "PENDING"
+	ACCEPTED RequestStatus = "ACCEPTED"
+	DENIED   RequestStatus = "DENIED"
 )
 
 type Profile struct {
@@ -154,4 +154,35 @@ func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
 		return nil, err
 	}
 	return following, nil
+}
+
+func GetFollowRequests(db *DBConn, profile *Profile) ([]Profile, error) {
+	var profiles []Profile
+	var ids []uint64
+	err := db.DB.Table("follow_requests").Select("request_id").Where("profile_id = ? AND request_status = ?", profile.ID, PENDING).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
+func FollowRequestRespond(db *DBConn, profile *Profile, profile_request *Profile, accepted bool) error {
+	fr := FollowRequest{}
+	err := db.DB.Where("profile_id = ? AND request_id = ?", profile.ID, profile_request.ID).First(&fr).Error
+	if err != nil {
+		return err
+	}
+	if accepted {
+		fr.RequestStatus = ACCEPTED
+	} else {
+		fr.RequestStatus = DENIED
+	}
+	return db.DB.Save(&fr).Error
 }

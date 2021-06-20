@@ -43,7 +43,7 @@
 
       <div class="notifications-body-div" v-else-if="NotificationCategory === 1">
 
-        <RequestProfile v-for="index in 5" :key="index"/>
+        <RequestProfile v-for="item in this.followingRequests" :key="item" :username-prop="item.username" v-on:reload-requests="getFollowRequests()"/>
 
       </div>
     </div>
@@ -66,12 +66,24 @@ export default {
   data: function () {
     return {
       privateProfile: false,
-      NotificationCategory: 0
+      NotificationCategory: 0,
+      followingRequests: [],
     }
   },
   methods: {
-
+    getFollowRequests: function() {
+      this.axios.get("users/follow/requests/", {headers: this.getAHeader()})
+      .then(r => {
+        this.followingRequests = r.data;
+        console.log(r.data);
+      }).catch(err => {
+        console.log(err);
+      })
+    },
   },
+  mounted() {
+    this.getFollowRequests();
+  }
 }
 </script>
 
