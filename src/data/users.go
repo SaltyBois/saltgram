@@ -7,7 +7,7 @@ import (
 )
 
 type UserDTO struct {
-    Id             string    `json:"id"`
+	Id             string    `json:"id"`
 	Email          string    `json:"email" validate:"required"`
 	FullName       string    `json:"fullName" validate:"required"`
 	Username       string    `json:"username" validate:"required"`

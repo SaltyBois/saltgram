@@ -8,6 +8,7 @@ import (
 	"saltgram/log"
 	"saltgram/pki"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
@@ -43,7 +44,14 @@ func main() {
 		l.L.Fatalf("failure dialing email: %v\n", err)
 	}
 	ec := premail.NewEmailClient(econn)
-	gUsersServer := servers.NewUsers(l.L, db, ac, ec)
+
+	cconn, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_CONTENT_ADDR", "localhost"), os.Getenv("SALT_CONTENT_PORT")))
+	if err != nil {
+		l.L.Fatalf("failure dialing content: %v", err)
+	}
+	cc := prcontent.NewContentClient(cconn)
+
+	gUsersServer := servers.NewUsers(l.L, db, ac, ec, cc)
 	grpcServer := s.NewServer()
 	prusers.RegisterUsersServer(grpcServer, gUsersServer)
 	reflection.Register(grpcServer)

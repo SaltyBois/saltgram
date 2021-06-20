@@ -11,19 +11,19 @@ const (
 
 type Reaction struct {
 	data.Identifiable
-	ReactionType ReactionType `json:"reactionType" validate:"required"`
-	UserID       uint64       `json:"userId"`
-	Post         Post         `json:"post"`
-	PostID       uint64       `json:"postId"`
+	ReactionType string `json:"reactionType" validate:"required"`
+	UserID       uint64 `json:"userId"`
+	Post         Post   `json:"post"`
+	PostID       uint64 `json:"postId"`
 }
 
 func (db *DBConn) AddReaction(reaction *Reaction) error {
 	return db.DB.Create(reaction).Error
 }
 
-func (db *DBConn) GetReactionByPostId(id uint64) (*Reaction, error) {
-	reaction := Reaction{}
-	err := db.DB.Where("post_id = ?", id).First(&reaction).Error
+func (db *DBConn) GetReactionByPostId(id uint64) (*[]Reaction, error) {
+	reaction := []Reaction{}
+	err := db.DB.Where("post_id = ?", id).Find(&reaction).Error
 	return &reaction, err
 }
 

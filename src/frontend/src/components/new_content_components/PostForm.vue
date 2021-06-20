@@ -1,95 +1,143 @@
 <template>
   <div class="main-div">
-    <div class="post-form-header">
-      <h2>Post Form</h2>
-    </div>
     <div class="post-form-body">
       <div class="pt-3 pl-3 post-form-body-left-side">
-        <div>
-          <v-btn class="primary"
-                 @click="$refs.file.click(); showProfileImageDialog = false">Upload Content</v-btn>
-          <v-btn class="error ml-3"
-                 v-if="isUploadedContent"
-                 @click="removeContent(item)">Remove content</v-btn>
-        </div>
-
-        <input type="file"
-               ref="file"
-               style="display: none"
-               @change="onSelectedFile($event)"
-               accept="image/*,video/*">
-
-        <div class="content-shape">
-          <ImageMessage v-if="showContent && typeContent === 'image'" :image-src="this.item.image" @toggle-image-message="showContent = false"/>
-          <v-img  class="content-item"
-                  v-if="isUploadedContent && typeContent === 'image'"
-                  :src="this.item.image"
-                  alt="Profile picture"
-                  @click="showContent = true"/>
-          <i class="fa fa-image no-content mt-10" v-if="!isUploadedContent"/>
-          <Media class="content-item"
-                 v-if="isUploadedContent && typeContent === 'video'"
-                 :kind="'video'"
-                 :autoplay="true"
-                 :controls="true"
-                 :loop="true"
-                 :style="{width: '500px'}"
-                 :src="[this.item.image]"/>
+        <h2>Add posts</h2>
+        <div class="thumbnails">
+          <div class="thumbnail"
+          v-for="img in imageUrls" :key="img">
+            <v-img :src="img" height="128px" max-width="128px"/>
+            <v-btn
+            fab
+            absolute
+            depressed
+            x-small
+            @click="removeImg(img)"
+            class="remove-btn">X</v-btn>
+          </div>
+          <v-file-input
+          v-model="images"
+          hide-input
+          multiple
+          prepend-icon="fa-plus-circle"
+          @change="refreshPreview"
+          style="display:none"
+          ref="fileInput"
+          />  
+          <div class="add-thumbnail" @click="selectFiles">
+            +
+          </div>
         </div>
       </div>
       <div class="post-form-body-right-side">
-        <div>
-        </div>
-        <div style="height: 100%; padding: 10px 5px">
-          <v-textarea no-resize outlined label="Add a description" style="width: 100%; min-height: auto; padding: 5px;"/>
-          <v-text-field outlined label="Add location" style="width: 100%; min-height: auto; padding: 5px;"/>
-          <v-text-field outlined label="Tag people" style="width: 100%; min-height: auto; padding: 5px;"/>
-          <v-btn class="primary" :disabled="!isUploadedContent">Post</v-btn>
-        </div>
+        <h2>Upload info</h2>
+        <v-textarea
+        v-model="description"
+        no-resize
+        outlined
+        label="Add a description"
+        dense
+        hide-details
+        style="flex: 0 1 auto"/>
+        <v-text-field
+        
+        outlined
+        label="TODO Add location"
+        dense
+        hide-details
+        style="flex: 0 1 auto"/>
+        <v-combobox
+        v-model="tags"
+        chips
+        clearable
+        label="Tags"
+        multiple
+        append-icon=""
+        solo>
+          <template v-slot:selection="{ attrs, item }">
+              <v-chip
+              v-bind="attrs"
+              close
+              @click:close="removeTag(item)">
+                {{item}}
+              </v-chip>
+          </template>
+        </v-combobox>
+        <v-spacer></v-spacer>
+        <v-btn color="accent" :disabled="!images.length" @click="uploadFiles" :loading="uploading">Upload</v-btn>
       </div>
     </div>
-<!--    <div class="post-form-footer">-->
-
-<!--    </div>-->
   </div>
 </template>
 
 <script>
-import ImageMessage from "@/components/inbox_components/ImageMessage";
-import Media from "@dongido/vue-viaudio"
 
 export default {
   name: "PostForm",
-  components: {ImageMessage, Media},
   data: function () {
     return {
-      isUploadedContent: false,
-      item: {
-        image: ''
+      uploading: false,
+      description: "",
+      location: {
+				country: "RS",
+				state:   "Serbia",
+				zipCode: "21000",
+				street:  "Balzakova 69",
       },
-      showProfileImageDialog: false,
-      showContent: false,
-      typeContent: ''
+      tags: [],
+      images: [],
+      imageUrls: [],
+
     }
   },
   methods: {
-    onSelectedFile(event) {
-      var files = event.target.files || event.dataTransfer.files;
-      if (!files.length)
-        return;
-      console.log(files.length)
-      console.log(files[0])
-      this.item.image = URL.createObjectURL(files[0])
-      console.log(this.item.image)
-      if (files[0]['type'].includes('image')) this.typeContent = 'image';
-      else this.typeContent = 'video';
-      console.log(this.typeContent)
-      this.isUploadedContent = true;
+
+    uploadFiles: function() {
+      this.uploading = true;
+      let data = new FormData();
+      this.images.forEach(img => {
+        data.append('posts', img);
+      });
+      this.tags.forEach(tag => {
+        data.append('tags', tag);
+      });
+      data.append('description', this.description)
+      data.append('location', JSON.stringify(this.location))
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          this.axios.post('content/post', data, config)
+            .then(() => this.uploading=false)
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
     },
-    removeContent(item) {
-      item = {};
-      console.log(item)
-      this.isUploadedContent = false;
+
+    selectFiles: function() {
+      this.$refs.fileInput.$refs.input.click();
+    },
+
+    removeImg: function(img) {
+      let index = this.imageUrls.indexOf(img);
+      this.imageUrls.splice(index, 1);
+      this.imageUrls = [...this.imageUrls];
+
+      this.images.splice(index, 1);
+      this.images = [...this.images];
+    },
+
+    refreshPreview: function(files) {
+      this.imageUrls = [];
+      files = files.slice(0, 10);
+      this.images = this.images.slice(0, 10);
+      files.forEach(f => {
+        this.imageUrls.push(URL.createObjectURL(f));
+      });
     },
   }
 }
@@ -110,7 +158,7 @@ export default {
 
 .post-form-body {
   display: flex;
-  height: 90%;
+  height: 100%;
   width: 100%;
 }
 
@@ -121,9 +169,14 @@ export default {
 }
 
 .post-form-body-right-side {
-  text-align: -webkit-center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   width: 40%;
-  height: 100%;
+  margin: 10px;
+}
+.post-form-body-right-side > * {
+  padding-top: 10px;
 }
 
 .content-shape {
@@ -175,6 +228,37 @@ export default {
   top: 10%;
   left: 0;
   transform: scale(2.5);
+}
+
+.thumbnail {
+  position: relative;
+  display: inline-block;
+  margin: 10px;
+}
+
+.add-thumbnail {
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-weight: 500;
+  font-size: 3rem;
+  width: 128px;
+  height: 128px;
+  background: #eee;
+  margin: 10px;
+}
+
+.remove-btn {
+  top: 0;
+  right: 0;
+}
+
+.thumbnails {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 </style>

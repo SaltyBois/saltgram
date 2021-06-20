@@ -146,7 +146,13 @@ services:
       - CONTENTSDB_PORT=9093
       - PKIDB_HOST=pkidb
       - PKIDB_PORT=9094
+      - SALT_GDRIVE_CREDS=/run/secrets/gsrvcred
+    secrets:
+      - gsrvcred
+
 
 secrets:
   gcred:
-    file: ./secrets/saltgram-c0751de619fa.json
+    file: ${GOOGLE_APPLICATION_CREDENTIALS}
+  gsrvcred:
+    file: ${GOOGLE_SERVICE_CREDS}
