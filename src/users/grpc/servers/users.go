@@ -287,18 +287,19 @@ func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_Ge
 	return nil
 }
 
-func (u *Users) GetFollowing(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {
+func (u *Users) GerFollowing(r *prusers.FollowerRequest, stream prusers.Users_GerFollowingServer) error {
 	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return err
 	}
-	followers, err := data.GetFollowing(u.db, profile)
+	following, err := data.GetFollowing(u.db, profile)
 	if err != nil {
 		u.l.Printf("[ERROR] query not working", err)
+		u.l.Printf("[ERROR] following", len(following))
 		return err
 	}
-	for _, profile := range followers {
+	for _, profile := range following {
 		err = stream.Send(&prusers.ProfileFollower{
 			Username: profile.Username,
 		})

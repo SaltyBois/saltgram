@@ -118,10 +118,13 @@ func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
 }
 
 func GetFollowers(db *DBConn, profile *Profile) ([]Profile, error) {
-	// TODO This does not work. Need to move to graph db
-	//
 	var followers []Profile
-	err := db.DB.Where("following_user_id = ?", profile.UserID).Association("Following").Find(&followers)
+	var ids []uint64
+	err := db.DB.Table("profile_following").Select("profile_user_id").Where("following_user_id = ?", profile.UserID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	err = db.DB.Find(&followers, ids).Error
 	//err := db.DB.Preload("Followers").Where("follower_username = ?", username).Find(&followers).Error
 	//err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Scan(&followers).Error
 	if err != nil {
@@ -131,11 +134,14 @@ func GetFollowers(db *DBConn, profile *Profile) ([]Profile, error) {
 }
 
 func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
-	// TODO This does not work. Need to move to graph db
-	//
 	var following []Profile
+	var ids []uint64
+	err := db.DB.Table("profile_following").Select("following_user_id").Where("profile_user_id = ?", profile.UserID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	err = db.DB.Find(&following, ids).Error
 	//err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Scan(&following).Error
-	err := db.DB.Model(&profile).Where("profile_user_id = ?", profile.UserID).Association("Following").Find(&following)
 	if err != nil {
 		return nil, err
 	}
