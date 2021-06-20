@@ -71,7 +71,7 @@ func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
 func CheckIfFollowing(db *DBConn, profile_username string, following_user_id uint64) (bool, error) {
 	var count int64
 	// err := db.DB.Table("profile_followers").Where("profile_username = ? AND follower_username = ?", profile, username).Count(&count).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ? AND following_user_id = ? ", profile_username, following_user_id).Count(&count).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_id = user_id WHERE username = ? AND following_id = ? ", profile_username, following_user_id).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
@@ -82,7 +82,7 @@ func CheckIfFollowing(db *DBConn, profile_username string, following_user_id uin
 func GetFollowerCount(db *DBConn, username string) (int64, error) {
 	var count int64
 	// err := db.DB.Table("profile_followers").Where("follower_username = ?", username).Count(&count).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Count(&count).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
@@ -92,7 +92,7 @@ func GetFollowerCount(db *DBConn, username string) (int64, error) {
 func GetFollowingCount(db *DBConn, username string) (int64, error) {
 	var count int64
 	// err := db.DB.Table("profile_followers").Where("profile_username = ?", username).Count(&count).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Count(&count).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
@@ -113,7 +113,7 @@ func GetFollowers(db *DBConn, username string) ([]Profile, error) {
 
 	var followers []Profile
 	//err := db.DB.Preload("Followers").Where("follower_username = ?", username).Find(&followers).Error
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Scan(&followers).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_id = user_id WHERE username = ?", username).Scan(&followers).Error
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func GetFollowers(db *DBConn, username string) ([]Profile, error) {
 
 func GetFollowing(db *DBConn, username string) ([]Profile, error) {
 	var following []Profile
-	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Scan(&following).Error
+	err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_id = user_id WHERE username = ?", username).Scan(&following).Error
 	if err != nil {
 		return nil, err
 	}
