@@ -28,14 +28,74 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
-func (c *Content) CreateSharedMedia(ctx context.Context, r *prcontent.CreateSharedMediaRequest) (*prcontent.CreateSharedMediaResponse, error) {
-	sharedMedia := &data.SharedMedia{}
-	err := c.db.AddSharedMedia(sharedMedia)
+func (c *Content) GetStoriesIndividual(ctx context.Context, r *prcontent.GetStoriesIndividualRequest) (*prcontent.GetStoriesIndividualResponse, error) {
+	stories, err := c.db.GetStoriesByUserAsMedia(r.UserId)
+	if err != nil {
+		c.l.Errorf("failed to get users stories: %v", err)
+		return &prcontent.GetStoriesIndividualResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	s := []*prcontent.Media{}
+
+	for _, st := range stories {
+		s = append(s, data.DataToPRMedia(st))
+	}
+
+	return &prcontent.GetStoriesIndividualResponse{
+		Stories: s,
+	}, nil
+}
+
+func (c *Content) AddHighlight(ctx context.Context, r *prcontent.AddHighlightRequest) (*prcontent.AddHighlightResponse, error) {
+	newHighlight := data.Highlight{
+		Name: r.Name,
+		UserID: r.UserId,
+	}
+	err := c.db.CreateHighlight(&newHighlight)
+	if err != nil {
+		c.l.Errorf("failed to create highlight: %v", err)
+		return &prcontent.AddHighlightResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	stories := []*data.Media{}
+	for _, s := range r.Stories {
+		stories = append(stories, data.PRToDataMedia(s))
+	}
+
+	err = c.db.AddStoriesToHighlight(newHighlight.ID, stories)
+	if err != nil {
+		c.l.Errorf("failed to add stories to highlight: %v", err)
+		return &prcontent.AddHighlightResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	return &prcontent.AddHighlightResponse{}, nil
+}
+
+func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest) (*prcontent.CreatePostResponse, error) {
+	post := &data.Post{
+		UserID: r.UserId,
+		SharedMedia: data.SharedMedia{},
+	}
+	err := c.db.AddPost(post)
+	if err != nil {
+		c.l.Errorf("failed to create post: %v", err)
+		return &prcontent.CreatePostResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	return &prcontent.CreatePostResponse{PostId: post.ID}, nil
+}
+
+func (c *Content) CreateStory(ctx context.Context, r *prcontent.CreateStoryRequest) (*prcontent.CreateStoryResponse, error) {
+	story := &data.Story{
+		UserID: r.UserId,
+		SharedMedia: data.SharedMedia{},
+	}
+	err := c.db.AddStory(story)
 	if err != nil {
 		c.l.Errorf("failed to create shared media: %v", err)
-		return &prcontent.CreateSharedMediaResponse{}, status.Error(codes.Internal, "Internal error")
+		return &prcontent.CreateStoryResponse{}, status.Error(codes.Internal, "Internal error")
 	}
-	return &prcontent.CreateSharedMediaResponse{SharedMediaId: sharedMedia.ID}, nil
+	return &prcontent.CreateStoryResponse{StoryId: story.ID}, nil
 }
 
 func (c *Content) CreateUserFolder(ctx context.Context, r *prcontent.CreateUserFolderRequest) (*prcontent.CreateUserFolderResponse, error) {
@@ -268,7 +328,6 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
-		SharedMediaID: r.GetInfo().Media.SharedMediaId,
 		Filename:      r.GetInfo().Media.Filename,
 		Tags:          tags,
 		Description:   r.GetInfo().Media.Description,
@@ -279,18 +338,6 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 			Street:  location.Street,
 		},
 		AddedOn: r.GetInfo().Media.AddedOn,
-	}
-
-	story := data.Story{
-		UserID:        r.GetInfo().UserId,
-		SharedMediaID: media.SharedMediaID,
-		CloseFriends:  r.GetInfo().CloseFriends,
-	}
-
-	err = c.db.AddStory(&story)
-	if err != nil {
-		c.l.Errorf("failed to add story: %v", err)
-		return status.Error(codes.Internal, "Internal error")
 	}
 
 	imageData := bytes.Buffer{}
@@ -317,9 +364,9 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 		return status.Error(codes.Internal, "Internal error")
 	}
 	media.URL = url
-	err = c.db.AddMediaToSharedMedia(media.SharedMediaID, media)
+	err = c.db.AddMediaToStory(r.GetInfo().StoryId, media)
 	if err != nil {
-		c.l.Errorf("faield to add media to shared media: %v", err)
+		c.l.Errorf("faield to add media to story: %v", err)
 		return status.Error(codes.Internal, "Internal error")
 	}
 	err = stream.SendAndClose(&prcontent.AddStoryResponse{})
@@ -360,17 +407,6 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 		AddedOn: r.GetInfo().Media.AddedOn,
 	}
 
-	post := data.Post{
-		UserID:        r.GetInfo().UserId,
-		SharedMediaID: r.GetInfo().Media.SharedMediaId,
-	}
-
-	err = c.db.AddPost(&post)
-	if err != nil {
-		c.l.Errorf("failure adding post: %v\n", err)
-		return status.Error(codes.Internal, "Internal error")
-	}
-
 	imageData := bytes.Buffer{}
 	for {
 		chunk, err := stream.Recv()
@@ -397,7 +433,7 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 	}
 
 	media.URL = url
-	err = c.db.AddMediaToSharedMedia(r.GetInfo().Media.SharedMediaId, media)
+	err = c.db.AddMediaToPost(r.GetInfo().PostId, media)
 	if err != nil {
 		c.l.Errorf("failed to add media to shared media: %v", err)
 		return status.Error(codes.Internal, "Internal error")

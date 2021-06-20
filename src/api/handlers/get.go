@@ -231,6 +231,24 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("}"))
 }
 
+func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["id"]
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		c.l.Errorf("failed to parse user id: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	resp, err := c.cc.GetStoriesIndividual(context.Background(), &prcontent.GetStoriesIndividualRequest{UserId: userId})
+	if err != nil {
+		c.l.Errorf("failed to get user stories: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	saltdata.ToJSON(resp.Stories, w)
+}
+
 func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
 
 	jws, err := getUserJWS(r)

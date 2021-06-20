@@ -32,6 +32,7 @@ type Profile struct {
 	ProfileFolderId string    `json:"-"`
 	PostsFolderId   string    `json:"-"`
 	StoriesFolderId string    `json:"-"`
+	ProfilePictureURL string `json:"profilePictureURL"`
 }
 
 type FollowRequest struct {
@@ -59,6 +60,15 @@ func (db *DBConn) AddProfile(p *Profile) error {
 	// 	return err
 	// }
 	return db.DB.Create(p).Error
+}
+
+func (db *DBConn) UpdateProfilePicture(url, username string) (error) {
+	profile, err := db.GetProfileByUsername(username)
+	if err != nil {
+		return err
+	}
+	profile.ProfilePictureURL = url
+	return db.UpdateProfile(profile)
 }
 
 func (db *DBConn) UpdateProfile(p *Profile) error {

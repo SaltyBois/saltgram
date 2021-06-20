@@ -4,10 +4,13 @@
       {{this.username}}
       <i class="fa fa-check-square verified-icon ml-5"/>
     </h2>
-    <v-img  id="profile-image"
-            src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
+    <v-img v-if="imageSrc" id="profile-image"
+            :src="imageSrc"
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
+    <v-img v-else class="head"
+      @click="showContent = true"
+      :src="require('@/assets/profile_placeholder.png')"/>
 
     <v-btn class="follow-button" v-if="isFollowBtnVisible" @click="emitToggleFollowing()">Follow</v-btn>
     <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible" @click="emitToggleFollowing()">Requested</v-btn>
@@ -66,7 +69,7 @@ export default {
       muted: false,
       isMyProfile: false,
       profile: '',
-      waitingForResponse: false
+      waitingForResponse: false,
     }
   },
   mounted() {
@@ -82,7 +85,7 @@ export default {
     },
     imageSrc: {
       type: String,
-      required: false
+      required: true,
     },
     isMyProfileProp: {
       type: Boolean,

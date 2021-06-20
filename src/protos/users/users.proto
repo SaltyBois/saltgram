@@ -2,25 +2,34 @@ syntax = "proto3";
 option go_package = "./users/prusers";
 
 service Users {
+    rpc UpdateProfilePicture(UpdateProfilePictureRequest) returns (UpdateProfilePictureResponse);
+
     rpc CheckEmail(CheckEmailRequest) returns (CheckEmailResponse);
     rpc CheckPassword(CheckPasswordRequest) returns (CheckPasswordResponse);
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
     rpc ChangePassword(ChangeRequest) returns (ChangeResponse);
     rpc ResetPassword(UserResetRequest) returns(UserResetResponse);
-    rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
-    rpc GetRole(RoleRequest) returns (RoleResponse);
     rpc UpdateUsername(UsernameRequest) returns (UsernameResponse);
     rpc UpdateProfile(UpdateRequest) returns (UpdateResponse);
-    rpc GetProfileByUsername(ProfileRequest) returns (ProfileResponse);
-    rpc ChangeProfilePublic(ChangePublicRequest) returns (ChangePublicResponse);
-    rpc ChangeProfileTaggable(ChangeTaggableRequest) returns (ChangeTaggableResponse);
     rpc Follow(FollowRequest) returns (FollowRespose);
     rpc UnFollow(FollowRequest) returns (FollowRespose);
+    rpc ChangeProfilePublic(ChangePublicRequest) returns (ChangePublicResponse);
+    rpc ChangeProfileTaggable(ChangeTaggableRequest) returns (ChangeTaggableResponse);
+
+    rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
+    rpc GetRole(RoleRequest) returns (RoleResponse);
+    rpc GetProfileByUsername(ProfileRequest) returns (ProfileResponse);
     rpc GetFollowers(FollowerRequest) returns(stream ProfileFollower);
     rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
     rpc GetSearchedUsers(SearchRequest) returns (SearchResponse);
 }
+
+message UpdateProfilePictureRequest {
+    string url = 1;
+    string username = 2;
+}
+message UpdateProfilePictureResponse {}
 
 message RoleRequest {
     string username = 1;
@@ -148,6 +157,7 @@ message ProfileResponse {
     string postsFolderId = 13;
     string storiesFolderId = 14;
     uint64 userId = 15;
+    string profilePictureURL = 16;
 }
 
 message ChangePublicRequest {

@@ -4,25 +4,43 @@ option go_package = "./content/prcontent";
 service Content {
     rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
     rpc GetPostsByUser(GetPostsRequest) returns(stream GetPostsResponse);
-    rpc GetStories(GetStoryRequest) returns(stream GetStoriesResponse);
+    rpc GetStoriesIndividual(GetStoriesIndividualRequest) returns(GetStoriesIndividualResponse);
     rpc GetProfilePicture(GetProfilePictureRequest) returns(GetProfilePictureResponse);
     rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
     rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
     rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
 
-    rpc CreateSharedMedia(CreateSharedMediaRequest) returns(CreateSharedMediaResponse);
+    rpc CreateStory(CreateStoryRequest) returns(CreateStoryResponse);
+    rpc CreatePost(CreatePostRequest) returns(CreatePostResponse);
     rpc AddPost(stream AddPostRequest) returns(AddPostResponse);
     rpc AddStory(stream AddStoryRequest) returns(AddStoryResponse);
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
     rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
+    rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
 
     rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
 }
 
-message CreateSharedMediaRequest {}
-message CreateSharedMediaResponse {
-    uint64 sharedMediaId = 1;
+message CreatePostRequest {
+    uint64 userId = 1;
+}
+message CreatePostResponse {
+    uint64 postId = 1;
+}
+
+message AddHighlightRequest {
+    string name = 1;
+    repeated Media stories = 2;
+    uint64 userId = 3;
+}
+message AddHighlightResponse{}
+
+message CreateStoryRequest {
+    uint64 userId = 1;
+}
+message CreateStoryResponse {
+    uint64 storyId = 1;
 }
 
 message CreateUserFolderRequest {
@@ -42,7 +60,7 @@ message SharedMediaRequest {
 message GetPostsRequest {
     uint64 userId = 1;
 }
-message GetStoryRequest {
+message GetStoriesIndividualRequest {
     uint64 userId = 1;
 }
 
@@ -59,6 +77,7 @@ message Media {
     Location location = 5;
     repeated Tag tags = 6;
     uint64 sharedMediaId = 7;
+    string url = 8;
 }
 
 message Tag {
@@ -101,8 +120,8 @@ message Story {
     bool closeFriends = 4;
 }
 
-message GetStoriesResponse {
-    Story story = 1;
+message GetStoriesIndividualResponse {
+    repeated Media stories = 1;
 }
 
 message GetProfilePictureRequest {
@@ -124,6 +143,7 @@ message AddPostRequestInfo {
     Media media = 1;
     uint64 userId = 2;
     string postsFolderId = 3;
+    uint64 postId = 4;
 }
 
 message AddStoryResponse {}
@@ -138,6 +158,7 @@ message AddStoryRequestInfo {
     uint64 userId = 2;
     string storiesFolderId = 3;
     bool closeFriends = 4;
+    uint64 storyId = 5;
 }
 
 message AddProfilePictureRequest {

@@ -7,7 +7,7 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" image-src="Insert image source" @toggle-following="toggleFollow"/>
+          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" v-bind:image-src="profile.profilePictureURL" @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -39,7 +39,33 @@
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
-        <StoryHighlight v-for="index in 10" :key="index"/>
+        <StoryHighlight v-for="highlight in highlights" :key="highlight.id"/>
+        <div id="new-highlight" @click="openHighlightDialog">
+          +
+        </div>
+        <v-dialog
+        v-model="highlightDialog"
+        width="500px">
+          <v-card>
+            <v-card-title>Add highlight</v-card-title>
+            <v-card-text>
+              <v-form v-model="highlightForm">
+                <v-text-field
+                v-model="highlightName"
+                label="Highlight name"
+                required/>
+                <div id="story-selection">
+                  <div v-for="story in stories" :key="story.filename" class="story-thumbnail">
+                    <v-img :src="story.url" width="256px" height="256px" />
+                  </div>
+                </div>
+              </v-form>
+            </v-card-text>
+            <v-card-action>
+              <v-btn :disabled="!highlightForm">Add highlight</v-btn>
+            </v-card-action>
+          </v-card>
+        </v-dialog>
       </v-layout>
     </v-layout >
 
@@ -100,6 +126,10 @@ export default {
     },
     data: function() {
       return {
+        stories: [],
+        highlightDialog: false,
+        highlights: [],
+        //
         profile : {
           privateUser: true,
           description: '',
@@ -109,7 +139,8 @@ export default {
           followersList:[],
           followingList: [],
           username: '',
-          webSite: ''
+          webSite: '',
+          profilePictureURL: '',
         },
         isMyProfile: false,
         radioButton: 'posts',
@@ -123,6 +154,18 @@ export default {
       }
     },
     methods: {
+        openHighlightDialog: function() {
+          this.highlightDialog = true;
+          this.refreshToken(this.getAHeader())
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+              this.axios.get('content/story/' + this.user.id)
+                .then(r => {
+                  this.stories = r.data;
+                })
+            }).catch(() => this.$router.push('/'));
+        },
+
         getUserInfo: function() {
             this.refreshToken(this.getAHeader())
                 .then(rr => {
@@ -154,6 +197,7 @@ export default {
               this.profile.fullName = r.data.fullName;
               this.profile.description = r.data.description;
               this.profile.webSite = r.data.webSite;
+              this.profile.profilePictureURL = r.data.profilePictureURL;
             }).catch(err => {
               console.log(err)
               console.log('Pushing Back to Login Page after fetching profile')
@@ -262,7 +306,7 @@ export default {
       overflow-x: auto;
       overflow-y: hidden;
       white-space: nowrap;
-
+      align-items: center;
     }
 
     .inner-post-layout > div {
@@ -277,6 +321,16 @@ export default {
       text-align: -webkit-center;
       padding-top: 50px;
       height: 100px;
+    }
+
+    #new-highlight {
+      display: grid;
+      place-items: center;
+      width: 80px;
+      height: 80px;
+      background: #ddd;
+      font-weight: 500;
+      font-size: 3rem;
     }
 
 </style>

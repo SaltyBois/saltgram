@@ -36,6 +36,15 @@ func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premai
 	}
 }
 
+func (u *Users) UpdateProfilePicture(ctx context.Context, r *prusers.UpdateProfilePictureRequest) (*prusers.UpdateProfilePictureResponse, error) {
+	err := u.db.UpdateProfilePicture(r.Url, r.Username)
+	if err != nil {
+		u.l.Errorf("failed to update profile picture: %v", err)
+		return &prusers.UpdateProfilePictureResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prusers.UpdateProfilePictureResponse{}, nil
+}
+
 func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) (*prusers.UserResetResponse, error) {
 	err := data.ResetPassword(u.db, r.Email, r.Password)
 	if err != nil {
@@ -247,6 +256,7 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		PostsFolderId:   profile.PostsFolderId,
 		StoriesFolderId: profile.StoriesFolderId,
 		UserId:          profile.UserID,
+		ProfilePictureURL: profile.ProfilePictureURL,
 	}, nil
 }
 
