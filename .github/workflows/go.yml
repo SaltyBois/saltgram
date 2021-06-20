@@ -3,6 +3,7 @@ on: [push]
 
 jobs:
   build:
+    environment: buildenv
     runs-on: ubuntu-latest
     env:
       SALT_WEB_PORT: 8080
