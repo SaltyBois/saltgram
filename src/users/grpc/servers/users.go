@@ -184,49 +184,55 @@ func (u *Users) CheckEmail(ctx context.Context, r *prusers.CheckEmailRequest) (*
 func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequest) (*prusers.ProfileResponse, error) {
 	//var response = &prusers.ProfileResponse{}
 
-	profile, err := u.db.GetProfileByUsername(r.Username)
+	profile, err := u.db.GetProfileByUsername(r.User)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.ProfileResponse{}, err
 	}
 
-	user, err := u.db.GetUserByUsername(r.Username)
+	user_profile, err := u.db.GetUserByUsername(r.User)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
 		return &prusers.ProfileResponse{}, err
 	}
 
-	isFollowing, err := data.CheckIfFollowing(u.db, r.User, profile.UserID)
+	profile_show, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile_show: %v\n", err)
+		return &prusers.ProfileResponse{}, err
+	}
+
+	isFollowing, err := data.CheckIfFollowing(u.db, profile, profile_show)
 	if err != nil {
 		u.l.Printf("[ERROR] geting followers")
 		return &prusers.ProfileResponse{}, err
 	}
 
-	following, err := data.GetFollowingCount(u.db, r.Username)
+	following, err := data.GetFollowingCount(u.db, profile_show)
 	if err != nil {
 		return &prusers.ProfileResponse{}, err
 	}
 
-	followers, err := data.GetFollowerCount(u.db, r.Username)
+	followers, err := data.GetFollowerCount(u.db, profile_show)
 	if err != nil {
 		return &prusers.ProfileResponse{}, err
 	}
 
-	dateStr := strconv.FormatInt(profile.DateOfBirth.Unix(), 10)
+	dateStr := strconv.FormatInt(profile_show.DateOfBirth.Unix(), 10)
 	date, err := strconv.ParseInt(dateStr, 10, 64)
 
 	return &prusers.ProfileResponse{
-		Username:    profile.Username,
+		Username:    profile_show.Username,
 		Followers:   followers,
 		Following:   following,
-		FullName:    user.FullName,
-		Description: profile.Description,
+		FullName:    user_profile.FullName,
+		Description: profile_show.Description,
 		IsFollowing: isFollowing,
-		IsPublic:    profile.Public,
-		PhoneNumber: profile.PhoneNumber,
-		Gender:      profile.Gender,
+		IsPublic:    profile_show.Public,
+		PhoneNumber: profile_show.PhoneNumber,
+		Gender:      profile_show.Gender,
 		DateOfBirth: date,
-		WebSite:     profile.WebSite,
+		WebSite:     profile_show.WebSite,
 	}, nil
 }
 
@@ -242,7 +248,7 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		return &prusers.FollowRespose{}, err
 	}
 
-	isFollowing, err := data.CheckIfFollowing(u.db, profile.Username, profileToFollow.UserID)
+	isFollowing, err := data.CheckIfFollowing(u.db, profile, profileToFollow)
 	if err != nil {
 		u.l.Printf("[ERROR] geting followers")
 		return &prusers.FollowRespose{}, err

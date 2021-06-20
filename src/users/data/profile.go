@@ -68,10 +68,10 @@ func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
 	return &profile, err
 }
 
-func CheckIfFollowing(db *DBConn, profile_username string, following_user_id uint64) (bool, error) {
+func CheckIfFollowing(db *DBConn, profile *Profile, following *Profile) (bool, error) {
 	var count int64
-	// err := db.DB.Table("profile_followers").Where("profile_username = ? AND follower_username = ?", profile, username).Count(&count).Error
-	err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ? AND following_user_id = ? ", profile_username, following_user_id).Count(&count).Error
+	err := db.DB.Table("profile_following").Where("profile_id = ? AND following_id = ?", profile.ID, following.ID).Count(&count).Error
+	//err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ? AND following_user_id = ? ", profile_username, following_user_id).Count(&count).Error
 	if err != nil {
 		return false, err
 	}
@@ -79,10 +79,10 @@ func CheckIfFollowing(db *DBConn, profile_username string, following_user_id uin
 	return exists, nil
 }
 
-func GetFollowerCount(db *DBConn, username string) (int64, error) {
+func GetFollowerCount(db *DBConn, profile *Profile) (int64, error) {
 	var count int64
-	// err := db.DB.Table("profile_followers").Where("follower_username = ?", username).Count(&count).Error
-	err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Count(&count).Error
+	err := db.DB.Table("profile_following").Where("following_id = ?", profile.ID).Count(&count).Error
+	//err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
@@ -92,16 +92,13 @@ func GetFollowerCount(db *DBConn, username string) (int64, error) {
 	return count, nil
 }
 
-func GetFollowingCount(db *DBConn, username string) (int64, error) {
+func GetFollowingCount(db *DBConn, profile *Profile) (int64, error) {
 	var count int64
-	// err := db.DB.Table("profile_followers").Where("profile_username = ?", username).Count(&count).Error
-	err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Count(&count).Error
+	err := db.DB.Table("profile_following").Where("profile_id = ?", profile.ID).Count(&count).Error
+	//err := db.DB.Raw("SELECT COUNT(*) FROM profile_following LEFT JOIN profiles on profile_id = user_id WHERE username = ?", username).Count(&count).Error
 	if err != nil {
 		return 0, err
 	}
-	// if count == 0 {
-	// 	return -1, nil
-	// }
 	return count, nil
 }
 
@@ -114,8 +111,8 @@ func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
 func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
 	//profile.Requests = append(profile.Requests, request)
 	fr := FollowRequest{
-		ProfileID:     profile.UserID,
-		RequestID:     request.UserID,
+		ProfileID:     profile.ID,
+		RequestID:     request.ID,
 		RequestStatus: PENDING,
 	}
 	return db.DB.Create(&fr).Error
@@ -124,13 +121,15 @@ func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
 func GetFollowers(db *DBConn, profile *Profile) ([]Profile, error) {
 	var followers []Profile
 	var ids []uint64
-	err := db.DB.Table("profile_following").Select("profile_user_id").Where("following_user_id = ?", profile.UserID).Find(&ids).Error
+	err := db.DB.Table("profile_following").Select("profile_id").Where("following_id = ?", profile.ID).Find(&ids).Error
 	if err != nil {
 		return nil, err
 	}
+	if len(ids) == 0 {
+		return followers, nil
+	}
 	err = db.DB.Find(&followers, ids).Error
-	//err := db.DB.Preload("Followers").Where("follower_username = ?", username).Find(&followers).Error
-	//err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on following_user_id = user_id WHERE username = ?", username).Scan(&followers).Error
+
 	if err != nil {
 		return nil, err
 	}
@@ -140,12 +139,14 @@ func GetFollowers(db *DBConn, profile *Profile) ([]Profile, error) {
 func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
 	var following []Profile
 	var ids []uint64
-	err := db.DB.Table("profile_following").Select("following_user_id").Where("profile_user_id = ?", profile.UserID).Find(&ids).Error
+	err := db.DB.Table("profile_following").Select("following_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
 	if err != nil {
 		return nil, err
 	}
+	if len(ids) == 0 {
+		return following, nil
+	}
 	err = db.DB.Find(&following, ids).Error
-	//err := db.DB.Raw("SELECT * FROM profile_following LEFT JOIN profiles on profile_user_id = user_id WHERE username = ?", username).Scan(&following).Error
 	if err != nil {
 		return nil, err
 	}
