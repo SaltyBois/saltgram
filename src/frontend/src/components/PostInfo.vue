@@ -16,7 +16,7 @@
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
-               @click="showDialog = false">Report</v-btn>
+               @click="showDialog = false; report">Report</v-btn>
         <v-btn class="other-buttons my-2"
                @click="showDialog = false">Block @{{username}}</v-btn>
         <v-btn class="other-buttons my-2"
@@ -44,15 +44,35 @@ export default {
     return {
       showDialog: false,
       muted: false,
-      myProfile: true
+      myProfile: true,
+      sharedMediaId: '',
     }
   },
   props: {
     username: {
       type: String,
       required: true
-    }
-  }
+    },
+  },
+  methods: {
+    report() {
+    this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+            },
+          };
+          let report = {SharedMediaId: this.sharedMediaId};
+          this.axios.post('admin/inappropriatecontent', report, config)
+            .then(r => console.log(r))
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
+
+    },
+  },
 }
 </script>
 
