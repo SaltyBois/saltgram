@@ -190,7 +190,7 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		return &prusers.ProfileResponse{}, err
 	}
 
-	user_profile, err := u.db.GetUserByUsername(r.User)
+	user_profile, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
 		return &prusers.ProfileResponse{}, err

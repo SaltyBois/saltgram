@@ -101,9 +101,9 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := saltdata.UserDTO {
-		Id: strconv.FormatUint(user.Id, 10),
-		Email: user.Email,
+	response := saltdata.UserDTO{
+		Id:       strconv.FormatUint(user.Id, 10),
+		Email:    user.Email,
 		FullName: user.FullName,
 		Username: user.Username,
 	}
@@ -184,7 +184,7 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var profiles []*prusers.ProfileFollower
 	for {
 		profile, err := stream.Recv()
 		if err == io.EOF {
@@ -195,9 +195,9 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error couldn't fetch followers", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToProtoJSON(profile, w)
+		profiles = append(profiles, profile)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(profiles, w)
 }
 
 func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
@@ -215,7 +215,7 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Following fetching error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var profiles []*prusers.ProfileFollower
 	for {
 		profile, err := stream.Recv()
 		if err == io.EOF {
@@ -226,10 +226,9 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
 			return
 		}
-		//saltdata.ToJSON(profile, w)
-		saltdata.ToProtoJSON(profile, w)
+		profiles = append(profiles, profile)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(profiles, w)
 }
 
 func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
