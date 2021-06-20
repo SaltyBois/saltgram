@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-latest
     env:
       SALT_WEB_PORT: 8080
       SALT_API_PORT: 8081
