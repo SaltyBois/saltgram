@@ -32,11 +32,8 @@ jsconfig.json
 tsconfig.json
 
 *.env
-<<<<<<< HEAD
-saltgram-c0751de619fa.json
-secrets
+secrets/*.json
 *.log
-=======
 
 # Log and Keystore
 src/log

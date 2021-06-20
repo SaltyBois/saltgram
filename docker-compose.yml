@@ -149,4 +149,4 @@ services:
 
 secrets:
   gcred:
-    file: ./secrets/saltgram-c0751de619fa.json
+    file: ${GOOGLE_SERVICE_CREDENTIALS}
