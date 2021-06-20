@@ -29,6 +29,10 @@ jobs:
         run: ./.github/scripts/decrypt.sh
         env:
           SECRETS_PASSPHRASE: ${{secrets.SECRETS_PASSPHRASE}}
+          
+      - name: Disable mono service
+        run: update-rc.d mono-xsp4 disable
+          
       - name: View port usage
         run: sudo lsof -i -P -n | grep LISTEN
 
