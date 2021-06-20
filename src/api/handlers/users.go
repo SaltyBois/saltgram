@@ -1,10 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
+	saltdata "saltgram/data"
 	"saltgram/protos/users/prusers"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,4 +30,57 @@ func getUserJWS(r *http.Request) (string, error) {
 	}
 	// NOTE(Jovan): Trimming first 7 characters from "Bearer <jws>"
 	return authHeader[7:], nil
+}
+
+func getUserByJWS(r *http.Request, uc prusers.UsersClient) (*prusers.GetByUsernameResponse, error) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		return nil, fmt.Errorf("JWS not found: %v", err)
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failure parsing claims: %v", err)
+	}
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		return nil, fmt.Errorf("failed to parse claims")
+	}
+
+	return uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+}
+
+func getProfileByJWS(r *http.Request, uc prusers.UsersClient) (*prusers.ProfileResponse, error) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		return nil, fmt.Errorf("JWS not found: %v", err)
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing claims: %v", err)
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		return nil, fmt.Errorf("unable to parse claims")
+	}
+
+	return uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{Username: claims.Username, User: claims.Username})
 }

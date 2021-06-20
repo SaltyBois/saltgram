@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
@@ -22,14 +23,16 @@ type Users struct {
 	db *data.DBConn
 	ac prauth.AuthClient
 	ec premail.EmailClient
+	cc prcontent.ContentClient
 }
 
-func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient) *Users {
+func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient, cc prcontent.ContentClient) *Users {
 	return &Users{
 		l:  l,
 		db: db,
 		ac: ac,
 		ec: ec,
+		cc: cc,
 	}
 }
 
@@ -125,21 +128,29 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		return &prusers.RegisterResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
-	//TODO Change public from fixed false
-	profile := data.Profile{
-		Username:       r.Username,
-		UserID:         user.ID,
-		Taggable:       false,
-		Public:         false,
-		Description:    r.Description,
-		PhoneNumber:    r.PhoneNumber,
-		Gender:         r.Gender,
-		DateOfBirth:    time.Unix(r.DateOfBirth, 0),
-		WebSite:        r.WebSite,
-		PrivateProfile: r.PrivateProfile,
+	resp, err := u.cc.CreateUserFolder(context.Background(), &prcontent.CreateUserFolderRequest{UserId: strconv.FormatUint(user.ID, 10)})
+
+	if err != nil {
+		u.l.Errorf("failed to create profile folders: %v", err)
+		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal error")
 	}
 
-	u.l.Print("Creating profile?")
+	profile := data.Profile{
+		Username:        r.Username,
+		UserID:          user.ID,
+		Taggable:        false,
+		Public:          false,
+		Description:     r.Description,
+		PhoneNumber:     r.PhoneNumber,
+		Gender:          r.Gender,
+		DateOfBirth:     time.Unix(r.DateOfBirth, 0),
+		WebSite:         r.WebSite,
+		PrivateProfile:  r.PrivateProfile,
+		ProfileFolderId: resp.ProfileFolderId,
+		PostsFolderId:   resp.PostsFolderId,
+		StoriesFolderId: resp.StoryFolderId,
+	}
+
 	err = u.db.AddProfile(&profile)
 	if err != nil {
 		u.l.Printf("[ERROR] adding profile: %v\n", err)
@@ -221,18 +232,27 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 	dateStr := strconv.FormatInt(profile_show.DateOfBirth.Unix(), 10)
 	date, err := strconv.ParseInt(dateStr, 10, 64)
 
+	if err != nil {
+		u.l.Errorf("failed t oparse date string: %v", err)
+		return &prusers.ProfileResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
 	return &prusers.ProfileResponse{
-		Username:    profile_show.Username,
-		Followers:   followers,
-		Following:   following,
-		FullName:    user_profile.FullName,
-		Description: profile_show.Description,
-		IsFollowing: isFollowing,
-		IsPublic:    profile_show.Public,
-		PhoneNumber: profile_show.PhoneNumber,
-		Gender:      profile_show.Gender,
-		DateOfBirth: date,
-		WebSite:     profile_show.WebSite,
+		Username:        profile_show.Username,
+		Followers:       followers,
+		Following:       following,
+		FullName:        user_profile.FullName,
+		Description:     profile_show.Description,
+		IsFollowing:     isFollowing,
+		IsPublic:        profile_show.Public,
+		PhoneNumber:     profile_show.PhoneNumber,
+		Gender:          profile_show.Gender,
+		DateOfBirth:     date,
+		WebSite:         profile_show.WebSite,
+		ProfileFolderId: profile_show.ProfileFolderId,
+		PostsFolderId:   profile_show.PostsFolderId,
+		StoriesFolderId: profile_show.StoriesFolderId,
+		UserId:          profile_show.UserID,
 	}, nil
 }
 
@@ -356,5 +376,25 @@ func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*p
 	}
 
 	return &prusers.UpdateResponse{}, nil
+
+}
+
+func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) (*prusers.SearchResponse, error) {
+	users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
+	if err != nil {
+		u.l.Printf("[ERROR] geting user: %v\n", err)
+		return &prusers.SearchResponse{}, err
+	}
+
+	searchedUsers := []*prusers.SearchedUser{}
+
+	for i := 0; i < len(users); i++ {
+		su := users[i]
+		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
+			Username:              su.Username,
+			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
+	}
+
+	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil
 
 }

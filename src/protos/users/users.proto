@@ -19,6 +19,7 @@ service Users {
     rpc UnFollow(FollowRequest) returns (FollowRespose);
     rpc GetFollowers(FollowerRequest) returns(stream ProfileFollower);
     rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
+    rpc GetSearchedUsers(SearchRequest) returns (SearchResponse);
 }
 
 message RoleRequest {
@@ -30,7 +31,7 @@ message RoleResponse {
 }
 
 message UsernameRequest {
-    string olldUsername = 1;
+    string oldUsername = 1;
     string newUsername = 2;
 }
 
@@ -125,6 +126,7 @@ message CheckEmailResponse {
     bool verified = 1;
 }
 
+// TODO(Jovan): Decouple
 message ProfileRequest {
     string user = 1;
     string username = 2;
@@ -142,6 +144,10 @@ message ProfileResponse {
     string gender = 9;
     int64 dateOfBirth = 10;
     string webSite = 11;
+    string profileFolderId = 12;
+    string postsFolderId = 13;
+    string storiesFolderId = 14;
+    uint64 userId = 15;
 }
 
 message ChangePublicRequest {
@@ -177,5 +183,18 @@ message FollowersResponse {
 
 message ProfileFollower {
     string username = 1;
+}
+
+message SearchRequest {
+    string query = 1;
+}
+
+message SearchedUser {
+    string username = 1;
+    string profilePictureAddress = 2;
+}
+
+message SearchResponse {
+    repeated SearchedUser searchedUser = 1;
 }
 

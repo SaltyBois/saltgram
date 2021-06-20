@@ -67,6 +67,7 @@ func main() {
 	usersRouter.HandleFunc("/create/follow", usersHandler.Follow).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/get/followers/{username}", usersHandler.GetFollowers).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/get/following/{username}", usersHandler.GetFollowing).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/search/{username}", usersHandler.SearchUsers).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
@@ -89,12 +90,13 @@ func main() {
 	contentHandler := handlers.NewContent(l.L, contentClient, usersClient)
 	contentRouter := s.S.PathPrefix("/content").Subrouter()
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
-	contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost)
+	// contentRouter.HandleFunc("/sharedmedia", contentHandler.AddSharedMedia).Methods(http.MethodPost) What?
 	contentRouter.HandleFunc("/user/{id}", contentHandler.GetSharedMediaByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/profilepicture/{id}", contentHandler.GetProfilePictureByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/profilepicture", contentHandler.AddProfilePicture).Methods(http.MethodPost) // Mora se impl
 	contentRouter.HandleFunc("/post/{id}", contentHandler.GetPostsByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/story", contentHandler.AddStory).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
@@ -109,8 +111,8 @@ func main() {
 
 	server := http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("SALT_API_PORT")),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 		Handler:      c.Handler(s.S),
 		TLSConfig:    s.TLS.TC,

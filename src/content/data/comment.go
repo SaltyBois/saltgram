@@ -16,8 +16,8 @@ func (db *DBConn) AddComment(comment *Comment) error {
 	return db.DB.Create(comment).Error
 }
 
-func (db *DBConn) GetCommentByPostId(id uint64) (*Comment, error) {
-	comment := Comment{}
-	err := db.DB.Where("post_id = ?", id).First(&comment).Error
+func (db *DBConn) GetCommentByPostId(id uint64) (*[]Comment, error) {
+	comment := []Comment{}
+	err := db.DB.Where("post_id = ?", id).Find(&comment).Error
 	return &comment, err
 }
