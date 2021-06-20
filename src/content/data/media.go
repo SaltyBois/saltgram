@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"saltgram/data"
 	"strconv"
+
+	"gorm.io/gorm/clause"
 )
 
 type Media struct {
@@ -87,7 +89,7 @@ func (db *DBConn) AddStory(s *Story) error {
 }
 func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	post := []Post{}
-	err := db.DB.Where("user_id = ?", id).Find(&post).Error
+	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
 	return &post, err
 }
 

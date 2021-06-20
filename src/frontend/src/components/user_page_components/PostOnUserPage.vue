@@ -1,8 +1,8 @@
 <template>
   <div>
-    <PostView ref="postView" media-path="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"/>
+    <PostView ref="postView" :post="post"/>
     <v-img  class="post"
-            src="https://i.kym-cdn.com/entries/icons/original/000/032/100/cover4.jpg"
+            :src="post.post.sharedMedia.media[0].url"
             @click="showPostFun"
             alt="Post"/>
   </div>
@@ -14,10 +14,22 @@ import PostView from "@/components/PostView";
 export default {
   name: "PostOnUserPage",
   components: {PostView},
+  data() {
+    return {
+      //post: [],
+    }
+
+  },
+  props: {
+    post: { type: Object, required: true}
+  },
   methods: {
     showPostFun() {
       this.$refs.postView.$data.show = !this.$refs.postView.$data.show
     }
+  },
+  mounted() {
+    //console.log(this.post);
   }
 }
 </script>

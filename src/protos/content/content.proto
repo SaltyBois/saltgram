@@ -59,6 +59,7 @@ message Media {
     Location location = 5;
     repeated Tag tags = 6;
     uint64 sharedMediaId = 7;
+    string url = 8;
 }
 
 message Tag {

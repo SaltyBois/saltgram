@@ -33,12 +33,11 @@
                 <v-carousel class="post-content-media" :continuous="false">
                   <v-carousel-item v-for="(item, index) in contentPlaceHolder.length" :key="index">
                     <v-img contain
-                           v-if="contentPlaceHolder[index].endsWith('.jpg') || contentPlaceHolder[index].endsWith('.png') || contentPlaceHolder[index].endsWith('.jpeg')"
                            :src="contentPlaceHolder[index]"/>
-                    <video controls
+                   <!-- <video controls
                            loop
                            v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
-                           :src="contentPlaceHolder[index]"/>
+                           :src="contentPlaceHolder[index]"/>-->
                   </v-carousel-item>
                 </v-carousel>
               </v-layout>
@@ -47,7 +46,7 @@
                   <div style=" padding: 5px;">
                     <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
                       <b>USERNAME</b>
-                      Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                      {{this.description}}
                     </p>
                   </div>
                 </div>
@@ -107,9 +106,10 @@ export default {
   components: { CommentOnPostView, PostInfo },
   props: {
       mediaPath: {
-        required: true,
+        required: false,
         type: String
-      }
+      },
+      post: { type: Object, required: true}
   },
   methods: {
     toggleParrent() {
@@ -122,24 +122,26 @@ export default {
     increase() {
       if (this.iteratorContent + 1 < this.contentPlaceHolder.length) this.iteratorContent += 1;
       console.log(this.iteratorContent)
-    }
+    },
+    loadingPost() {
+      for(let i = 0; i < this.post.post.sharedMedia.media.length; i++){
+        this.contentPlaceHolder.push(this.post.post.sharedMedia.media[i].url);
+      }
+      console.log(this.contentPlaceHolder);
+      this.description = this.post.post.sharedMedia.media[0].description;
+    },
   },
   mounted() {
     this.iteratorContent = 0
+    this.loadingPost();
   },
   data: function () {
     return {
       show: false,
       search: '',
       iteratorContent: 0,
-      contentPlaceHolder: [
-        'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
-        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
-        'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
-        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg',
-        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg',
-        'https://www.w3schools.com/html/movie.mp4'
-      ]
+      contentPlaceHolder: [],
+      description: '',
     }
   }
 }

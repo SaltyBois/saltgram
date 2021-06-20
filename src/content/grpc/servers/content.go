@@ -3,6 +3,7 @@ package servers
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
@@ -101,6 +102,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	for _, p := range *posts {
 		media := []*prcontent.Media{}
 		for _, m := range p.SharedMedia.Media {
+			fmt.Println(m.ID)
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
@@ -111,6 +113,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
 				},
+				Url: m.URL,
 			})
 		}
 		post := &prcontent.Post{
@@ -445,7 +448,7 @@ func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionReque
 	return &prcontent.AddReactionResponse{}, nil
 }
 
-func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prcontent.Content_GetReactionsServer) error {
+func (c *Content) GetReactions(r *prcontent.GetReactionsRequest, stream prcontent.Content_GetReactionsServer) error {
 	reactions, err := c.db.GetReactionByPostId(r.PostId)
 	if err != nil {
 		c.l.Errorf("failure getting reactions: %v\n", err)
@@ -459,6 +462,29 @@ func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prc
 		})
 		if err != nil {
 			c.l.Errorf("failure getting reactions response: %v\n", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.Content_GetCommentsServer) error {
+	comments, err := c.db.GetCommentByPostId(r.PostId)
+	if err != nil {
+		c.l.Errorf("failure getting comments: %v\n", err)
+		return err
+	}
+	for _, cm := range *comments {
+		comment := &prcontent.Comment{
+			Content: cm.Content,
+			UserId:  cm.UserID,
+			PostId:  cm.PostID,
+		}
+		err = stream.Send(&prcontent.GetCommentsResponse{
+			Comment: comment,
+		})
+		if err != nil {
+			c.l.Errorf("failure getting comments response: %v\n", err)
 			return err
 		}
 	}

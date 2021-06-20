@@ -58,7 +58,9 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'posts' && isContentVisible"
                 column>
-        <PostOnUserPage/>
+                <div v-for="(object, index) in usersPosts" :key="index">
+                  <PostOnUserPage :post="object"/>
+                </div>
       </v-layout>
     </transition>
 
@@ -68,8 +70,8 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'saved' && isContentVisible"
                 column>
-        <PostOnUserPage/>
-        <PostOnUserPage/>
+        <!--<PostOnUserPage/>
+        <PostOnUserPage/>-->
       </v-layout>
     </transition>
 
@@ -78,9 +80,9 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'tagged' && isContentVisible"
                 column>
+        <!--<PostOnUserPage/>
         <PostOnUserPage/>
-        <PostOnUserPage/>
-        <PostOnUserPage/>
+        <PostOnUserPage/>-->
       </v-layout>
     </transition>
   </div>
@@ -114,6 +116,7 @@ export default {
         isMyProfile: false,
         radioButton: 'posts',
         followingUser: false,
+        usersPosts: [],
       }
     },
     computed: {
@@ -154,6 +157,9 @@ export default {
               this.profile.fullName = r.data.fullName;
               this.profile.description = r.data.description;
               this.profile.webSite = r.data.webSite;
+
+              console.log(r.data.userId)
+              this.getUserPosts(r.data.userId);
             }).catch(err => {
               console.log(err)
               console.log('Pushing Back to Login Page after fetching profile')
@@ -188,6 +194,17 @@ export default {
           // })
 
 
+        },
+        getUserPosts(id) {
+           this.axios.get("content/post/" + id, {headers: this.getAHeader()})
+           .then(r => {
+              //console.log(JSON.parse(r.data.toString()));
+              this.usersPosts = r.data;
+              console.log(this.usersPosts);
+            }).catch(err => {
+              console.log(err)
+              this.$router.push('/');
+            })
         },
         toggleFollow(follow) {
           this.followingUser = follow
