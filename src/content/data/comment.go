@@ -1,17 +1,18 @@
 package data
 
+import "saltgram/data"
+
 type Comment struct {
-	ID       uint64 `json:"id" validate:"required"`
+	data.Identifiable
 	Content  string `json:"content" validate:"required"`
 	Likes    int64  `json:"likes" validate:"required"`
 	Dislikes int64  `json:"dislikes" validate:"required"`
-	User     User   `json:"user"`
-	UserID   string `json:"userId"`
+	UserID   uint64 `json:"userId"`
 	PostID   uint64 `json:"postId"`
 	Post     Post   `json:"post" validate:"required"`
 }
 
-func (db *DBConn) Add(comment *Comment) error {
+func (db *DBConn) AddComment(comment *Comment) error {
 	return db.DB.Create(comment).Error
 }
 

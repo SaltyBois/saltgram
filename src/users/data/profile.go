@@ -1,6 +1,9 @@
 package data
 
-import "time"
+import (
+	"saltgram/data"
+	"time"
+)
 
 type RequestStatus string
 
@@ -11,9 +14,10 @@ const (
 )
 
 type Profile struct {
-	UserID         uint64 `gorm:"primaryKey"`
-	Username       string `json:"username" gorm:"unique"`
+	data.Identifiable
+	UserID         uint64
 	User           User
+	Username       string     `json:"username" gorm:"unique"`
 	Public         bool       `json:"isPublic"`
 	Taggable       bool       `json:"isTaggable"`
 	Description    string     `json:"description"`

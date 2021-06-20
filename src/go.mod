@@ -33,7 +33,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 	gorm.io/driver/postgres v1.0.8
-	gorm.io/gorm v1.21.8
+	gorm.io/gorm v1.21.11
 	rsc.io/qr v0.2.0
 	software.sslmate.com/src/go-pkcs12 v0.0.0-20210415151418-c5206de65a78
 )

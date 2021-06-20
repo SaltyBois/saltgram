@@ -16,7 +16,7 @@
       </v-form>
       <div v-else id="login-and-logo">
         <h1 id="home-title">Saltgram</h1>
-        <v-form id="login" v-model="isFormValid">
+        <v-form id="login" v-model="isFormValid" @submit.prevent="login">
           <span class="err">{{error}}</span>
           <v-text-field 
           v-model="user.username"
@@ -40,7 +40,7 @@
               size="invisible"
               :sitekey="sitekey">
             </vue-recaptcha>
-          <v-btn :disabled="!isFormValid" class="accent" @click="login">Log in</v-btn>
+          <v-btn :disabled="!isFormValid" class="accent" @click="login" type="submit">Log in</v-btn>
           <p id="forgot-password"><router-link to="/forgotpassword">Forgot password?</router-link></p>
         </v-form>
       </div>

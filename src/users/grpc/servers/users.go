@@ -51,6 +51,7 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 	}
 
 	return &prusers.GetByUsernameResponse{
+		Id:             user.ID,
 		Email:          user.Email,
 		FullName:       user.FullName,
 		Username:       user.Username,
@@ -126,8 +127,8 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 
 	//TODO Change public from fixed false
 	profile := data.Profile{
-		User:           user,
 		Username:       r.Username,
+		UserID:         user.ID,
 		Taggable:       false,
 		Public:         false,
 		Description:    r.Description,
@@ -138,6 +139,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		PrivateProfile: r.PrivateProfile,
 	}
 
+	u.l.Print("Creating profile?")
 	err = u.db.AddProfile(&profile)
 	if err != nil {
 		u.l.Printf("[ERROR] adding profile: %v\n", err)
