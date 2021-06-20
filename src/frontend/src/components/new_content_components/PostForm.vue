@@ -76,7 +76,7 @@ export default {
   name: "PostForm",
   data: function () {
     return {
-      uploading = false,
+      uploading: false,
       description: "",
       location: {
 				country: "RS",
