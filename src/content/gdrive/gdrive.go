@@ -148,6 +148,15 @@ func (g *GDrive) UploadPost(postsFolderId, filename string, data io.Reader) (str
 	return publicBaseUrl + post.Id, nil
 }
 
+func (g *GDrive) UploadStory(storiesFolderId, filename string, data io.Reader) (string, error) {
+	story, err := g.CreateFile(filename, []string{storiesFolderId}, data, true)
+	if err != nil {
+		g.l.Errorf("failed uploading story: %v", err)
+		return "", err
+	}
+	return publicBaseUrl + story.Id, nil
+}
+
 func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*drive.File, error) {
 	f := &drive.File{
 		MimeType: "application/vnd.google-apps.folder",

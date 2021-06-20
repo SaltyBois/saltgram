@@ -12,7 +12,7 @@ service Content {
 
     rpc CreateSharedMedia(CreateSharedMediaRequest) returns(CreateSharedMediaResponse);
     rpc AddPost(stream AddPostRequest) returns(AddPostResponse);
-    rpc AddStory(AddStoryRequest) returns(AddStoryResponse);
+    rpc AddStory(stream AddStoryRequest) returns(AddStoryResponse);
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
     rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
@@ -114,14 +114,12 @@ message GetProfilePictureResponse {
 }
 
 message AddPostResponse {}
-
 message AddPostRequest {
     oneof data {
         AddPostRequestInfo info = 1;
         bytes image = 2;
     }
 }
-
 message AddPostRequestInfo {
     Media media = 1;
     uint64 userId = 2;
@@ -130,11 +128,17 @@ message AddPostRequestInfo {
 
 message AddStoryResponse {}
 message AddStoryRequest {
-    SharedMedia sharedMedia = 1;
-    uint64 userId = 2;
-    bool closeFriends = 3;
+    oneof data {
+        AddStoryRequestInfo info = 1;
+        bytes image = 2;
+    }
 }
-
+message AddStoryRequestInfo {
+    Media media = 1;
+    uint64 userId = 2;
+    string storiesFolderId = 3;
+    bool closeFriends = 4;
+}
 
 message AddProfilePictureRequest {
     oneof data {

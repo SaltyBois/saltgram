@@ -252,10 +252,89 @@ func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureSe
 // 	return &prcontent.AddSharedMediaResponse{}, nil
 // }
 
+func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
+	r, err := stream.Recv()
+	if err != nil {
+		c.l.Errorf("failed to receive story metadata: %v", err)
+		return status.Error(codes.InvalidArgument, "Invalid argument error")
+	}
+
+	tags := []data.Tag{}
+	for _, tag := range r.GetInfo().Media.Tags {
+		tags = append(tags, data.Tag{
+			Value: tag.Value,
+		})
+	}
+	location := r.GetInfo().Media.Location
+
+	media := &data.Media{
+		SharedMediaID: r.GetInfo().Media.SharedMediaId,
+		Filename:      r.GetInfo().Media.Filename,
+		Tags:          tags,
+		Description:   r.GetInfo().Media.Description,
+		Location: data.Location{
+			Country: location.Country,
+			State:   location.State,
+			ZipCode: location.ZipCode,
+			Street:  location.Street,
+		},
+		AddedOn: r.GetInfo().Media.AddedOn,
+	}
+
+	story := data.Story{
+		UserID:        r.GetInfo().UserId,
+		SharedMediaID: media.SharedMediaID,
+		CloseFriends:  r.GetInfo().CloseFriends,
+	}
+
+	err = c.db.AddStory(&story)
+	if err != nil {
+		c.l.Errorf("failed to add story: %v", err)
+		return status.Error(codes.Internal, "Internal error")
+	}
+
+	imageData := bytes.Buffer{}
+	for {
+		chunk, err := stream.Recv()
+		if err == io.EOF {
+			c.l.Info("profile image received")
+			break
+		}
+		if err != nil {
+			c.l.Errorf("error while receiving image data: %v", err)
+			return status.Error(codes.InvalidArgument, "Bad request")
+		}
+		// TODO(Jovan): Prevent large uploads?
+		_, err = imageData.Write(chunk.GetImage())
+		if err != nil {
+			c.l.Errorf("error appending image chunk data: %v", err)
+			return status.Error(codes.Internal, "Internal server error")
+		}
+	}
+	url, err := c.g.UploadStory(r.GetInfo().StoriesFolderId, media.Filename, &imageData)
+	if err != nil {
+		c.l.Errorf("failed to upload story: %v", err)
+		return status.Error(codes.Internal, "Internal error")
+	}
+	media.URL = url
+	err = c.db.AddMediaToSharedMedia(media.SharedMediaID, media)
+	if err != nil {
+		c.l.Errorf("faield to add media to shared media: %v", err)
+		return status.Error(codes.Internal, "Internal error")
+	}
+	err = stream.SendAndClose(&prcontent.AddStoryResponse{})
+	if err != nil {
+		c.l.Errorf("failed to send and close: %v", err)
+		return status.Error(codes.Internal, "Internal error")
+	}
+	return nil
+}
+
 func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 	r, err := stream.Recv()
 	if err != nil {
 		c.l.Errorf("failed to recieve profile metadata: %v", err)
+		return status.Error(codes.InvalidArgument, "Invalid argument error")
 	}
 
 	tags := []data.Tag{}

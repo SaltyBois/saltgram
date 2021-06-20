@@ -439,6 +439,124 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(resp.Url))
 }
 
+func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
+	profile, err := getProfileByJWS(r, c.uc)
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	r.ParseMultipartForm(10 * 10 << 20) // Max 10 * 10MB
+	formdata := r.MultipartForm
+	files := formdata.File["stories"]
+	if len(files) == 0 {
+		c.l.Error("empty files form")
+		http.Error(w, "Empty files form", http.StatusBadRequest)
+		return
+	}
+
+	// TODO(Jovan): Tag value as ID or predefined tags
+	tags := []*prcontent.Tag{}
+	// TODO(Jovan): Pass location as object
+	// location := r.PostForm["location"]
+	description := ""
+	if len(r.PostForm["description"]) > 0 {
+		description = r.PostForm["description"][0]
+	}
+
+	// NOTE(Jovan): default
+	location := &prcontent.Location{
+		Country: "RS",
+		State:   "Serbia",
+		ZipCode: "21000",
+		Street:  "Balzakova 69",
+	}
+
+	if len(r.PostForm["location"]) > 0 {
+		err = json.Unmarshal([]byte(r.PostForm["location"][0]), &location)
+		if err != nil {
+			c.l.Errorf("failed to unmarshal location: %v", err)
+			http.Error(w, "Failed to parse location", http.StatusBadRequest)
+			return
+		}
+	}
+
+	resp, err := c.cc.CreateSharedMedia(context.Background(), &prcontent.CreateSharedMediaRequest{})
+	if err != nil {
+		c.l.Errorf("failed to create shared media: %v", err)
+		http.Error(w, "Failed to create shared media", http.StatusInternalServerError)
+		return
+	}
+
+	for _, f := range files {
+		media := &prcontent.Media{
+			UserId:        profile.UserId,
+			Filename:      f.Filename,
+			Tags:          tags,
+			Description:   description,
+			Location:      location,
+			AddedOn:       time.Now().String(),
+			SharedMediaId: resp.SharedMediaId,
+		}
+		stream, err := c.cc.AddStory(context.Background())
+		if err != nil {
+			c.l.Errorf("failed to add story: %v", err)
+			http.Error(w, "Failed to add story", http.StatusInternalServerError)
+			return
+		}
+
+		closeFriends := false
+		if len(r.PostForm["closeFriends"]) > 0 {
+			closeFriends = r.PostForm["closeFriends"][0] == "true"
+		}
+
+		err = stream.Send(&prcontent.AddStoryRequest{Data: &prcontent.AddStoryRequest_Info{
+			Info: &prcontent.AddStoryRequestInfo{
+				UserId:          profile.UserId,
+				StoriesFolderId: profile.StoriesFolderId,
+				CloseFriends:    closeFriends,
+				Media:           media,
+			},
+		}})
+
+		if err != nil {
+			c.l.Errorf("failed to send story meta: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		file, err := f.Open()
+		if err != nil {
+			c.l.Errorf("failed to open file: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		imgBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			c.l.Errorf("failed to read file bytes: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		err = stream.Send(&prcontent.AddStoryRequest{Data: &prcontent.AddStoryRequest_Image{
+			Image: imgBytes,
+		}})
+
+		if err != nil {
+			c.l.Errorf("failed to send image data: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+		_, err = stream.CloseAndRecv()
+		if err != nil {
+			c.l.Errorf("failed to close and recieve: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Write([]byte("Added"))
+}
+
 func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := getProfileByJWS(r, c.uc)
@@ -511,7 +629,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 			Info: &prcontent.AddPostRequestInfo{
 				Media:         media,
 				UserId:        profile.UserId,
-				PostsFolderId: profile.ProfileFolderId,
+				PostsFolderId: profile.PostsFolderId,
 			},
 		}})
 		if err != nil {
