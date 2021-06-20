@@ -814,7 +814,7 @@ func (a *Admin) SendInappropriateContentReport(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	_, err = a.ac.SendInappropriateContentReport(context.Background(), &pradmin.InappropriateContentReportRequest{UserId: user.Id /*, SharedMedia:*/})
+	_, err = a.ac.SendInappropriateContentReport(context.Background(), &pradmin.InappropriateContentReportRequest{UserId: user.Id, SharedMediaId: dto.SharedMediaId})
 
 	if err != nil {
 		a.l.Errorf("failed to add inappropriate: %v\n", err)

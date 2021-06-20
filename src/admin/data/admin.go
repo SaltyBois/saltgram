@@ -17,8 +17,8 @@ type Status string
 
 const (
 	ACCEPTED = "ACCEPTED"
-	REJECTED
-	PENDING
+	REJECTED = "REJECTED"
+	PENDING  = "PENDING"
 )
 
 type VerificationRequest struct {

@@ -12,7 +12,7 @@
           <h3 style="margin-top: 14px;">Full Name</h3>
         </div>
         <div style="width: 50%;">
-          <v-text-field outlined value="Name and Lastname" v-model="fullName" style="width: 400px"/>
+          <v-text-field outlined value="Name and Lastname" v-model="fullname" style="width: 400px"/>
         </div>
       </div>
     </div>
@@ -86,7 +86,7 @@ export default {
       this.refreshToken(this.getAHeader())
           .then(rr => {
             this.$store.state.jws = rr.data;
-            let verificationReq = {/*fullname: this.fullname, category: this.category, url: */};
+            let verificationReq = {fullname: this.fullname, category: this.category/*, url: */};
             this.axios.post("admin/verificationrequest", verificationReq, {headers: this.getAHeader()})
                 .then(r =>{
                   console.log(r);

@@ -48,7 +48,7 @@ export default {
       console.log(appData);
       this.$refs.professionalAccountDetails.$data.applicationData.profilePictureAddress = appData.profilepicture;
       this.$refs.professionalAccountDetails.$data.applicationData.documentMedia = appData.url;
-      this.$refs.professionalAccountDetails.$data.applicationData.fullName = appData.fullName;
+      this.$refs.professionalAccountDetails.$data.applicationData.fullname = appData.fullname;
       this.$refs.professionalAccountDetails.$data.applicationData.accountType = appData.category;
       this.$refs.professionalAccountDetails.$data.applicationData.userId = appData.userId;
       this.$refs.professionalAccountDetails.$data.applicationData.requestId = appData.id;

@@ -6,7 +6,7 @@
               @click="$router.push('/user/' + applicationData.username)"
               alt="Profile picture"/>
       <h3 class="my-1">Username: {{applicationData.username}}</h3>
-      <h4 class="my-1">Name and LastName: {{applicationData.fullName}}</h4>
+      <h4 class="my-1">Name and LastName: {{applicationData.fullname}}</h4>
       <h4 class="my-1">Professional Account Type: {{applicationData.accountType}}</h4>
       <ImageMessage v-if="showContent" :image-src="this.applicationData.documentMedia" @toggle-image-message="showContent = false"/>
       <v-img  class="content-item my-2"
@@ -34,7 +34,7 @@ export default {
         username: '{{USERNAME}}',
         profilePictureAddress: 'https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg',
         documentMedia: 'https://www.ozonpress.net/wp-content/uploads/2016/09/licna-karata.jpg',
-        fullName: 'Imen Prezimenovic',
+        fullname: 'Imen Prezimenovic',
         accountType: 'Business',
         userId: '',
         requestId: '',

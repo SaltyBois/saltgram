@@ -348,7 +348,6 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
-
 	if !ok {
 		u.l.Println("[ERROR] unable to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
@@ -372,17 +371,19 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < len(queryResults.SearchedUser); i++ {
 		su := queryResults.SearchedUser[i]
-		if su.Username == claims.Username {continue}
-		if i == MAX_NUMBER_OF_RESULTS {break}
+		if su.Username == claims.Username {
+			continue
+		}
+		if i == MAX_NUMBER_OF_RESULTS {
+			break
+		}
 		finalResult = append(finalResult, &prusers.SearchedUser{
-			Username: su.Username,
-			ProfilePictureAddress: su.ProfilePictureAddress} )
+			Username:              su.Username,
+			ProfilePictureAddress: su.ProfilePictureAddress})
 
 	}
 
 	err = saltdata.ToJSON(&finalResult, w)
-
-
 
 	if err != nil {
 		u.l.Println("[ERROR] Searching users failed")
@@ -485,7 +486,7 @@ func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	requests := []*pradmin.VerificationRequest{}
+	requests := []saltdata.VerificationRequestDTO{}
 
 	for i := 0; i < len(verificationRequests.VerificationRequest); i++ {
 		vr := verificationRequests.VerificationRequest[i]
@@ -498,8 +499,9 @@ func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		requests = append(requests, &pradmin.VerificationRequest{
-			Id:       vr.Id,
+		requests = append(requests, saltdata.VerificationRequestDTO{
+
+			Id:       strconv.FormatUint(vr.Id, 10),
 			FullName: vr.FullName,
 			Category: vr.Category,
 			Url:      vr.Url,
