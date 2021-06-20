@@ -40,8 +40,7 @@ src/log
 src/keystore
 
 # Secrets
-secrets
->>>>>>> develop
+secrets/*.json
 
 # Logs
 *.log
