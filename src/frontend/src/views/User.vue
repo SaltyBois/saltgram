@@ -127,16 +127,18 @@ export default {
     },
     methods: {
         getUserInfo: function() {
-            this.refreshToken(this.getAHeader())
-                .then(rr => {
-                    this.$store.state.jws = rr.data;
-                    this.axios.get("users", {headers: this.getAHeader()})
+            // this.refreshToken(this.getAHeader())
+            //     .then(rr => {
+            //         this.$store.state.jws = rr.data;
+                    this.axios.get("users/" + this.$route.params.username)
                         .then(r =>{ 
                           this.user = r.data
                           this.getUser();
                           });
                       
-                }).catch(() => this.$router.push('/'));
+            //     }).catch(() => {
+            //   console.log('No User is logged in!');
+            // });
         },
 
         getUser: function() {
@@ -162,36 +164,9 @@ export default {
               this.getUserPosts(r.data.userId);
             }).catch(err => {
               console.log(err)
-              console.log('Pushing Back to Login Page after fetching profile')
-              this.$router.push('/');
+              // console.log('Pushing Back to Login Page after fetching profile')
+              // console.log('No User is logged in!');
             })
-
-          // this.axios.get("users/get/followers/" + this.$route.params.username, {headers: this.getAHeader()})
-          //     .then(r => {
-          //       this.profile.followersList = r.data
-          //     }).catch(() => {
-          //   console.log('Pushing Back to Login Page after failed fetching followers')
-          //   this.$router.push('/');
-          // })
-          //
-          // this.axios.get("users/get/following/" + this.$route.params.username, {headers: this.getAHeader()})
-          //     .then(r => {
-          //       this.profile.followingList = r.data
-          //       console.log('this.profile.followingList')
-          //       console.log(this.profile.followingList)
-          //       this.$refs.profileImage.$data.following = this.profile.followingList[this.$route.params.username] !== 'true';
-          //       console.log('this.$refs.profileImage.$data.following')
-          //       console.log(this.$refs.profileImage.$data.following)
-          //       // for (let i = 0; i < this.profile.followingList.length; ++i) {
-          //       //   if (this.$route.params.username === this.profile.followingList[i]) {
-          //       //     this.$refs.profileImage.$data.following = true
-          //       //     break;
-          //       //   }
-          //       // }
-          //     }).catch(r => {
-          //   console.log('Pushing Back to Login Page after failed fetching following')
-          //   this.$router.push('/');
-          // })
 
 
         },

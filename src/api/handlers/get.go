@@ -117,38 +117,65 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 }
 
+func (u *Users) GetByUsernameRoute(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	username := vars["username"]
+
+	user, err := u.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: username})
+	if err != nil {
+		u.l.Errorf("failed to fetch user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	response := saltdata.UserDTO{
+		Id:       strconv.FormatUint(user.Id, 10),
+		Email:    user.Email,
+		FullName: user.FullName,
+		Username: user.Username,
+	}
+
+	err = saltdata.ToJSON(response, w)
+	if err != nil {
+		u.l.Errorf("Serializing user: %v", err)
+		http.Error(w, "Error serializing user", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+}
+
 func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 
-	jws, err := getUserJWS(r)
-	if err != nil {
-		u.l.Println("[ERROR] JWS not found")
-		http.Error(w, "JWS not found", http.StatusBadRequest)
-		return
-	}
+	//jws, err := getUserJWS(r)
+	//if err != nil {
+	//	u.l.Println("[ERROR] JWS not found")
+	//	http.Error(w, "JWS not found", http.StatusBadRequest)
+	//	return
+	//}
+	//
+	//token, err := jwt.ParseWithClaims(
+	//	jws,
+	//	&saltdata.AccessClaims{},
+	//	func(t *jwt.Token) (interface{}, error) {
+	//		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+	//	},
+	//)
+	//
+	//if err != nil {
+	//	u.l.Printf("[ERROR] parsing claims: %v", err)
+	//	http.Error(w, "Error parsing claims", http.StatusBadRequest)
+	//	return
+	//}
+	//
+	//claims, ok := token.Claims.(*saltdata.AccessClaims)
+	//
+	//if !ok {
+	//	u.l.Println("[ERROR] unable to parse claims")
+	//	http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+	//	return
+	//}
 
-	token, err := jwt.ParseWithClaims(
-		jws,
-		&saltdata.AccessClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-		},
-	)
-
-	if err != nil {
-		u.l.Printf("[ERROR] parsing claims: %v", err)
-		http.Error(w, "Error parsing claims", http.StatusBadRequest)
-		return
-	}
-
-	claims, ok := token.Claims.(*saltdata.AccessClaims)
-
-	if !ok {
-		u.l.Println("[ERROR] unable to parse claims")
-		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
-
-	user := claims.Username
+	//user := claims.Username
 
 	vars := mux.Vars(r)
 	profileUsername, er := vars["username"]
@@ -158,7 +185,7 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user, Username: profileUsername})
+	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: profileUsername, Username: profileUsername})
 	if err != nil {
 		u.l.Println("[ERROR] fetching profile")
 		http.Error(w, "Profile not found", http.StatusNotFound)
@@ -339,34 +366,45 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
-	jws, err := getUserJWS(r)
-	if err != nil {
-		u.l.Println("[ERROR] JWS not found")
-		http.Error(w, "JWS not found", http.StatusBadRequest)
-		return
+
+	jws, err1 := getUserJWS(r)
+	var t *jwt.Token
+	var err2 error
+	var claims1 *saltdata.AccessClaims
+	var ok bool
+	//if err != nil {
+	//	u.l.Println("[ERROR] JWS not found")
+	//	http.Error(w, "JWS not found", http.StatusBadRequest)
+	//	return
+	//}
+	if jws != "" {
+		token, error2 := jwt.ParseWithClaims(
+			jws,
+			&saltdata.AccessClaims{},
+			func(t *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+			},
+		)
+		t = token
+		err2 = error2
 	}
 
-	token, err := jwt.ParseWithClaims(
-		jws,
-		&saltdata.AccessClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-		},
-	)
-
-	if err != nil {
-		u.l.Printf("[ERROR] parsing claims: %v", err)
-		http.Error(w, "Error parsing claims", http.StatusBadRequest)
-		return
+	//if err != nil {
+	//	u.l.Printf("[ERROR] parsing claims: %v", err)
+	//	http.Error(w, "Error parsing claims", http.StatusBadRequest)
+	//	return
+	//}
+	if t != nil {
+		claims, ok1 := t.Claims.(*saltdata.AccessClaims)
+		claims1 = claims
+		ok = ok1
 	}
 
-	claims, ok := token.Claims.(*saltdata.AccessClaims)
-
-	if !ok {
-		u.l.Println("[ERROR] unable to parse claims")
-		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
+	//if !ok {
+	//	u.l.Println("[ERROR] unable to parse claims")
+	//	http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+	//	return
+	//}
 
 	vars := mux.Vars(r)
 	queryUsername := vars["username"]
@@ -385,9 +423,14 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < len(queryResults.SearchedUser); i++ {
 		su := queryResults.SearchedUser[i]
-		if su.Username == claims.Username {
-			continue
+		if err1 == nil &&
+			err2 == nil &&
+			ok {
+			if su.Username == claims1.Username {
+				continue
+			}
 		}
+
 		if i == MAX_NUMBER_OF_RESULTS {
 			break
 		}
