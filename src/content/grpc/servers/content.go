@@ -3,7 +3,6 @@ package servers
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
@@ -102,7 +101,6 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	for _, p := range *posts {
 		media := []*prcontent.Media{}
 		for _, m := range p.SharedMedia.Media {
-			fmt.Println(m.ID)
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
@@ -485,6 +483,47 @@ func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.
 		})
 		if err != nil {
 			c.l.Errorf("failure getting comments response: %v\n", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Content) GetStoriesByUser(r *prcontent.GetStoryRequest, stream prcontent.Content_GetStoriesServer) error {
+	stories, err := c.db.GetStoryByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting user stories: %v\n", err)
+		return err
+	}
+	for _, p := range *stories {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+				Url: m.URL,
+			})
+		}
+		story := &prcontent.Story{
+			Id:     p.ID,
+			UserId: p.UserID,
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+			CloseFriends: p.CloseFriends,
+		}
+		err = stream.Send(&prcontent.GetStoriesResponse{
+			Story: story,
+		})
+		if err != nil {
+			c.l.Errorf("failed getting story response: %v\n", err)
 			return err
 		}
 	}

@@ -459,6 +459,38 @@ func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(postsArray, w)
 }
 
+func (s *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("converting id")
+		return
+	}
+
+	stream, err := s.cc.GetStories(context.Background(), &prcontent.GetStoryRequest{UserId: id})
+	if err != nil {
+		s.l.Errorf("failed fetching stories %v\n", err)
+		http.Error(w, "failed fetching stories", http.StatusInternalServerError)
+		return
+	}
+	var storiesArray []*prcontent.GetStoriesResponse
+	for {
+		story, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Errorf("failed to fetch stories: %v\n", err)
+			http.Error(w, "Error couldn't fetch stories", http.StatusInternalServerError)
+			return
+		}
+		storiesArray = append(storiesArray, story)
+	}
+	saltdata.ToJSON(storiesArray, w)
+}
+
 func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request) {
 
 	jws, err := getUserJWS(r)
