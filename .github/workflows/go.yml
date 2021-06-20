@@ -19,7 +19,7 @@ jobs:
       TOKEN_TIMEOUT_MINUTES: 1
       TIME_LAYOUT: 2006-01-02 15:04:05 -0700 MST
       GOOGLE_APPLICATION_CREDENTIALS: $HOME/secrets/saltgram-c0751de619fa.json
-      GOOGLE_SERVICE_CREDENTIALS: $HOME/secrets/saltgram-service-key.json
+      SALT_GDRIVE_CREDS: $HOME/secrets/saltgram-service-key.json
     steps:
       - name: Checkout
         uses: actions/checkout@v1

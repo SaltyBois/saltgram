@@ -146,6 +146,7 @@ services:
       - CONTENTSDB_PORT=9093
       - PKIDB_HOST=pkidb
       - PKIDB_PORT=9094
+      - SALT_GDRIVE_CREDS=${SALT_GDRIVE_CREDS}
 
 secrets:
   gcred:
