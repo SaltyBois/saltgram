@@ -147,7 +147,13 @@ services:
       - PKIDB_HOST=pkidb
       - PKIDB_PORT=9094
       - SALT_GDRIVE_CREDS=${SALT_GDRIVE_CREDS}
+      - SALT_GDRIVE_CREDS=/run/secrets/gsrvcred
+    secrets:
+      - gsrvcred
+
 
 secrets:
   gcred:
     file: ${GOOGLE_SERVICE_CREDENTIALS}
+  gsrvcred:
+    file: ${SALT_GDRIVE_CREDS}
