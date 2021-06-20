@@ -23,22 +23,22 @@
                 justify-center
                 column>
         <v-btn class="primary mb-2"
-               v-if="isMyProfile"
+               v-if="isMyProfile && $store.state.jws"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn v-if="!isMyProfile" @click="showDialog = false" class="mute-button my-2">
+        <v-btn  @click="showDialog = false" class="mute-button my-2">
           Show story
         </v-btn>
-        <v-btn v-if="isMutedBtnVisible" @click="showDialog = false" class="other-buttons my-2">
+        <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showDialog = false" class="other-buttons my-2">
           Mute
         </v-btn>
-        <v-btn v-if="!isMutedBtnVisible" @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="!isMutedBtnVisible && $store.state.jws" @click="showDialog = false" class="mute-button my-2">
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile"
+               v-if="!isMyProfile && $store.state.jws"
                @click="showDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile"
+               v-if="!isMyProfile && $store.state.jws"
                @click="showDialog = false">Block @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
