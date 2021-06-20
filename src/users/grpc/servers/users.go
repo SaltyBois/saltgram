@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
@@ -22,14 +23,16 @@ type Users struct {
 	db *data.DBConn
 	ac prauth.AuthClient
 	ec premail.EmailClient
+	cc prcontent.ContentClient
 }
 
-func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient) *Users {
+func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient, cc prcontent.ContentClient) *Users {
 	return &Users{
 		l:  l,
 		db: db,
 		ac: ac,
 		ec: ec,
+		cc: cc,
 	}
 }
 
@@ -51,7 +54,7 @@ func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameReque
 	}
 
 	return &prusers.GetByUsernameResponse{
-		Id: 			user.ID,
+		Id:             user.ID,
 		Email:          user.Email,
 		FullName:       user.FullName,
 		Username:       user.Username,
@@ -125,20 +128,29 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		return &prusers.RegisterResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
-	profile := data.Profile{
-		Username:       r.Username,
-		UserID: 		user.ID,
-		Taggable:       false,
-		Public:         false,
-		Description:    r.Description,
-		PhoneNumber:    r.PhoneNumber,
-		Gender:         r.Gender,
-		DateOfBirth:    time.Unix(r.DateOfBirth, 0),
-		WebSite:        r.WebSite,
-		PrivateProfile: r.PrivateProfile,
+	resp, err := u.cc.CreateUserFolder(context.Background(), &prcontent.CreateUserFolderRequest{UserId: strconv.FormatUint(user.ID, 10)})
+
+	if err != nil {
+		u.l.Errorf("failed to create profile folders: %v", err)
+		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal error")
 	}
 
-	u.l.Print("Creating profile?")
+	profile := data.Profile{
+		Username:        r.Username,
+		UserID:          user.ID,
+		Taggable:        false,
+		Public:          false,
+		Description:     r.Description,
+		PhoneNumber:     r.PhoneNumber,
+		Gender:          r.Gender,
+		DateOfBirth:     time.Unix(r.DateOfBirth, 0),
+		WebSite:         r.WebSite,
+		PrivateProfile:  r.PrivateProfile,
+		ProfileFolderId: resp.ProfileFolderId,
+		PostsFolderId:   resp.PostsFolderId,
+		StoriesFolderId: resp.StoryFolderId,
+	}
+
 	err = u.db.AddProfile(&profile)
 	if err != nil {
 		u.l.Printf("[ERROR] adding profile: %v\n", err)
@@ -214,18 +226,27 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 	dateStr := strconv.FormatInt(profile.DateOfBirth.Unix(), 10)
 	date, err := strconv.ParseInt(dateStr, 10, 64)
 
+	if err != nil {
+		u.l.Errorf("failed t oparse date string: %v", err)
+		return &prusers.ProfileResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
 	return &prusers.ProfileResponse{
-		Username:    profile.Username,
-		Followers:   followers,
-		Following:   following,
-		FullName:    user.FullName,
-		Description: profile.Description,
-		IsFollowing: isFollowing,
-		IsPublic:    profile.Public,
-		PhoneNumber: profile.PhoneNumber,
-		Gender:      profile.Gender,
-		DateOfBirth: date,
-		WebSite:     profile.WebSite,
+		Username:        profile.Username,
+		Followers:       followers,
+		Following:       following,
+		FullName:        user.FullName,
+		Description:     profile.Description,
+		IsFollowing:     isFollowing,
+		IsPublic:        profile.Public,
+		PhoneNumber:     profile.PhoneNumber,
+		Gender:          profile.Gender,
+		DateOfBirth:     date,
+		WebSite:         profile.WebSite,
+		ProfileFolderId: profile.ProfileFolderId,
+		PostsFolderId:   profile.PostsFolderId,
+		StoriesFolderId: profile.StoriesFolderId,
+		UserId:          profile.UserID,
 	}, nil
 }
 

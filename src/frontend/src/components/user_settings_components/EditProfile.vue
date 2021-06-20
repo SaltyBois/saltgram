@@ -7,12 +7,16 @@
                 @click="showContent = true"
                 :src="profilePicture"
                 alt="Profile picture"/>
+        <v-img v-else class="head"
+          @click="showContent = true"
+          :src="require('@/assets/profile_placeholder.png')"/>
         <b style="color: #2b80e0; margin-top: 5px; cursor:pointer;" @click="$refs.file.click()">Change profile photo</b>
       </div>
       <div style="padding-top: 15px; margin-left: 5px">
         <h1 style="text-align: left; justify-content: center" >{{ user.username }}</h1>
       </div>
 
+      <!-- Dialog? -->
       <input type="file"
              ref="file"
              style="display: none"
@@ -162,7 +166,10 @@ export default {
           };
           // Vratiti nazad
           this.axios.post("content/profilepicture", data, config)
-            .then(() => this.isUploadedContent = true)
+            .then(r => {
+              this.isUploadedContent = true;
+              this.profilePicture = r.data;
+            })
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));
     },

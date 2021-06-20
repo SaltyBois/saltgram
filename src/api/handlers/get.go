@@ -101,9 +101,9 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := saltdata.UserDTO {
-		Id: strconv.FormatUint(user.Id, 10),
-		Email: user.Email,
+	response := saltdata.UserDTO{
+		Id:       strconv.FormatUint(user.Id, 10),
+		Email:    user.Email,
 		FullName: user.FullName,
 		Username: user.Username,
 	}

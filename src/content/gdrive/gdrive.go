@@ -21,9 +21,10 @@ type GDrive struct {
 }
 
 var (
-	serviceCreds = internal.GetEnvOrDefault("SALT_GDRIVE_CREDS", "../../secrets/saltgram-service-key.json")
-	publicId     string
-	profilesId   string
+	serviceCreds  = internal.GetEnvOrDefault("SALT_GDRIVE_CREDS", "../../secrets/saltgram-service-key.json")
+	publicId      string
+	profilesId    string
+	publicBaseUrl = "https://drive.google.com/uc?export=view&id="
 )
 
 func NewGDrive(l *logrus.Logger) *GDrive {
@@ -90,29 +91,70 @@ func (g *GDrive) getServiceClient() {
 	g.s = srv
 }
 
-func (g *GDrive) UploadProfilePicture(userId string, data io.Reader) (string, error) {
-	var userFolderId string
-	userFolders, err := g.QueryFiles("name='" + userId + "' and '" + profilesId + "' in parents")
+func (g *GDrive) CreateUserFolder(userId string) (string, string, string, error) {
+	userFolder, err := g.CreateFolder(userId, []string{profilesId}, true)
 	if err != nil {
-		g.l.Errorf("failed to query user profile folder: %v", err)
+		g.l.Errorf("failed to create user folder: %v", err)
+		return "", "", "", err
+	}
+	postsFolder, err := g.CreateFolder("posts", []string{userFolder.Id}, true)
+	if err != nil {
+		g.l.Errorf("failed to create posts folder: %v", err)
+		return "", "", "", err
+	}
+	storyFolder, err := g.CreateFolder("stories", []string{userFolder.Id}, true)
+	if err != nil {
+		g.l.Errorf("failed to create stories folder: %v", err)
+		return "", "", "", err
+	}
+	return userFolder.Id, postsFolder.Id, storyFolder.Id, nil
+}
+
+func (g *GDrive) UploadProfilePicture(profileFolderId string, data io.Reader) (string, error) {
+	profileImg, err := g.QueryFiles("name='profile' and '" + profileFolderId + "' in parents")
+	if err != nil {
+		g.l.Errorf("failed to query profile folder: %v", err)
 		return "", err
 	}
-	if len(userFolders) == 0 {
-		userFolder, err := g.CreateFolder(userId, []string{profilesId}, true)
+	var profileImgId string
+	if len(profileImg) == 0 {
+		profile, err := g.CreateFile("profile", []string{profileFolderId}, data, true)
 		if err != nil {
-			g.l.Errorf("failed to create user profile folder: %v", err)
+			g.l.Errorf("failed to create user profile: %v", err)
 			return "", err
 		}
-		userFolderId = userFolder.Id
+		profileImgId = profile.Id
 	} else {
-		userFolderId = userFolders[0].Id
+		f := &drive.File{
+			Name:    profileImg[0].Name,
+			Parents: profileImg[0].Parents,
+		}
+		profile, err := g.s.Files.Update(profileImg[0].Id, f).Media(data).Do()
+		if err != nil {
+			g.l.Errorf("failed to update profile picture: %v", err)
+			return "", err
+		}
+		profileImgId = profile.Id
 	}
-	profile, err := g.CreateFile("profile", []string{userFolderId}, data, true)
+	return publicBaseUrl + profileImgId, nil
+}
+
+func (g *GDrive) UploadPost(postsFolderId, filename string, data io.Reader) (string, error) {
+	post, err := g.CreateFile(filename, []string{postsFolderId}, data, true)
 	if err != nil {
-		g.l.Errorf("failed to create user profile: %v", err)
+		g.l.Errorf("failed uploading post: %v", err)
 		return "", err
 	}
-	return "https://drive.google.com/uc?export=view&id=" + profile.Id, nil
+	return publicBaseUrl + post.Id, nil
+}
+
+func (g *GDrive) UploadStory(storiesFolderId, filename string, data io.Reader) (string, error) {
+	story, err := g.CreateFile(filename, []string{storiesFolderId}, data, true)
+	if err != nil {
+		g.l.Errorf("failed uploading story: %v", err)
+		return "", err
+	}
+	return publicBaseUrl + story.Id, nil
 }
 
 func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*drive.File, error) {
@@ -154,8 +196,8 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isPublic bool) (*drive.File, error) {
 
 	f := &drive.File{
-		Name:     name,
-		Parents:  parentIds,
+		Name:    name,
+		Parents: parentIds,
 	}
 	createdFile, err := g.s.Files.Create(f).Media(data).Do()
 	if err != nil {
