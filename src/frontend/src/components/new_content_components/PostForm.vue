@@ -64,7 +64,7 @@
           </template>
         </v-combobox>
         <v-spacer></v-spacer>
-        <v-btn color="accent" :disabled="!images.length" @click="uploadFiles">Upload</v-btn>
+        <v-btn color="accent" :disabled="!images.length" @click="uploadFiles" :loading="uploading">Upload</v-btn>
       </div>
     </div>
   </div>
@@ -76,6 +76,7 @@ export default {
   name: "PostForm",
   data: function () {
     return {
+      uploading = false,
       description: "",
       location: {
 				country: "RS",
@@ -92,6 +93,7 @@ export default {
   methods: {
 
     uploadFiles: function() {
+      this.uploading = true;
       let data = new FormData();
       this.images.forEach(img => {
         data.append('posts', img);
@@ -111,7 +113,7 @@ export default {
             },
           };
           this.axios.post('content/post', data, config)
-            .then(r => console.log(r))
+            .then(() => this.uploading=false)
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));
     },
