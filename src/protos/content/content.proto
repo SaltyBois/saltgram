@@ -7,7 +7,7 @@ service Content {
     rpc GetStories(GetStoryRequest) returns(stream GetStoriesResponse);
     rpc GetProfilePicture(GetProfilePictureRequest) returns(GetProfilePictureResponse);
     rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
-    //rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
+    rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
     rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
 
     rpc CreateSharedMedia(CreateSharedMediaRequest) returns(CreateSharedMediaResponse);
@@ -178,17 +178,20 @@ message AddCommentRequest {
 
 message AddCommentResponse {}
 
-message ReactionType {
-    string reactionType = 1;
-}
-
 message AddReactionRequest {
-    ReactionType reactionType = 1;
+    string reactionType = 1;
     uint64 userId = 2;
     uint64 postId = 3;
 }
 
 message AddReactionResponse {}
 
+message GetReactionsRequest {
+    uint64 postId = 1;
+}
 
-
+message GetReactionsResponse {
+    uint64 id = 1;
+    uint64 userId = 2;
+    string reactionType = 3;
+}

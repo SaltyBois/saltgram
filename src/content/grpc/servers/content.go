@@ -431,9 +431,9 @@ func (c *Content) AddComment(ctx context.Context, r *prcontent.AddCommentRequest
 func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionRequest) (*prcontent.AddReactionResponse, error) {
 
 	reaction := data.Reaction{
-		//ReactionType: r.ReactionType,
-		UserID: r.UserId,
-		PostID: r.PostId,
+		ReactionType: r.ReactionType,
+		UserID:       r.UserId,
+		PostID:       r.PostId,
 	}
 
 	err := c.db.AddReaction(&reaction)
@@ -443,4 +443,24 @@ func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionReque
 	}
 
 	return &prcontent.AddReactionResponse{}, nil
+}
+
+func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prcontent.Content_GetReactionsServer) error {
+	reactions, err := c.db.GetReactionByPostId(r.PostId)
+	if err != nil {
+		c.l.Errorf("failure getting reactions: %v\n", err)
+		return err
+	}
+	for _, r := range *reactions {
+		err = stream.Send(&prcontent.GetReactionsResponse{
+			Id:           r.ID,
+			UserId:       r.UserID,
+			ReactionType: r.ReactionType,
+		})
+		if err != nil {
+			c.l.Errorf("failure getting reactions response: %v\n", err)
+			return err
+		}
+	}
+	return nil
 }
