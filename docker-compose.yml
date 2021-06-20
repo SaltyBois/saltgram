@@ -153,6 +153,6 @@ services:
 
 secrets:
   gcred:
-    file: ${GOOGLE_SERVICE_CREDENTIALS}
+    file: ${GOOGLE_APPLICATION_CREDENTIALS}
   gsrvcred:
     file: ${GOOGLE_SERVICE_CREDS}
