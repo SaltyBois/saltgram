@@ -19,9 +19,8 @@ service Users {
     rpc UnFollow(FollowRequest) returns (FollowRespose);
     rpc GetFollowers(FollowerRequest) returns(stream ProfileFollower);
     rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
-
     rpc GetByUserId(GetByIdRequest) returns (GetByIdResponse);
-
+    rpc GetSearchedUsers(SearchRequest) returns (SearchResponse);
 }
 
 message RoleRequest {
@@ -33,7 +32,7 @@ message RoleResponse {
 }
 
 message UsernameRequest {
-    string olldUsername = 1;
+    string oldUsername = 1;
     string newUsername = 2;
 }
 
@@ -193,5 +192,18 @@ message FollowersResponse {
 
 message ProfileFollower {
     string username = 1;
+}
+
+message SearchRequest {
+    string query = 1;
+}
+
+message SearchedUser {
+    string username = 1;
+    string profilePictureAddress = 2;
+}
+
+message SearchResponse {
+    repeated SearchedUser searchedUser = 1;
 }
 

@@ -355,4 +355,25 @@ func (u *Users) GetByUserId(ctx context.Context, r *prusers.GetByIdRequest) (*pr
 		Role:           user.Role,
 		HashedPassword: user.HashedPassword,
 	}, nil
+
+}
+
+func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) (*prusers.SearchResponse, error) {
+	users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
+	if err != nil {
+		u.l.Printf("[ERROR] geting user: %v\n", err)
+		return &prusers.SearchResponse{}, err
+	}
+
+	searchedUsers := []*prusers.SearchedUser{}
+
+	for i := 0; i < len(users); i++ {
+		su := users[i]
+		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
+			Username:              su.Username,
+			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
+	}
+
+	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil
+
 }

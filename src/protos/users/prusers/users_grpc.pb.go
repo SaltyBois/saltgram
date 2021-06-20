@@ -36,6 +36,7 @@ type UsersClient interface {
 	GetFollowers(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GetFollowersClient, error)
 	GerFollowing(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GerFollowingClient, error)
 	GetByUserId(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*GetByIdResponse, error)
+	GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 }
 
 type usersClient struct {
@@ -254,6 +255,15 @@ func (c *usersClient) GetByUserId(ctx context.Context, in *GetByIdRequest, opts 
 	return out, nil
 }
 
+func (c *usersClient) GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
+	out := new(SearchResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetSearchedUsers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -276,6 +286,7 @@ type UsersServer interface {
 	GetFollowers(*FollowerRequest, Users_GetFollowersServer) error
 	GerFollowing(*FollowerRequest, Users_GerFollowingServer) error
 	GetByUserId(context.Context, *GetByIdRequest) (*GetByIdResponse, error)
+	GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -336,6 +347,9 @@ func (UnimplementedUsersServer) GerFollowing(*FollowerRequest, Users_GerFollowin
 }
 func (UnimplementedUsersServer) GetByUserId(context.Context, *GetByIdRequest) (*GetByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByUserId not implemented")
+}
+func (UnimplementedUsersServer) GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSearchedUsers not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -680,6 +694,24 @@ func _Users_GetByUserId_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_GetSearchedUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetSearchedUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/GetSearchedUsers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetSearchedUsers(ctx, req.(*SearchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -750,6 +782,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetByUserId",
 			Handler:    _Users_GetByUserId_Handler,
+		},
+		{
+			MethodName: "GetSearchedUsers",
+			Handler:    _Users_GetSearchedUsers_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

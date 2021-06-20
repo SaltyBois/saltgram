@@ -210,6 +210,13 @@ func (db *DBConn) GetUserById(id uint64) (*User, error) {
 	return &user, err
 }
 
+func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]User, error) {
+	var users []User
+	query := "%" + username + "%"
+	err := db.DB.Where("username LIKE ?", query).Limit(21).Find(&users).Error
+	return users, err
+}
+
 func Seed() {
 	smith := User{
 		FullName:       "Mr Smith",
