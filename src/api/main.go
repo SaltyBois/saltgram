@@ -60,6 +60,7 @@ func main() {
 	usersRouter := s.S.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/{username}", usersHandler.GetByUsernameRoute).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
@@ -101,8 +102,10 @@ func main() {
 	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
 
+	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
+		//AllowedOrigins:   []string{"*"},
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},
 		AllowCredentials: true,

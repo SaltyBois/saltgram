@@ -9,9 +9,9 @@
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
 
-    <v-btn class="follow-button" v-if="isFollowBtnVisible" @click="emitToggleFollowing()">Follow</v-btn>
-    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible" @click="emitToggleFollowing()">Requested</v-btn>
-    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible" @click="emitToggleFollowing()">Unfollow</v-btn>
+    <v-btn class="follow-button" v-if="isFollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Follow</v-btn>
+    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Requested</v-btn>
+    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Unfollow</v-btn>
 
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
