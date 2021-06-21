@@ -25,7 +25,7 @@ type VerificationRequest struct {
 	data.Identifiable
 	Fullname string `json:"fullname" validate:"required"`
 	URL      string `json:"url"`
-	UserID   uint64 `json:"userId"`
+	UserID   uint64 `json:"userId" gorm:"type:numeric"`
 	Category string `json:"category" validate:"required"`
 	Status   string `json:"status" validate:"required"`
 }

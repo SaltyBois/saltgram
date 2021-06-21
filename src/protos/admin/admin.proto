@@ -6,6 +6,7 @@ service Admin {
     rpc GetPendingVerifications(GetVerificationRequest) returns (GetVerificationResponse);
     rpc ReviewVerificationReq(ReviewVerificatonRequest) returns (ReviewVerificatonResponse);
     rpc SendInappropriateContentReport(InappropriateContentReportRequest) returns (InappropriateContentReportResponse);
+    rpc GetPendingInappropriateContentReport(GetInappropriateContentReportRequest) returns (GetInappropriateContentReportResponse);
 }
 
 message AddVerificationRequest {
@@ -46,3 +47,17 @@ message InappropriateContentReportRequest {
 }
 
 message InappropriateContentReportResponse {}
+
+message GetInappropriateContentReportRequest {}
+
+message InappropriateContentReport {
+    uint64 id = 1;
+    uint64 userId = 2;
+    uint64 sharedMediaId = 3;
+    string username = 4;
+    string profilePicture = 5;
+}
+
+message GetInappropriateContentReportResponse {
+    repeated InappropriateContentReport inappropriateContentReport = 1;
+}

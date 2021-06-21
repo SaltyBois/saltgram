@@ -632,6 +632,13 @@ func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
+		/*profile, err := a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username})
+		if err != nil {
+			a.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}*/
+
 		requests = append(requests, saltdata.VerificationRequestDTO{
 
 			Id:       strconv.FormatUint(vr.Id, 10),
@@ -640,6 +647,7 @@ func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) 
 			Url:      vr.Url,
 			UserId:   vr.UserId,
 			Username: user.Username,
+			//ProfilePicture: profile.ProfilePictureURL,
 		})
 	}
 
@@ -708,4 +716,45 @@ func (s *Content) GetReactionsByPost(w http.ResponseWriter, r *http.Request) {
 		reactions = append(reactions, reaction)
 	}
 	saltdata.ToJSON(reactions, w)
+}
+
+func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
+
+	contentReports, err := a.ac.GetPendingInappropriateContentReport(context.Background(), &pradmin.GetInappropriateContentReportRequest{})
+	if err != nil {
+		a.l.Errorf("failed fetching pending reports %v\n", err)
+		http.Error(w, "Pending reports error", http.StatusInternalServerError)
+		return
+	}
+
+	reports := []saltdata.GetInappropriateContentReportDTO{}
+
+	for i := 0; i < len(contentReports.InappropriateContentReport); i++ {
+		vr := contentReports.InappropriateContentReport[i]
+
+		user, err := a.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: vr.UserId})
+
+		if err != nil {
+			a.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		/*profile, err := a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{Username: user.Username})
+		if err != nil {
+			a.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}*/
+
+		reports = append(reports, saltdata.GetInappropriateContentReportDTO{
+			Id:       strconv.FormatUint(vr.Id, 10),
+			UserId:   vr.UserId,
+			Username: user.Username,
+			//ProfilePicture: profile.ProfilePictureURL,
+			SharedMediaId: strconv.FormatUint(vr.SharedMediaId, 10),
+		})
+	}
+
+	saltdata.ToJSON(&reports, w)
 }

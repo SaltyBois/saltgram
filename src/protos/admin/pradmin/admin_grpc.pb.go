@@ -22,6 +22,7 @@ type AdminClient interface {
 	GetPendingVerifications(ctx context.Context, in *GetVerificationRequest, opts ...grpc.CallOption) (*GetVerificationResponse, error)
 	ReviewVerificationReq(ctx context.Context, in *ReviewVerificatonRequest, opts ...grpc.CallOption) (*ReviewVerificatonResponse, error)
 	SendInappropriateContentReport(ctx context.Context, in *InappropriateContentReportRequest, opts ...grpc.CallOption) (*InappropriateContentReportResponse, error)
+	GetPendingInappropriateContentReport(ctx context.Context, in *GetInappropriateContentReportRequest, opts ...grpc.CallOption) (*GetInappropriateContentReportResponse, error)
 }
 
 type adminClient struct {
@@ -68,6 +69,15 @@ func (c *adminClient) SendInappropriateContentReport(ctx context.Context, in *In
 	return out, nil
 }
 
+func (c *adminClient) GetPendingInappropriateContentReport(ctx context.Context, in *GetInappropriateContentReportRequest, opts ...grpc.CallOption) (*GetInappropriateContentReportResponse, error) {
+	out := new(GetInappropriateContentReportResponse)
+	err := c.cc.Invoke(ctx, "/Admin/GetPendingInappropriateContentReport", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 // All implementations must embed UnimplementedAdminServer
 // for forward compatibility
@@ -76,6 +86,7 @@ type AdminServer interface {
 	GetPendingVerifications(context.Context, *GetVerificationRequest) (*GetVerificationResponse, error)
 	ReviewVerificationReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error)
 	SendInappropriateContentReport(context.Context, *InappropriateContentReportRequest) (*InappropriateContentReportResponse, error)
+	GetPendingInappropriateContentReport(context.Context, *GetInappropriateContentReportRequest) (*GetInappropriateContentReportResponse, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -94,6 +105,9 @@ func (UnimplementedAdminServer) ReviewVerificationReq(context.Context, *ReviewVe
 }
 func (UnimplementedAdminServer) SendInappropriateContentReport(context.Context, *InappropriateContentReportRequest) (*InappropriateContentReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendInappropriateContentReport not implemented")
+}
+func (UnimplementedAdminServer) GetPendingInappropriateContentReport(context.Context, *GetInappropriateContentReportRequest) (*GetInappropriateContentReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPendingInappropriateContentReport not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
 
@@ -180,6 +194,24 @@ func _Admin_SendInappropriateContentReport_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Admin_GetPendingInappropriateContentReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInappropriateContentReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).GetPendingInappropriateContentReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/GetPendingInappropriateContentReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).GetPendingInappropriateContentReport(ctx, req.(*GetInappropriateContentReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Admin_ServiceDesc is the grpc.ServiceDesc for Admin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +234,10 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendInappropriateContentReport",
 			Handler:    _Admin_SendInappropriateContentReport_Handler,
+		},
+		{
+			MethodName: "GetPendingInappropriateContentReport",
+			Handler:    _Admin_GetPendingInappropriateContentReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

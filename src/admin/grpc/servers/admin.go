@@ -86,3 +86,20 @@ func (a *Admin) SendInappropriateContentReport(ctx context.Context, r *pradmin.I
 
 	return &pradmin.InappropriateContentReportResponse{}, nil
 }
+
+func (a *Admin) GetPendingInappropriateContentReport(ctx context.Context, r *pradmin.GetInappropriateContentReportRequest) (*pradmin.GetInappropriateContentReportResponse, error) {
+	reports, err := a.db.GetPendingInappropriateContentReport()
+	if err != nil {
+		a.l.Errorf("failure getting inappropriate report: %v\n", err)
+		return &pradmin.GetInappropriateContentReportResponse{}, err
+	}
+	reps := []*pradmin.InappropriateContentReport{}
+	for _, vr := range *reports {
+		reps = append(reps, &pradmin.InappropriateContentReport{
+			Id:            vr.ID,
+			UserId:        vr.UserID,
+			SharedMediaId: vr.SharedMediaID,
+		})
+	}
+	return &pradmin.GetInappropriateContentReportResponse{InappropriateContentReport: reps}, nil
+}

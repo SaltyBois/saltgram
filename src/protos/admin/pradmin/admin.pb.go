@@ -495,6 +495,170 @@ func (*InappropriateContentReportResponse) Descriptor() ([]byte, []int) {
 	return file_admin_admin_proto_rawDescGZIP(), []int{8}
 }
 
+type GetInappropriateContentReportRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *GetInappropriateContentReportRequest) Reset() {
+	*x = GetInappropriateContentReportRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_admin_admin_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetInappropriateContentReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInappropriateContentReportRequest) ProtoMessage() {}
+
+func (x *GetInappropriateContentReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_admin_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInappropriateContentReportRequest.ProtoReflect.Descriptor instead.
+func (*GetInappropriateContentReportRequest) Descriptor() ([]byte, []int) {
+	return file_admin_admin_proto_rawDescGZIP(), []int{9}
+}
+
+type InappropriateContentReport struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id             uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId         uint64 `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	SharedMediaId  uint64 `protobuf:"varint,3,opt,name=sharedMediaId,proto3" json:"sharedMediaId,omitempty"`
+	Username       string `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
+	ProfilePicture string `protobuf:"bytes,5,opt,name=profilePicture,proto3" json:"profilePicture,omitempty"`
+}
+
+func (x *InappropriateContentReport) Reset() {
+	*x = InappropriateContentReport{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_admin_admin_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *InappropriateContentReport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InappropriateContentReport) ProtoMessage() {}
+
+func (x *InappropriateContentReport) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_admin_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InappropriateContentReport.ProtoReflect.Descriptor instead.
+func (*InappropriateContentReport) Descriptor() ([]byte, []int) {
+	return file_admin_admin_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *InappropriateContentReport) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *InappropriateContentReport) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *InappropriateContentReport) GetSharedMediaId() uint64 {
+	if x != nil {
+		return x.SharedMediaId
+	}
+	return 0
+}
+
+func (x *InappropriateContentReport) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *InappropriateContentReport) GetProfilePicture() string {
+	if x != nil {
+		return x.ProfilePicture
+	}
+	return ""
+}
+
+type GetInappropriateContentReportResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	InappropriateContentReport []*InappropriateContentReport `protobuf:"bytes,1,rep,name=inappropriateContentReport,proto3" json:"inappropriateContentReport,omitempty"`
+}
+
+func (x *GetInappropriateContentReportResponse) Reset() {
+	*x = GetInappropriateContentReportResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_admin_admin_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetInappropriateContentReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInappropriateContentReportResponse) ProtoMessage() {}
+
+func (x *GetInappropriateContentReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_admin_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInappropriateContentReportResponse.ProtoReflect.Descriptor instead.
+func (*GetInappropriateContentReportResponse) Descriptor() ([]byte, []int) {
+	return file_admin_admin_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetInappropriateContentReportResponse) GetInappropriateContentReport() []*InappropriateContentReport {
+	if x != nil {
+		return x.InappropriateContentReport
+	}
+	return nil
+}
+
 var File_admin_admin_proto protoreflect.FileDescriptor
 
 var file_admin_admin_proto_rawDesc = []byte{
@@ -543,8 +707,30 @@ var file_admin_admin_proto_rawDesc = []byte{
 	0x69, 0x61, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x73, 0x68, 0x61, 0x72,
 	0x65, 0x64, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x49, 0x64, 0x22, 0x24, 0x0a, 0x22, 0x49, 0x6e, 0x61,
 	0x70, 0x70, 0x72, 0x6f, 0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
-	0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32,
-	0xd9, 0x02, 0x0a, 0x05, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x47, 0x0a, 0x12, 0x41, 0x64, 0x64,
+	0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x26, 0x0a, 0x24, 0x47, 0x65, 0x74, 0x49, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f, 0x70, 0x72, 0x69,
+	0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xae, 0x01, 0x0a, 0x1a, 0x49, 0x6e, 0x61, 0x70,
+	0x70, 0x72, 0x6f, 0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74,
+	0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x24,
+	0x0a, 0x0d, 0x73, 0x68, 0x61, 0x72, 0x65, 0x64, 0x4d, 0x65, 0x64, 0x69, 0x61, 0x49, 0x64, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x73, 0x68, 0x61, 0x72, 0x65, 0x64, 0x4d, 0x65, 0x64,
+	0x69, 0x61, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65,
+	0x12, 0x26, 0x0a, 0x0e, 0x70, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x74, 0x75,
+	0x72, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x70, 0x72, 0x6f, 0x66, 0x69, 0x6c,
+	0x65, 0x50, 0x69, 0x63, 0x74, 0x75, 0x72, 0x65, 0x22, 0x84, 0x01, 0x0a, 0x25, 0x47, 0x65, 0x74,
+	0x49, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f, 0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e,
+	0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x5b, 0x0a, 0x1a, 0x69, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f, 0x70, 0x72, 0x69,
+	0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x49, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f,
+	0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70,
+	0x6f, 0x72, 0x74, 0x52, 0x1a, 0x69, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f, 0x70, 0x72, 0x69, 0x61,
+	0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x32,
+	0xd0, 0x03, 0x0a, 0x05, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x12, 0x47, 0x0a, 0x12, 0x41, 0x64, 0x64,
 	0x56, 0x65, 0x72, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x12,
 	0x17, 0x2e, 0x41, 0x64, 0x64, 0x56, 0x65, 0x72, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x41, 0x64, 0x64, 0x56, 0x65,
@@ -565,9 +751,16 @@ var file_admin_admin_proto_rawDesc = []byte{
 	0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x49, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f,
 	0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70,
-	0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x11, 0x5a, 0x0f, 0x2e,
-	0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2f, 0x70, 0x72, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x75, 0x0a, 0x24, 0x47,
+	0x65, 0x74, 0x50, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x49, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f,
+	0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70,
+	0x6f, 0x72, 0x74, 0x12, 0x25, 0x2e, 0x47, 0x65, 0x74, 0x49, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f,
+	0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70,
+	0x6f, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x47, 0x65, 0x74,
+	0x49, 0x6e, 0x61, 0x70, 0x70, 0x72, 0x6f, 0x70, 0x72, 0x69, 0x61, 0x74, 0x65, 0x43, 0x6f, 0x6e,
+	0x74, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x42, 0x11, 0x5a, 0x0f, 0x2e, 0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2f, 0x70, 0x72,
+	0x61, 0x64, 0x6d, 0x69, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -582,33 +775,39 @@ func file_admin_admin_proto_rawDescGZIP() []byte {
 	return file_admin_admin_proto_rawDescData
 }
 
-var file_admin_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_admin_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_admin_admin_proto_goTypes = []interface{}{
-	(*AddVerificationRequest)(nil),             // 0: AddVerificationRequest
-	(*AddVerificationResponse)(nil),            // 1: AddVerificationResponse
-	(*GetVerificationRequest)(nil),             // 2: GetVerificationRequest
-	(*VerificationRequest)(nil),                // 3: VerificationRequest
-	(*GetVerificationResponse)(nil),            // 4: GetVerificationResponse
-	(*ReviewVerificatonRequest)(nil),           // 5: ReviewVerificatonRequest
-	(*ReviewVerificatonResponse)(nil),          // 6: ReviewVerificatonResponse
-	(*InappropriateContentReportRequest)(nil),  // 7: InappropriateContentReportRequest
-	(*InappropriateContentReportResponse)(nil), // 8: InappropriateContentReportResponse
+	(*AddVerificationRequest)(nil),                // 0: AddVerificationRequest
+	(*AddVerificationResponse)(nil),               // 1: AddVerificationResponse
+	(*GetVerificationRequest)(nil),                // 2: GetVerificationRequest
+	(*VerificationRequest)(nil),                   // 3: VerificationRequest
+	(*GetVerificationResponse)(nil),               // 4: GetVerificationResponse
+	(*ReviewVerificatonRequest)(nil),              // 5: ReviewVerificatonRequest
+	(*ReviewVerificatonResponse)(nil),             // 6: ReviewVerificatonResponse
+	(*InappropriateContentReportRequest)(nil),     // 7: InappropriateContentReportRequest
+	(*InappropriateContentReportResponse)(nil),    // 8: InappropriateContentReportResponse
+	(*GetInappropriateContentReportRequest)(nil),  // 9: GetInappropriateContentReportRequest
+	(*InappropriateContentReport)(nil),            // 10: InappropriateContentReport
+	(*GetInappropriateContentReportResponse)(nil), // 11: GetInappropriateContentReportResponse
 }
 var file_admin_admin_proto_depIdxs = []int32{
-	3, // 0: GetVerificationResponse.verificationRequest:type_name -> VerificationRequest
-	0, // 1: Admin.AddVerificationReq:input_type -> AddVerificationRequest
-	2, // 2: Admin.GetPendingVerifications:input_type -> GetVerificationRequest
-	5, // 3: Admin.ReviewVerificationReq:input_type -> ReviewVerificatonRequest
-	7, // 4: Admin.SendInappropriateContentReport:input_type -> InappropriateContentReportRequest
-	1, // 5: Admin.AddVerificationReq:output_type -> AddVerificationResponse
-	4, // 6: Admin.GetPendingVerifications:output_type -> GetVerificationResponse
-	6, // 7: Admin.ReviewVerificationReq:output_type -> ReviewVerificatonResponse
-	8, // 8: Admin.SendInappropriateContentReport:output_type -> InappropriateContentReportResponse
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	3,  // 0: GetVerificationResponse.verificationRequest:type_name -> VerificationRequest
+	10, // 1: GetInappropriateContentReportResponse.inappropriateContentReport:type_name -> InappropriateContentReport
+	0,  // 2: Admin.AddVerificationReq:input_type -> AddVerificationRequest
+	2,  // 3: Admin.GetPendingVerifications:input_type -> GetVerificationRequest
+	5,  // 4: Admin.ReviewVerificationReq:input_type -> ReviewVerificatonRequest
+	7,  // 5: Admin.SendInappropriateContentReport:input_type -> InappropriateContentReportRequest
+	9,  // 6: Admin.GetPendingInappropriateContentReport:input_type -> GetInappropriateContentReportRequest
+	1,  // 7: Admin.AddVerificationReq:output_type -> AddVerificationResponse
+	4,  // 8: Admin.GetPendingVerifications:output_type -> GetVerificationResponse
+	6,  // 9: Admin.ReviewVerificationReq:output_type -> ReviewVerificatonResponse
+	8,  // 10: Admin.SendInappropriateContentReport:output_type -> InappropriateContentReportResponse
+	11, // 11: Admin.GetPendingInappropriateContentReport:output_type -> GetInappropriateContentReportResponse
+	7,  // [7:12] is the sub-list for method output_type
+	2,  // [2:7] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_admin_admin_proto_init() }
@@ -725,6 +924,42 @@ func file_admin_admin_proto_init() {
 				return nil
 			}
 		}
+		file_admin_admin_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetInappropriateContentReportRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_admin_admin_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*InappropriateContentReport); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_admin_admin_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetInappropriateContentReportResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -732,7 +967,7 @@ func file_admin_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_admin_admin_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
