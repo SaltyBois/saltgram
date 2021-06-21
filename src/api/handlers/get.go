@@ -193,18 +193,19 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := saltdata.ProfileDTO{
-		UserId:      strconv.FormatUint(profile.UserId, 10),
-		FullName:    profile.FullName,
-		Username:    profile.Username,
-		Followers:   profile.Followers,
-		Following:   profile.Following,
-		Description: profile.Description,
-		IsPublic:    profile.IsPublic,
-		IsFollowing: profile.IsFollowing,
-		PhoneNumber: profile.PhoneNumber,
-		Gender:      profile.Gender,
-		DateOfBirth: profile.DateOfBirth,
-		WebSite:     profile.WebSite,
+		UserId:            strconv.FormatUint(profile.UserId, 10),
+		FullName:          profile.FullName,
+		Username:          profile.Username,
+		Followers:         profile.Followers,
+		Following:         profile.Following,
+		Description:       profile.Description,
+		IsPublic:          profile.IsPublic,
+		IsFollowing:       profile.IsFollowing,
+		PhoneNumber:       profile.PhoneNumber,
+		Gender:            profile.Gender,
+		DateOfBirth:       profile.DateOfBirth,
+		WebSite:           profile.WebSite,
+		ProfilePictureURL: profile.ProfilePictureURL,
 	}
 
 	saltdata.ToJSON(response, w)
@@ -312,13 +313,9 @@ func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dto := []*saltdata.MediaDTO{}
+	dto := []*saltdata.StoryDTO{}
 	for _, s := range resp.Stories {
-		tags := []saltdata.TagDTO{}
-		for _, t := range s.Tags {
-			tags = append(tags, *saltdata.PRToDTOTag(t))
-		}
-		dto = append(dto, saltdata.PRToDTOMedia(s))
+		dto = append(dto, saltdata.PRToDTOStory(s))
 	}
 	saltdata.ToJSON(dto, w)
 }

@@ -41,22 +41,23 @@ type ProflieDTO struct {
 }
 
 type ProfileDTO struct {
-	Email          string `json:"email" validate:"required"`
-	FullName       string `json:"fullName" validate:"required"`
-	Username       string `json:"username" validate:"required"`
-	Public         bool   `json:"public"`   /* `json:"public" validate:"required"` */
-	Taggable       bool   `json:"taggable"` /* `json:"taggable" validate:"required"` */
-	Description    string `json:"description" validate:"required"`
-	PhoneNumber    string `json:"phoneNumber" validate:"required"`
-	Gender         string `json:"gender" validate:"required"`
-	DateOfBirth    int64  `json:"dateOfBirth" validate:"required"`
-	WebSite        string `json:"webSite"`
-	PrivateProfile bool   `json:"privateProfile"`
-	UserId         string `json:"userId"`
-	Followers      int64  `json:"followers"`
-	Following      int64  `json:"following"`
-	IsPublic       bool   `json:"isPublic"`
-	IsFollowing    bool   `json:"isFollowing"`
+	Email             string `json:"email" validate:"required"`
+	FullName          string `json:"fullName" validate:"required"`
+	Username          string `json:"username" validate:"required"`
+	Public            bool   `json:"public"`   /* `json:"public" validate:"required"` */
+	Taggable          bool   `json:"taggable"` /* `json:"taggable" validate:"required"` */
+	Description       string `json:"description" validate:"required"`
+	PhoneNumber       string `json:"phoneNumber" validate:"required"`
+	Gender            string `json:"gender" validate:"required"`
+	DateOfBirth       int64  `json:"dateOfBirth" validate:"required"`
+	WebSite           string `json:"webSite"`
+	PrivateProfile    bool   `json:"privateProfile"`
+	UserId            string `json:"userId"`
+	Followers         int64  `json:"followers"`
+	Following         int64  `json:"following"`
+	IsPublic          bool   `json:"isPublic"`
+	IsFollowing       bool   `json:"isFollowing"`
+	ProfilePictureURL string `json:"profilePictureURL"`
 }
 
 type FollowDTO struct {

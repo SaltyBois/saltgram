@@ -145,7 +145,8 @@ message Story {
 }
 
 message GetStoriesIndividualResponse {
-    repeated Media stories = 1;
+    // repeated Media stories = 1;
+    repeated Story stories = 1;
 }
 
 message GetProfilePictureRequest {

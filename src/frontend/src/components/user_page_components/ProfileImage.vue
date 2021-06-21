@@ -74,7 +74,7 @@ export default {
       isMyProfile: false,
       profile: '',
       waitingForResponse: false,
-      userStories: false,
+      userStories: [],
       storyVisible: false,
     }
   },
@@ -97,10 +97,6 @@ export default {
       type: Boolean,
       required: true
     },
-    /*userStories: {
-      type: Object,
-      required: true,
-    }*/
   },
   computed: {
     isFollowBtnVisible() {

@@ -48,16 +48,16 @@ func (c *Content) GetHighlights(ctx context.Context, r *prcontent.GetHighlightsR
 }
 
 func (c *Content) GetStoriesIndividual(ctx context.Context, r *prcontent.GetStoriesIndividualRequest) (*prcontent.GetStoriesIndividualResponse, error) {
-	stories, err := c.db.GetStoriesByUserAsMedia(r.UserId)
+	stories, err := c.db.GetStoryByUser(r.UserId)
 	if err != nil {
 		c.l.Errorf("failed to get users stories: %v", err)
 		return &prcontent.GetStoriesIndividualResponse{}, status.Error(codes.Internal, "Internal error")
 	}
 
-	s := []*prcontent.Media{}
+	s := []*prcontent.Story{}
 
 	for _, st := range stories {
-		s = append(s, data.DataToPRMedia(st))
+		s = append(s, data.DataToPRStory(st))
 	}
 
 	return &prcontent.GetStoriesIndividualResponse{

@@ -550,6 +550,7 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 		closeFriends := false
 		if len(r.PostForm["closeFriends"]) > 0 {
+			c.l.Info("friends: %v", r.PostForm["closeFriends"])
 			closeFriends = r.PostForm["closeFriends"][0] == "true"
 		}
 

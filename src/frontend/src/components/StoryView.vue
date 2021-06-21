@@ -25,7 +25,7 @@
                      playsinline
                      :src="story.url"/>
               </v-carousel-item>
-              <div class="close-friends-div" :v-if="story.closeFriends">
+              <div class="close-friends-div" v-if="story.closeFriends">
                 <h3>
                   CLOSE FRIENDS
                 </h3>
@@ -68,15 +68,15 @@ export default {
         // this.countDownTimer()
       }
     },
-    loadingStory() {
-      console.log(this.stories.story.sharedMedia.media.length);
-      for(let i = 0; i < this.stories.story.sharedMedia.media.length; i++){
-        let s = {url: this.stories.story.sharedMedia.media[i].url, closeFriends: this.stories.story.closeFriends};
-        this.contentPlaceHolder.push(s);
-        console.log(s);
-      }
-      console.log(this.contentPlaceHolder);
-    },
+    // loadingStory() {
+    //   console.log(this.stories.story.sharedMedia.media.length);
+    //   for(let i = 0; i < this.stories.story.sharedMedia.media.length; i++){
+    //     let s = {url: this.stories.story.sharedMedia.media[i].url, closeFriends: this.stories.story.closeFriends};
+    //     this.contentPlaceHolder.push(s);
+    //     console.log(s);
+    //   }
+    //   console.log(this.contentPlaceHolder);
+    // },
   },
   computed() {
     this.countDownTimer()
@@ -84,7 +84,7 @@ export default {
   mounted() {
         console.log(this.stories);
 
-   this.loadingStory();
+  //  this.loadingStory();
   }
 }
 </script>

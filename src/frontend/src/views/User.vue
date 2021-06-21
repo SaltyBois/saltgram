@@ -218,7 +218,14 @@ export default {
               this.$store.state.jws = rr.data;
               this.axios.get('content/story/' + this.user.id)
                 .then(r => {
-                  this.stories = r.data;
+                  this.stories = [];
+                  r.data.forEach(s => {
+                    s.stories.forEach(ss => {
+                      let newSS = ss;
+                      newSS.closeFriends = s.closeFriends;
+                      this.stories.push(newSS);
+                    });
+                  });
                   this.stories.forEach(s => {
                     s.isSelected = false;
                   })
@@ -284,11 +291,19 @@ export default {
            .then(r => {
               //console.log(JSON.parse(r.data.toString()));
               this.userStories = r.data;
-              console.log(r.data);
+              console.log("stories:", r.data);
               if (this.userStories !== null)  {
-               this.$refs.profileImage.$data.userStories = this.userStories[0];
+                let newStories = []
+                this.userStories.forEach(s => {
+                  s.stories.forEach(ss => {
+                    let newSS = ss;
+                    newSS.closeFriends = s.closeFriends;
+                    newStories.push(newSS);
+                  });
+                });
+               this.$refs.profileImage.$data.userStories = newStories;//this.userStories;
               }
-              //console.log(this.$refs.profileImage.$data.userStories);
+              
 
             }).catch(err => {
               console.log(err)

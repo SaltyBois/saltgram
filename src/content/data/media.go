@@ -82,6 +82,20 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 	}
 }
 
+func DataToPRStory(d *Story) *prcontent.Story {
+	media := []*prcontent.Media{}
+	for _, m := range d.SharedMedia.Media {
+		media = append(media, DataToPRMedia(m))
+	}
+
+	return &prcontent.Story{
+		Id:           d.ID,
+		UserId:       d.UserID,
+		CloseFriends: d.CloseFriends,
+		Media:        media,
+	}
+}
+
 func DataToPRMedia(d *Media) *prcontent.Media {
 	tags := []*prcontent.Tag{}
 	for _, t := range d.Tags {
