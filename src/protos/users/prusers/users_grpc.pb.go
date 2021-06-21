@@ -18,21 +18,22 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UsersClient interface {
+	UpdateProfilePicture(ctx context.Context, in *UpdateProfilePictureRequest, opts ...grpc.CallOption) (*UpdateProfilePictureResponse, error)
 	CheckEmail(ctx context.Context, in *CheckEmailRequest, opts ...grpc.CallOption) (*CheckEmailResponse, error)
 	CheckPassword(ctx context.Context, in *CheckPasswordRequest, opts ...grpc.CallOption) (*CheckPasswordResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
 	ChangePassword(ctx context.Context, in *ChangeRequest, opts ...grpc.CallOption) (*ChangeResponse, error)
 	ResetPassword(ctx context.Context, in *UserResetRequest, opts ...grpc.CallOption) (*UserResetResponse, error)
-	GetByUsername(ctx context.Context, in *GetByUsernameRequest, opts ...grpc.CallOption) (*GetByUsernameResponse, error)
-	GetRole(ctx context.Context, in *RoleRequest, opts ...grpc.CallOption) (*RoleResponse, error)
 	UpdateUsername(ctx context.Context, in *UsernameRequest, opts ...grpc.CallOption) (*UsernameResponse, error)
 	UpdateProfile(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
-	GetProfileByUsername(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error)
-	ChangeProfilePublic(ctx context.Context, in *ChangePublicRequest, opts ...grpc.CallOption) (*ChangePublicResponse, error)
-	ChangeProfileTaggable(ctx context.Context, in *ChangeTaggableRequest, opts ...grpc.CallOption) (*ChangeTaggableResponse, error)
 	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error)
 	UnFollow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error)
+	ChangeProfilePublic(ctx context.Context, in *ChangePublicRequest, opts ...grpc.CallOption) (*ChangePublicResponse, error)
+	ChangeProfileTaggable(ctx context.Context, in *ChangeTaggableRequest, opts ...grpc.CallOption) (*ChangeTaggableResponse, error)
+	GetByUsername(ctx context.Context, in *GetByUsernameRequest, opts ...grpc.CallOption) (*GetByUsernameResponse, error)
+	GetRole(ctx context.Context, in *RoleRequest, opts ...grpc.CallOption) (*RoleResponse, error)
+	GetProfileByUsername(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error)
 	GetFollowers(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GetFollowersClient, error)
 	GerFollowing(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GerFollowingClient, error)
 	GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
@@ -44,6 +45,15 @@ type usersClient struct {
 
 func NewUsersClient(cc grpc.ClientConnInterface) UsersClient {
 	return &usersClient{cc}
+}
+
+func (c *usersClient) UpdateProfilePicture(ctx context.Context, in *UpdateProfilePictureRequest, opts ...grpc.CallOption) (*UpdateProfilePictureResponse, error) {
+	out := new(UpdateProfilePictureResponse)
+	err := c.cc.Invoke(ctx, "/Users/UpdateProfilePicture", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *usersClient) CheckEmail(ctx context.Context, in *CheckEmailRequest, opts ...grpc.CallOption) (*CheckEmailResponse, error) {
@@ -100,24 +110,6 @@ func (c *usersClient) ResetPassword(ctx context.Context, in *UserResetRequest, o
 	return out, nil
 }
 
-func (c *usersClient) GetByUsername(ctx context.Context, in *GetByUsernameRequest, opts ...grpc.CallOption) (*GetByUsernameResponse, error) {
-	out := new(GetByUsernameResponse)
-	err := c.cc.Invoke(ctx, "/Users/GetByUsername", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *usersClient) GetRole(ctx context.Context, in *RoleRequest, opts ...grpc.CallOption) (*RoleResponse, error) {
-	out := new(RoleResponse)
-	err := c.cc.Invoke(ctx, "/Users/GetRole", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *usersClient) UpdateUsername(ctx context.Context, in *UsernameRequest, opts ...grpc.CallOption) (*UsernameResponse, error) {
 	out := new(UsernameResponse)
 	err := c.cc.Invoke(ctx, "/Users/UpdateUsername", in, out, opts...)
@@ -136,9 +128,18 @@ func (c *usersClient) UpdateProfile(ctx context.Context, in *UpdateRequest, opts
 	return out, nil
 }
 
-func (c *usersClient) GetProfileByUsername(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error) {
-	out := new(ProfileResponse)
-	err := c.cc.Invoke(ctx, "/Users/GetProfileByUsername", in, out, opts...)
+func (c *usersClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error) {
+	out := new(FollowRespose)
+	err := c.cc.Invoke(ctx, "/Users/Follow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UnFollow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error) {
+	out := new(FollowRespose)
+	err := c.cc.Invoke(ctx, "/Users/UnFollow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -163,18 +164,27 @@ func (c *usersClient) ChangeProfileTaggable(ctx context.Context, in *ChangeTagga
 	return out, nil
 }
 
-func (c *usersClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error) {
-	out := new(FollowRespose)
-	err := c.cc.Invoke(ctx, "/Users/Follow", in, out, opts...)
+func (c *usersClient) GetByUsername(ctx context.Context, in *GetByUsernameRequest, opts ...grpc.CallOption) (*GetByUsernameResponse, error) {
+	out := new(GetByUsernameResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetByUsername", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *usersClient) UnFollow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowRespose, error) {
-	out := new(FollowRespose)
-	err := c.cc.Invoke(ctx, "/Users/UnFollow", in, out, opts...)
+func (c *usersClient) GetRole(ctx context.Context, in *RoleRequest, opts ...grpc.CallOption) (*RoleResponse, error) {
+	out := new(RoleResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetProfileByUsername(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error) {
+	out := new(ProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetProfileByUsername", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -258,21 +268,22 @@ func (c *usersClient) GetSearchedUsers(ctx context.Context, in *SearchRequest, o
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
 type UsersServer interface {
+	UpdateProfilePicture(context.Context, *UpdateProfilePictureRequest) (*UpdateProfilePictureResponse, error)
 	CheckEmail(context.Context, *CheckEmailRequest) (*CheckEmailResponse, error)
 	CheckPassword(context.Context, *CheckPasswordRequest) (*CheckPasswordResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
 	ChangePassword(context.Context, *ChangeRequest) (*ChangeResponse, error)
 	ResetPassword(context.Context, *UserResetRequest) (*UserResetResponse, error)
-	GetByUsername(context.Context, *GetByUsernameRequest) (*GetByUsernameResponse, error)
-	GetRole(context.Context, *RoleRequest) (*RoleResponse, error)
 	UpdateUsername(context.Context, *UsernameRequest) (*UsernameResponse, error)
 	UpdateProfile(context.Context, *UpdateRequest) (*UpdateResponse, error)
-	GetProfileByUsername(context.Context, *ProfileRequest) (*ProfileResponse, error)
-	ChangeProfilePublic(context.Context, *ChangePublicRequest) (*ChangePublicResponse, error)
-	ChangeProfileTaggable(context.Context, *ChangeTaggableRequest) (*ChangeTaggableResponse, error)
 	Follow(context.Context, *FollowRequest) (*FollowRespose, error)
 	UnFollow(context.Context, *FollowRequest) (*FollowRespose, error)
+	ChangeProfilePublic(context.Context, *ChangePublicRequest) (*ChangePublicResponse, error)
+	ChangeProfileTaggable(context.Context, *ChangeTaggableRequest) (*ChangeTaggableResponse, error)
+	GetByUsername(context.Context, *GetByUsernameRequest) (*GetByUsernameResponse, error)
+	GetRole(context.Context, *RoleRequest) (*RoleResponse, error)
+	GetProfileByUsername(context.Context, *ProfileRequest) (*ProfileResponse, error)
 	GetFollowers(*FollowerRequest, Users_GetFollowersServer) error
 	GerFollowing(*FollowerRequest, Users_GerFollowingServer) error
 	GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error)
@@ -283,6 +294,9 @@ type UsersServer interface {
 type UnimplementedUsersServer struct {
 }
 
+func (UnimplementedUsersServer) UpdateProfilePicture(context.Context, *UpdateProfilePictureRequest) (*UpdateProfilePictureResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfilePicture not implemented")
+}
 func (UnimplementedUsersServer) CheckEmail(context.Context, *CheckEmailRequest) (*CheckEmailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckEmail not implemented")
 }
@@ -301,20 +315,17 @@ func (UnimplementedUsersServer) ChangePassword(context.Context, *ChangeRequest) 
 func (UnimplementedUsersServer) ResetPassword(context.Context, *UserResetRequest) (*UserResetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
 }
-func (UnimplementedUsersServer) GetByUsername(context.Context, *GetByUsernameRequest) (*GetByUsernameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetByUsername not implemented")
-}
-func (UnimplementedUsersServer) GetRole(context.Context, *RoleRequest) (*RoleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRole not implemented")
-}
 func (UnimplementedUsersServer) UpdateUsername(context.Context, *UsernameRequest) (*UsernameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUsername not implemented")
 }
 func (UnimplementedUsersServer) UpdateProfile(context.Context, *UpdateRequest) (*UpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProfile not implemented")
 }
-func (UnimplementedUsersServer) GetProfileByUsername(context.Context, *ProfileRequest) (*ProfileResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProfileByUsername not implemented")
+func (UnimplementedUsersServer) Follow(context.Context, *FollowRequest) (*FollowRespose, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Follow not implemented")
+}
+func (UnimplementedUsersServer) UnFollow(context.Context, *FollowRequest) (*FollowRespose, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnFollow not implemented")
 }
 func (UnimplementedUsersServer) ChangeProfilePublic(context.Context, *ChangePublicRequest) (*ChangePublicResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeProfilePublic not implemented")
@@ -322,11 +333,14 @@ func (UnimplementedUsersServer) ChangeProfilePublic(context.Context, *ChangePubl
 func (UnimplementedUsersServer) ChangeProfileTaggable(context.Context, *ChangeTaggableRequest) (*ChangeTaggableResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeProfileTaggable not implemented")
 }
-func (UnimplementedUsersServer) Follow(context.Context, *FollowRequest) (*FollowRespose, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Follow not implemented")
+func (UnimplementedUsersServer) GetByUsername(context.Context, *GetByUsernameRequest) (*GetByUsernameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByUsername not implemented")
 }
-func (UnimplementedUsersServer) UnFollow(context.Context, *FollowRequest) (*FollowRespose, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UnFollow not implemented")
+func (UnimplementedUsersServer) GetRole(context.Context, *RoleRequest) (*RoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRole not implemented")
+}
+func (UnimplementedUsersServer) GetProfileByUsername(context.Context, *ProfileRequest) (*ProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfileByUsername not implemented")
 }
 func (UnimplementedUsersServer) GetFollowers(*FollowerRequest, Users_GetFollowersServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetFollowers not implemented")
@@ -348,6 +362,24 @@ type UnsafeUsersServer interface {
 
 func RegisterUsersServer(s grpc.ServiceRegistrar, srv UsersServer) {
 	s.RegisterService(&Users_ServiceDesc, srv)
+}
+
+func _Users_UpdateProfilePicture_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProfilePictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UpdateProfilePicture(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UpdateProfilePicture",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UpdateProfilePicture(ctx, req.(*UpdateProfilePictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Users_CheckEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -458,42 +490,6 @@ func _Users_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Users_GetByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetByUsernameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UsersServer).GetByUsername(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Users/GetByUsername",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).GetByUsername(ctx, req.(*GetByUsernameRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Users_GetRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UsersServer).GetRole(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Users/GetRole",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).GetRole(ctx, req.(*RoleRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Users_UpdateUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UsernameRequest)
 	if err := dec(in); err != nil {
@@ -530,20 +526,38 @@ func _Users_UpdateProfile_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Users_GetProfileByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ProfileRequest)
+func _Users_Follow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UsersServer).GetProfileByUsername(ctx, in)
+		return srv.(UsersServer).Follow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Users/GetProfileByUsername",
+		FullMethod: "/Users/Follow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).GetProfileByUsername(ctx, req.(*ProfileRequest))
+		return srv.(UsersServer).Follow(ctx, req.(*FollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UnFollow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UnFollow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UnFollow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UnFollow(ctx, req.(*FollowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -584,38 +598,56 @@ func _Users_ChangeProfileTaggable_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Users_Follow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FollowRequest)
+func _Users_GetByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByUsernameRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UsersServer).Follow(ctx, in)
+		return srv.(UsersServer).GetByUsername(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Users/Follow",
+		FullMethod: "/Users/GetByUsername",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).Follow(ctx, req.(*FollowRequest))
+		return srv.(UsersServer).GetByUsername(ctx, req.(*GetByUsernameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Users_UnFollow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FollowRequest)
+func _Users_GetRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UsersServer).UnFollow(ctx, in)
+		return srv.(UsersServer).GetRole(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Users/UnFollow",
+		FullMethod: "/Users/GetRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).UnFollow(ctx, req.(*FollowRequest))
+		return srv.(UsersServer).GetRole(ctx, req.(*RoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetProfileByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetProfileByUsername(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/GetProfileByUsername",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetProfileByUsername(ctx, req.(*ProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -688,6 +720,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UsersServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "UpdateProfilePicture",
+			Handler:    _Users_UpdateProfilePicture_Handler,
+		},
+		{
 			MethodName: "CheckEmail",
 			Handler:    _Users_CheckEmail_Handler,
 		},
@@ -712,14 +748,6 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Users_ResetPassword_Handler,
 		},
 		{
-			MethodName: "GetByUsername",
-			Handler:    _Users_GetByUsername_Handler,
-		},
-		{
-			MethodName: "GetRole",
-			Handler:    _Users_GetRole_Handler,
-		},
-		{
 			MethodName: "UpdateUsername",
 			Handler:    _Users_UpdateUsername_Handler,
 		},
@@ -728,8 +756,12 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Users_UpdateProfile_Handler,
 		},
 		{
-			MethodName: "GetProfileByUsername",
-			Handler:    _Users_GetProfileByUsername_Handler,
+			MethodName: "Follow",
+			Handler:    _Users_Follow_Handler,
+		},
+		{
+			MethodName: "UnFollow",
+			Handler:    _Users_UnFollow_Handler,
 		},
 		{
 			MethodName: "ChangeProfilePublic",
@@ -740,12 +772,16 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Users_ChangeProfileTaggable_Handler,
 		},
 		{
-			MethodName: "Follow",
-			Handler:    _Users_Follow_Handler,
+			MethodName: "GetByUsername",
+			Handler:    _Users_GetByUsername_Handler,
 		},
 		{
-			MethodName: "UnFollow",
-			Handler:    _Users_UnFollow_Handler,
+			MethodName: "GetRole",
+			Handler:    _Users_GetRole_Handler,
+		},
+		{
+			MethodName: "GetProfileByUsername",
+			Handler:    _Users_GetProfileByUsername_Handler,
 		},
 		{
 			MethodName: "GetSearchedUsers",

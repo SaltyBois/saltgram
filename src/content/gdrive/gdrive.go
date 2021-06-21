@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"saltgram/content/data"
 	"saltgram/internal"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
@@ -118,7 +120,7 @@ func (g *GDrive) UploadProfilePicture(profileFolderId string, data io.Reader) (s
 	}
 	var profileImgId string
 	if len(profileImg) == 0 {
-		profile, err := g.CreateFile("profile", []string{profileFolderId}, data, true)
+		profile, _, err := g.CreateFile("profile", []string{profileFolderId}, data, true)
 		if err != nil {
 			g.l.Errorf("failed to create user profile: %v", err)
 			return "", err
@@ -139,22 +141,22 @@ func (g *GDrive) UploadProfilePicture(profileFolderId string, data io.Reader) (s
 	return publicBaseUrl + profileImgId, nil
 }
 
-func (g *GDrive) UploadPost(postsFolderId, filename string, data io.Reader) (string, error) {
-	post, err := g.CreateFile(filename, []string{postsFolderId}, data, true)
+func (g *GDrive) UploadPost(postsFolderId, filename string, data io.Reader) (string, data.EMimeType, error) {
+	post, mimeType, err := g.CreateFile(filename, []string{postsFolderId}, data, true)
 	if err != nil {
 		g.l.Errorf("failed uploading post: %v", err)
-		return "", err
+		return "", mimeType, err
 	}
-	return publicBaseUrl + post.Id, nil
+	return publicBaseUrl + post.Id, mimeType, nil
 }
 
-func (g *GDrive) UploadStory(storiesFolderId, filename string, data io.Reader) (string, error) {
-	story, err := g.CreateFile(filename, []string{storiesFolderId}, data, true)
+func (g *GDrive) UploadStory(storiesFolderId, filename string, data io.Reader) (string, data.EMimeType, error) {
+	story, mimeType, err := g.CreateFile(filename, []string{storiesFolderId}, data, true)
 	if err != nil {
 		g.l.Errorf("failed uploading story: %v", err)
-		return "", err
+		return "", mimeType, err
 	}
-	return publicBaseUrl + story.Id, nil
+	return publicBaseUrl + story.Id, mimeType, nil
 }
 
 func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*drive.File, error) {
@@ -193,16 +195,20 @@ func (g *GDrive) CreateFolder(name string, parentIds []string, isPublic bool) (*
 	return createdFolder, nil
 }
 
-func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isPublic bool) (*drive.File, error) {
-
+func (g *GDrive) CreateFile(name string, parentIds []string, content io.Reader, isPublic bool) (*drive.File, data.EMimeType, error) {
+	mimeType := data.EMimeType(data.EMimeType_IMAGE)
 	f := &drive.File{
 		Name:    name,
 		Parents: parentIds,
 	}
-	createdFile, err := g.s.Files.Create(f).Media(data).Do()
+	createdFile, err := g.s.Files.Create(f).Media(content).Do()
 	if err != nil {
 		g.l.Errorf("failed to upload file: %v, error:%v", f.Name, err)
-		return nil, err
+		return nil, mimeType, err
+	}
+
+	if strings.Contains(createdFile.MimeType, "video") {
+		mimeType = data.EMimeType_VIDEO
 	}
 
 	_, err = g.s.Permissions.Create(createdFile.Id, &drive.Permission{
@@ -213,7 +219,7 @@ func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isP
 
 	if err != nil {
 		g.l.Errorf("failed to create bezbednovic permissions for folder: %v, error: %v", createdFile.Name, err)
-		return createdFile, err
+		return createdFile, mimeType, err
 	}
 
 	if isPublic {
@@ -223,16 +229,16 @@ func (g *GDrive) CreateFile(name string, parentIds []string, data io.Reader, isP
 		}).Do()
 		if err != nil {
 			g.l.Errorf("failed to set public permissions for file: %v, error: %v", createdFile.Id, err)
-			return createdFile, err
+			return createdFile, mimeType, err
 		}
 	}
 
 	if err != nil {
 		g.l.Errorf("failed to create private permissions for file: %v, error: %v", createdFile.Id, err)
-		return createdFile, err
+		return createdFile, mimeType, err
 	}
 
-	return createdFile, nil
+	return createdFile, mimeType, nil
 }
 
 func (g *GDrive) DeleteFile(fileId string) error {

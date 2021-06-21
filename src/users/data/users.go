@@ -10,7 +10,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 	"golang.org/x/crypto/bcrypt"
-
 )
 
 type User struct {

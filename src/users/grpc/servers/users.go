@@ -36,6 +36,15 @@ func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premai
 	}
 }
 
+func (u *Users) UpdateProfilePicture(ctx context.Context, r *prusers.UpdateProfilePictureRequest) (*prusers.UpdateProfilePictureResponse, error) {
+	err := u.db.UpdateProfilePicture(r.Url, r.Username)
+	if err != nil {
+		u.l.Errorf("failed to update profile picture: %v", err)
+		return &prusers.UpdateProfilePictureResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prusers.UpdateProfilePictureResponse{}, nil
+}
+
 func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) (*prusers.UserResetResponse, error) {
 	err := data.ResetPassword(u.db, r.Email, r.Password)
 	if err != nil {
@@ -193,37 +202,41 @@ func (u *Users) CheckEmail(ctx context.Context, r *prusers.CheckEmailRequest) (*
 }
 
 func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequest) (*prusers.ProfileResponse, error) {
-	//var response = &prusers.ProfileResponse{}
-
-	profile, err := u.db.GetProfileByUsername(r.Username)
+	profile, err := u.db.GetProfileByUsername(r.User)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.ProfileResponse{}, err
 	}
 
-	user, err := u.db.GetUserByUsername(r.Username)
+	user_profile, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
 		return &prusers.ProfileResponse{}, err
 	}
 
-	isFollowing, err := data.CheckIfFollowing(u.db, r.User, profile.UserID)
+	profile_show, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile_show: %v\n", err)
+		return &prusers.ProfileResponse{}, err
+	}
+
+	isFollowing, err := data.CheckIfFollowing(u.db, profile, profile_show)
 	if err != nil {
 		u.l.Printf("[ERROR] geting followers")
 		return &prusers.ProfileResponse{}, err
 	}
 
-	following, err := data.GetFollowingCount(u.db, r.Username)
+	following, err := data.GetFollowingCount(u.db, profile_show)
 	if err != nil {
 		return &prusers.ProfileResponse{}, err
 	}
 
-	followers, err := data.GetFollowerCount(u.db, r.Username)
+	followers, err := data.GetFollowerCount(u.db, profile_show)
 	if err != nil {
 		return &prusers.ProfileResponse{}, err
 	}
 
-	dateStr := strconv.FormatInt(profile.DateOfBirth.Unix(), 10)
+	dateStr := strconv.FormatInt(profile_show.DateOfBirth.Unix(), 10)
 	date, err := strconv.ParseInt(dateStr, 10, 64)
 
 	if err != nil {
@@ -232,21 +245,22 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 	}
 
 	return &prusers.ProfileResponse{
-		Username:        profile.Username,
-		Followers:       followers,
-		Following:       following,
-		FullName:        user.FullName,
-		Description:     profile.Description,
-		IsFollowing:     isFollowing,
-		IsPublic:        profile.Public,
-		PhoneNumber:     profile.PhoneNumber,
-		Gender:          profile.Gender,
-		DateOfBirth:     date,
-		WebSite:         profile.WebSite,
-		ProfileFolderId: profile.ProfileFolderId,
-		PostsFolderId:   profile.PostsFolderId,
-		StoriesFolderId: profile.StoriesFolderId,
-		UserId:          profile.UserID,
+		Username:          profile.Username,
+		Followers:         followers,
+		Following:         following,
+		FullName:          user_profile.FullName,
+		Description:       profile.Description,
+		IsFollowing:       isFollowing,
+		IsPublic:          profile.Public,
+		PhoneNumber:       profile.PhoneNumber,
+		Gender:            profile.Gender,
+		DateOfBirth:       date,
+		WebSite:           profile.WebSite,
+		ProfileFolderId:   profile.ProfileFolderId,
+		PostsFolderId:     profile.PostsFolderId,
+		StoriesFolderId:   profile.StoriesFolderId,
+		UserId:            profile.UserID,
+		ProfilePictureURL: profile.ProfilePictureURL,
 	}, nil
 }
 
@@ -256,13 +270,13 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.FollowRespose{}, err
 	}
-	profileToFollow, err := u.db.GetProfileByUsername(r.Username)
+	profileToFollow, err := u.db.GetProfileByUsername(r.ToFollow)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile to follow: %v\n", err)
 		return &prusers.FollowRespose{}, err
 	}
 
-	isFollowing, err := data.CheckIfFollowing(u.db, profile.Username, profileToFollow.UserID)
+	isFollowing, err := data.CheckIfFollowing(u.db, profile, profileToFollow)
 	if err != nil {
 		u.l.Printf("[ERROR] geting followers")
 		return &prusers.FollowRespose{}, err
@@ -288,8 +302,14 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 }
 
 func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {
-	followers, err := data.GetFollowers(u.db, r.Username)
+	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+	followers, err := data.GetFollowers(u.db, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] query not working", err)
 		return err
 	}
 	for _, profile := range followers {
@@ -303,12 +323,19 @@ func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_Ge
 	return nil
 }
 
-func (u *Users) GetFollowing(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {
-	followers, err := data.GetFollowing(u.db, r.Username)
+func (u *Users) GerFollowing(r *prusers.FollowerRequest, stream prusers.Users_GerFollowingServer) error {
+	profile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return err
 	}
-	for _, profile := range followers {
+	following, err := data.GetFollowing(u.db, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] query not working", err)
+		u.l.Printf("[ERROR] following", len(following))
+		return err
+	}
+	for _, profile := range following {
 		err = stream.Send(&prusers.ProfileFollower{
 			Username: profile.Username,
 		})
@@ -360,7 +387,6 @@ func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*p
 
 }
 
-
 func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) (*prusers.SearchResponse, error) {
 	users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
 	if err != nil {
@@ -373,8 +399,8 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 	for i := 0; i < len(users); i++ {
 		su := users[i]
 		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
-			Username: su.Username,
-			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"} )
+			Username:              su.Username,
+			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
 	}
 
 	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil

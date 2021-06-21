@@ -17,16 +17,15 @@
                 column>
         <v-hover v-slot="{ hover }">
           <v-carousel class="post-content-media" :cycle="!hover" :interval="10000" :continuous="false">
-            <div v-for="(item, index) in contentPlaceHolder.length" :key="index">
+            <div v-for="(story, index) in stories" :key="index">
               <v-carousel-item>
-              <v-img contain
-                     :src="contentPlaceHolder[index].url"/>
-              <!--<video autoplay
+              <v-img v-if="story.mimeType == 'image'" contain
+                     :src="story.url"/>
+              <video v-else autoplay
                      playsinline
-                     v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
-                     :src="contentPlaceHolder[index]"/>-->
+                     :src="story.url"/>
               </v-carousel-item>
-              <div class="close-friends-div" :v-if="contentPlaceHolder[index].closeFriends">
+              <div class="close-friends-div" :v-if="story.closeFriends">
                 <h3>
                   CLOSE FRIENDS
                 </h3>
@@ -56,12 +55,10 @@ export default {
     }
   },
   props: {
-    imageSrc: {
-      type: String,
-      required: false
-    },
-    stories: { type: Object, required: false}
-
+    stories: {
+      type: Array,
+      required: true
+    }
   },
   methods: {
     toggleView() {

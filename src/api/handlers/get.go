@@ -208,7 +208,6 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	saltdata.ToJSON(response, w)
-
 }
 
 func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
@@ -226,7 +225,7 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var profiles []*prusers.ProfileFollower
 	for {
 		profile, err := stream.Recv()
 		if err == io.EOF {
@@ -237,9 +236,9 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error couldn't fetch followers", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(profile, w)
+		profiles = append(profiles, profile)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(profiles, w)
 }
 
 func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
@@ -253,24 +252,75 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 
 	stream, err := u.uc.GerFollowing(context.Background(), &prusers.FollowerRequest{Username: username})
 	if err != nil {
-		u.l.Println("[ERROR] fetching following")
+		u.l.Println("[ERROR] fetching following", err)
 		http.Error(w, "Following fetching error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var profiles []*prusers.ProfileFollower
 	for {
 		profile, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			u.l.Println("[ERROR] fetching following")
+			u.l.Println("[ERROR] fetching following", err)
 			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(profile, w)
+		profiles = append(profiles, profile)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(profiles, w)
+}
+
+func (c *Content) GetHighlights(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["id"]
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		c.l.Errorf("failed to parse user id: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := c.cc.GetHighlights(context.Background(), &prcontent.GetHighlightsRequest{UserId: userId})
+	if err != nil {
+		c.l.Errorf("failed to get highlights: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	dto := []*saltdata.HighlightDTO{}
+	for _, h := range resp.Highlights {
+		dto = append(dto, saltdata.PRToDTOHighlight(h))
+	}
+	saltdata.ToJSON(dto, w)
+}
+
+func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["id"]
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		c.l.Errorf("failed to parse user id: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	resp, err := c.cc.GetStoriesIndividual(context.Background(), &prcontent.GetStoriesIndividualRequest{UserId: userId})
+	if err != nil {
+		c.l.Errorf("failed to get user stories: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	dto := []*saltdata.MediaDTO{}
+	for _, s := range resp.Stories {
+		tags := []saltdata.TagDTO{}
+		for _, t := range s.Tags {
+			tags = append(tags, *saltdata.PRToDTOTag(t))
+		}
+		dto = append(dto, saltdata.PRToDTOMedia(s))
+	}
+	saltdata.ToJSON(dto, w)
 }
 
 func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
@@ -500,38 +550,6 @@ func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 		postsArray = append(postsArray, post)
 	}
 	saltdata.ToJSON(postsArray, w)
-}
-
-func (s *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
-
-	vars := mux.Vars(r)
-	userId := vars["id"]
-	id, err := strconv.ParseUint(userId, 10, 64)
-	if err != nil {
-		s.l.Println("converting id")
-		return
-	}
-
-	stream, err := s.cc.GetStories(context.Background(), &prcontent.GetStoryRequest{UserId: id})
-	if err != nil {
-		s.l.Errorf("failed fetching stories %v\n", err)
-		http.Error(w, "failed fetching stories", http.StatusInternalServerError)
-		return
-	}
-	var storiesArray []*prcontent.GetStoriesResponse
-	for {
-		story, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			s.l.Errorf("failed to fetch stories: %v\n", err)
-			http.Error(w, "Error couldn't fetch stories", http.StatusInternalServerError)
-			return
-		}
-		storiesArray = append(storiesArray, story)
-	}
-	saltdata.ToJSON(storiesArray, w)
 }
 
 func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request) {

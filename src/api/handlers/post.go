@@ -375,6 +375,40 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 // 	}
 // }
 
+func (c *Content) AddHighlight(w http.ResponseWriter, r *http.Request) {
+	user, err := getUserByJWS(r, c.uc)
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.HighlightRequest{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failed to parse request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	stories := []uint64{}
+	for _, s := range dto.Stories {
+		id, err := strconv.ParseUint(s.Id, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse uint: %v", err)
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+		stories = append(stories, id)
+	}
+	_, err = c.cc.AddHighlight(context.Background(), &prcontent.AddHighlightRequest{Name: dto.Name, UserId: user.Id, Stories: stories})
+	if err != nil {
+		c.l.Errorf("failed to add highlight")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("Added"))
+}
+
 func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := getProfileByJWS(r, c.uc)
@@ -437,6 +471,12 @@ func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.l.Infof("received response: %v", resp.Url)
+	_, err = c.uc.UpdateProfilePicture(context.Background(), &prusers.UpdateProfilePictureRequest{Url: resp.Url, Username: profile.Username})
+	if err != nil {
+		c.l.Errorf("failed to update profiel picture url: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.Write([]byte(resp.Url))
 }
 
@@ -483,22 +523,23 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp, err := c.cc.CreateSharedMedia(context.Background(), &prcontent.CreateSharedMediaRequest{})
+	resp, err := c.cc.CreateStory(context.Background(), &prcontent.CreateStoryRequest{UserId: profile.UserId})
 	if err != nil {
 		c.l.Errorf("failed to create shared media: %v", err)
 		http.Error(w, "Failed to create shared media", http.StatusInternalServerError)
 		return
 	}
 
+	c.l.Infof("received %v files", len(files))
+
 	for _, f := range files {
 		media := &prcontent.Media{
-			UserId:        profile.UserId,
-			Filename:      f.Filename,
-			Tags:          tags,
-			Description:   description,
-			Location:      location,
-			AddedOn:       time.Now().String(),
-			SharedMediaId: resp.SharedMediaId,
+			UserId:      profile.UserId,
+			Filename:    f.Filename,
+			Tags:        tags,
+			Description: description,
+			Location:    location,
+			AddedOn:     time.Now().String(),
 		}
 		stream, err := c.cc.AddStory(context.Background())
 		if err != nil {
@@ -518,6 +559,7 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 				StoriesFolderId: profile.StoriesFolderId,
 				CloseFriends:    closeFriends,
 				Media:           media,
+				StoryId:         resp.StoryId,
 			},
 		}})
 
@@ -602,7 +644,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp, err := c.cc.CreateSharedMedia(context.Background(), &prcontent.CreateSharedMediaRequest{})
+	resp, err := c.cc.CreatePost(context.Background(), &prcontent.CreatePostRequest{UserId: profile.UserId})
 	if err != nil {
 		c.l.Errorf("failed to create shared media: %v", err)
 		http.Error(w, "Failed to create shared media", http.StatusInternalServerError)
@@ -611,13 +653,12 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	for _, f := range files {
 		media := &prcontent.Media{
-			UserId:        profile.UserId,
-			Filename:      f.Filename,
-			Tags:          tags,
-			Description:   description,
-			Location:      location,
-			AddedOn:       time.Now().String(),
-			SharedMediaId: resp.SharedMediaId,
+			UserId:      profile.UserId,
+			Filename:    f.Filename,
+			Tags:        tags,
+			Description: description,
+			Location:    location,
+			AddedOn:     time.Now().String(),
 		}
 		stream, err := c.cc.AddPost(context.Background())
 		if err != nil {
@@ -631,6 +672,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 				Media:         media,
 				UserId:        profile.UserId,
 				PostsFolderId: profile.PostsFolderId,
+				PostId:        resp.PostId,
 			},
 		}})
 		if err != nil {
