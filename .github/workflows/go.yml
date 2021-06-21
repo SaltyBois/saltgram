@@ -30,6 +30,9 @@ jobs:
         env:
           SECRETS_PASSPHRASE: ${{secrets.SECRETS_PASSPHRASE}}
           
+      - name: View home
+        run: ls $HOME
+          
       - name: Disable mono service
         run: sudo update-rc.d mono-xsp4 disable
           
