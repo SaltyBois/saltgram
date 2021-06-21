@@ -64,29 +64,34 @@ const routes = [
     component: () => import(/* webpackChunkName: "userSettings" */ '../views/UserSettings.vue')
 },
 {
-    path: '/main', // TODO(Mile): This needs to be set on path '/' when auth successful
+    path: '/main',
     name: 'Main',
     component: () => import(/* webpackChunkName: "mainPage" */ '../views/MainPage.vue')
 },
 {
-    path: '/inbox', // TODO(Mile): This needs to be set on path '/' when auth successful
+    path: '/inbox',
     name: 'Inbox',
     component: () => import(/* webpackChunkName: "inbox" */ '../views/Inbox.vue')
 },
 {
-    path: '/notifications', // TODO(Mile): This needs to be set on path '/' when auth successful
+    path: '/notifications',
     name: 'Notifications',
     component: () => import(/* webpackChunkName: "notifications" */ '../views/Notifications.vue')
 },
 {
-    path: '/newContent', // TODO(Mile): This needs to be set on path '/' when auth successful
+    path: '/newContent',
     name: 'NewContent',
     component: () => import(/* webpackChunkName: "newContent" */ '../views/NewContent.vue')
 },
 {
-    path: '/admin', // TODO(Mile): This needs to be set on path '/' when auth successful
+    path: '/admin',
     name: 'AdminPage',
     component: () => import(/* webpackChunkName: "admin" */ '../views/AdminPage.vue')
+},
+{
+    path: '/reactions',
+    name: 'Reactions',
+    component: () => import(/* webpackChunkName: "admin" */ '../views/Reactions.vue')
 },
 ]
 

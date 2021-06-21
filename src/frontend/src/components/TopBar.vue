@@ -76,9 +76,10 @@
                 <i class="fa fa-address-book mr-1"/>
                 profile
               </v-btn>
-              <v-btn @click="profileDropDownMenuActive = false;" class="accent mt-3" light>
-                <i class="fa fa-folder-open mr-1"/>
-                saved
+              <v-btn @click="profileDropDownMenuActive = false; $router.push('/reactions')" class="accent mt-3" light>
+                <i class="fa fa-thumbs-o-up like mr-1" aria-hidden="true"/>
+                <i class="fa fa-thumbs-o-up dislike mr-1" aria-hidden="true"/>
+                reactions
               </v-btn>
               <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; $router.push('/user/settings/' + username)" class="accent mt-3">
                 <i class="fa fa-cog mr-1"/>
@@ -460,6 +461,14 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+}
+
+.like, .dislike {
+  transform: scale(1);
+}
+
+.dislike {
+  transform: scale(1) rotate(180deg);
 }
 
 </style>

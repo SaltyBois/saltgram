@@ -66,7 +66,9 @@ kill:
 	npx kill-port $(SALT_API_PORT) &
 	npx kill-port $(SALT_AUTH_PORT) &
 	npx kill-port $(SALT_USERS_PORT) &
-	npx kill-port $(SALT_EMAIL_PORT) &
+	npx kill-port $(SALT_EMAIL_PORT) & 
+	npx kill-port $(SALT_CONTENT_PORT)
+	npx kill-port $(SALT_PKI_PORT) &
 	exit
 	
 

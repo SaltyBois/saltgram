@@ -104,13 +104,33 @@
         </div>
       </div>
     </div>
-    <div class="item-container mb-10">
+    <div class="item-container">
       <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
         <div style="width: 50%;">
           <v-btn class="mx-2" v-bind:class="!profile.privateUser ? 'primary' : 'accent'" @click="profile.privateUser  = false"><i class="fa fa-unlock mr-1"/>Public profile</v-btn>
         </div>
         <div style="width: 50%;">
           <v-btn class="mx-2" v-bind:class="profile.privateUser  ? 'primary' : 'accent'" @click="profile.privateUser  = true"><i class="fa fa-lock mr-1"/>Private profile</v-btn>
+        </div>
+      </div>
+    </div>
+    <div class="item-container ">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 75%;">
+          <h3 style="margin-top: 14px;">Do you want to receive messages from users that you don't follow?</h3>
+        </div>
+        <div style="width: 25%;">
+          <v-checkbox outlined style="width: 400px; margin-left: 20%"/>
+        </div>
+      </div>
+    </div>
+    <div class="item-container mb-10">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 75%;">
+          <h3 style="margin-top: 14px; ">Do you want to allow other users to tag you on their posts, stories or comments?</h3>
+        </div>
+        <div style="width: 25%;">
+          <v-checkbox outlined style="width: 400px; margin-left: 20%"/>
         </div>
       </div>
     </div>
