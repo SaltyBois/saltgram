@@ -241,21 +241,21 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 	}
 
 	return &prusers.ProfileResponse{
-		Username:        profile.Username,
-		Followers:       followers,
-		Following:       following,
-		FullName:        user.FullName,
-		Description:     profile.Description,
-		IsFollowing:     isFollowing,
-		IsPublic:        profile.Public,
-		PhoneNumber:     profile.PhoneNumber,
-		Gender:          profile.Gender,
-		DateOfBirth:     date,
-		WebSite:         profile.WebSite,
-		ProfileFolderId: profile.ProfileFolderId,
-		PostsFolderId:   profile.PostsFolderId,
-		StoriesFolderId: profile.StoriesFolderId,
-		UserId:          profile.UserID,
+		Username:          profile.Username,
+		Followers:         followers,
+		Following:         following,
+		FullName:          user.FullName,
+		Description:       profile.Description,
+		IsFollowing:       isFollowing,
+		IsPublic:          profile.Public,
+		PhoneNumber:       profile.PhoneNumber,
+		Gender:            profile.Gender,
+		DateOfBirth:       date,
+		WebSite:           profile.WebSite,
+		ProfileFolderId:   profile.ProfileFolderId,
+		PostsFolderId:     profile.PostsFolderId,
+		StoriesFolderId:   profile.StoriesFolderId,
+		UserId:            profile.UserID,
 		ProfilePictureURL: profile.ProfilePictureURL,
 	}, nil
 }
@@ -370,7 +370,6 @@ func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*p
 
 }
 
-
 func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) (*prusers.SearchResponse, error) {
 	users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
 	if err != nil {
@@ -383,8 +382,8 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 	for i := 0; i < len(users); i++ {
 		su := users[i]
 		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
-			Username: su.Username,
-			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"} )
+			Username:              su.Username,
+			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
 	}
 
 	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil

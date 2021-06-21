@@ -15,24 +15,24 @@ const (
 
 type Profile struct {
 	data.Identifiable
-	UserID          uint64
-	User            User
-	Username        string     `json:"username" gorm:"unique"`
-	Public          bool       `json:"isPublic"`
-	Taggable        bool       `json:"isTaggable"`
-	Description     string     `json:"description"`
-	Following       []*Profile `gorm:"many2many:profile_following;"`
-	Profiles        []FollowRequest
-	Requests        []FollowRequest
-	PhoneNumber     string    `json:"phoneNumber"`
-	Gender          string    `json:"gender"`
-	DateOfBirth     time.Time `json:"dateOfBirth"`
-	WebSite         string    `json:"webSite"`
-	PrivateProfile  bool      `json:"privateProfile"` // Why
-	ProfileFolderId string    `json:"-"`
-	PostsFolderId   string    `json:"-"`
-	StoriesFolderId string    `json:"-"`
-	ProfilePictureURL string `json:"profilePictureURL"`
+	UserID            uint64
+	User              User
+	Username          string     `json:"username" gorm:"unique"`
+	Public            bool       `json:"isPublic"`
+	Taggable          bool       `json:"isTaggable"`
+	Description       string     `json:"description"`
+	Following         []*Profile `gorm:"many2many:profile_following;"`
+	Profiles          []FollowRequest
+	Requests          []FollowRequest
+	PhoneNumber       string    `json:"phoneNumber"`
+	Gender            string    `json:"gender"`
+	DateOfBirth       time.Time `json:"dateOfBirth"`
+	WebSite           string    `json:"webSite"`
+	PrivateProfile    bool      `json:"privateProfile"` // Why
+	ProfileFolderId   string    `json:"-"`
+	PostsFolderId     string    `json:"-"`
+	StoriesFolderId   string    `json:"-"`
+	ProfilePictureURL string    `json:"profilePictureURL"`
 }
 
 type FollowRequest struct {
@@ -62,7 +62,7 @@ func (db *DBConn) AddProfile(p *Profile) error {
 	return db.DB.Create(p).Error
 }
 
-func (db *DBConn) UpdateProfilePicture(url, username string) (error) {
+func (db *DBConn) UpdateProfilePicture(url, username string) error {
 	profile, err := db.GetProfileByUsername(username)
 	if err != nil {
 		return err

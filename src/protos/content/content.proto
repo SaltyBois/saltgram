@@ -33,7 +33,7 @@ message GetHighlightsResponse {
 
 message Highlight {
     string name = 1;
-    repeated string urls = 2;
+    repeated Media stories = 2;
 }
 
 message CreatePostRequest {
@@ -83,6 +83,11 @@ message SharedMediaResponse {
 }
 
 // Metadata
+enum EMimeType {
+    IMAGE = 0;
+    VIDEO = 1;
+}
+
 message Media {
     uint64 userId = 1;
     string filename = 2;
@@ -93,6 +98,7 @@ message Media {
     uint64 sharedMediaId = 7;
     string url = 8;
     uint64 id = 9;
+    EMimeType mimeType = 10;
 }
 
 message Tag {
@@ -131,7 +137,7 @@ message GetPostsResponse {
 message Story {
     uint64 id = 1;
     uint64 userId = 2;
-    SharedMedia sharedMedia = 3;
+    repeated Media media = 3;
     bool closeFriends = 4;
 }
 

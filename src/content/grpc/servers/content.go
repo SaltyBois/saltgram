@@ -40,7 +40,7 @@ func (c *Content) GetHighlights(ctx context.Context, r *prcontent.GetHighlightsR
 	for _, h := range highlights {
 		highlightsPR = append(highlightsPR, data.DataToPRHighlight(h))
 	}
-	
+
 	return &prcontent.GetHighlightsResponse{
 		Highlights: highlightsPR,
 	}, nil
@@ -74,8 +74,8 @@ func (c *Content) AddHighlight(ctx context.Context, r *prcontent.AddHighlightReq
 	}
 
 	newHighlight := data.Highlight{
-		Name: r.Name,
-		UserID: r.UserId,
+		Name:    r.Name,
+		UserID:  r.UserId,
 		Stories: stories,
 	}
 	err = c.db.CreateHighlight(&newHighlight)
@@ -89,7 +89,7 @@ func (c *Content) AddHighlight(ctx context.Context, r *prcontent.AddHighlightReq
 
 func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest) (*prcontent.CreatePostResponse, error) {
 	post := &data.Post{
-		UserID: r.UserId,
+		UserID:      r.UserId,
 		SharedMedia: data.SharedMedia{},
 	}
 	err := c.db.AddPost(post)
@@ -103,7 +103,7 @@ func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest
 
 func (c *Content) CreateStory(ctx context.Context, r *prcontent.CreateStoryRequest) (*prcontent.CreateStoryResponse, error) {
 	story := &data.Story{
-		UserID: r.UserId,
+		UserID:      r.UserId,
 		SharedMedia: data.SharedMedia{},
 	}
 	err := c.db.AddStory(story)
@@ -344,9 +344,9 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
-		Filename:      r.GetInfo().Media.Filename,
-		Tags:          tags,
-		Description:   r.GetInfo().Media.Description,
+		Filename:    r.GetInfo().Media.Filename,
+		Tags:        tags,
+		Description: r.GetInfo().Media.Description,
 		Location: data.Location{
 			Country: location.Country,
 			State:   location.State,
@@ -374,12 +374,13 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 			return status.Error(codes.Internal, "Internal server error")
 		}
 	}
-	url, err := c.g.UploadStory(r.GetInfo().StoriesFolderId, media.Filename, &imageData)
+	url, mimeType, err := c.g.UploadStory(r.GetInfo().StoriesFolderId, media.Filename, &imageData)
 	if err != nil {
 		c.l.Errorf("failed to upload story: %v", err)
 		return status.Error(codes.Internal, "Internal error")
 	}
 	media.URL = url
+	media.MimeType = mimeType
 	err = c.db.AddMediaToStory(r.GetInfo().StoryId, media)
 	if err != nil {
 		c.l.Errorf("faield to add media to story: %v", err)
@@ -442,13 +443,14 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 		}
 	}
 
-	url, err := c.g.UploadPost(r.GetInfo().PostsFolderId, media.Filename, &imageData)
+	url, mimeType, err := c.g.UploadPost(r.GetInfo().PostsFolderId, media.Filename, &imageData)
 	if err != nil {
 		c.l.Errorf("failure to upload post: %v", err)
 		return status.Error(codes.Internal, "Internal error")
 	}
 
 	media.URL = url
+	media.MimeType = mimeType
 	err = c.db.AddMediaToPost(r.GetInfo().PostId, media)
 	if err != nil {
 		c.l.Errorf("failed to add media to shared media: %v", err)

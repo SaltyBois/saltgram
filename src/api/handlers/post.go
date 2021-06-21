@@ -534,12 +534,12 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 	for _, f := range files {
 		media := &prcontent.Media{
-			UserId:        profile.UserId,
-			Filename:      f.Filename,
-			Tags:          tags,
-			Description:   description,
-			Location:      location,
-			AddedOn:       time.Now().String(),
+			UserId:      profile.UserId,
+			Filename:    f.Filename,
+			Tags:        tags,
+			Description: description,
+			Location:    location,
+			AddedOn:     time.Now().String(),
 		}
 		stream, err := c.cc.AddStory(context.Background())
 		if err != nil {
@@ -559,7 +559,7 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 				StoriesFolderId: profile.StoriesFolderId,
 				CloseFriends:    closeFriends,
 				Media:           media,
-				StoryId: resp.StoryId,
+				StoryId:         resp.StoryId,
 			},
 		}})
 
@@ -653,12 +653,12 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	for _, f := range files {
 		media := &prcontent.Media{
-			UserId:        profile.UserId,
-			Filename:      f.Filename,
-			Tags:          tags,
-			Description:   description,
-			Location:      location,
-			AddedOn:       time.Now().String(),
+			UserId:      profile.UserId,
+			Filename:    f.Filename,
+			Tags:        tags,
+			Description: description,
+			Location:    location,
+			AddedOn:     time.Now().String(),
 		}
 		stream, err := c.cc.AddPost(context.Background())
 		if err != nil {
@@ -672,7 +672,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 				Media:         media,
 				UserId:        profile.UserId,
 				PostsFolderId: profile.PostsFolderId,
-				PostId: resp.PostId,
+				PostId:        resp.PostId,
 			},
 		}})
 		if err != nil {

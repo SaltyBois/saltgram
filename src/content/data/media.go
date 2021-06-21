@@ -11,15 +11,23 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type EMimeType int32
+
+const (
+	EMimeType_IMAGE = iota
+	EMimeType_VIDEO
+)
+
 type Media struct {
 	data.Identifiable
-	SharedMediaID uint64   `json:"sharedMediaId" gorm:"type:numeric"`
-	Filename      string   `json:"filename" validate:"required"`
-	Tags          []Tag    `gorm:"many2many:media_tags" json:"tags" validate:"required"`
-	Description   string   `json:"description" validate:"required"`
-	AddedOn       string   `json:"addedOn"`
-	Location      Location `gorm:"embedded"`
-	URL           string   `json:"url"`
+	SharedMediaID uint64    `json:"sharedMediaId" gorm:"type:numeric"`
+	Filename      string    `json:"filename" validate:"required"`
+	Tags          []Tag     `gorm:"many2many:media_tags" json:"tags" validate:"required"`
+	Description   string    `json:"description" validate:"required"`
+	AddedOn       string    `json:"addedOn"`
+	Location      Location  `gorm:"embedded"`
+	URL           string    `json:"url"`
+	MimeType      EMimeType `json:"mimeType"`
 }
 
 type Tag struct {
@@ -58,44 +66,51 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 	for _, t := range pr.Tags {
 		tags = append(tags, Tag{Value: t.Value})
 	}
-	
+
 	return &Media{
 		SharedMediaID: pr.SharedMediaId,
-		Filename: pr.Filename,
-		Tags: tags,
-		AddedOn: pr.AddedOn,
-		Description: pr.Description,
+		Filename:      pr.Filename,
+		Tags:          tags,
+		AddedOn:       pr.AddedOn,
+		Description:   pr.Description,
 		Location: Location{
 			Country: pr.Location.Country,
-			State: pr.Location.State,
+			State:   pr.Location.State,
 			ZipCode: pr.Location.ZipCode,
-			Street: pr.Location.Street,
+			Street:  pr.Location.Street,
 		},
 	}
 }
 
-func DataToPRMedia (d *Media) *prcontent.Media {
+func DataToPRMedia(d *Media) *prcontent.Media {
 	tags := []*prcontent.Tag{}
 	for _, t := range d.Tags {
 		tags = append(tags, &prcontent.Tag{
 			Value: t.Value,
-			Id: t.ID,
+			Id:    t.ID,
 		})
 	}
+
+	mimeType := prcontent.EMimeType_IMAGE
+	if d.MimeType == EMimeType_VIDEO {
+		mimeType = prcontent.EMimeType_VIDEO
+	}
+
 	return &prcontent.Media{
-		Id: d.ID,
-		Filename: d.Filename,
+		Id:          d.ID,
+		Filename:    d.Filename,
 		Description: d.Description,
-		AddedOn: d.AddedOn,
+		AddedOn:     d.AddedOn,
 		Location: &prcontent.Location{
 			Country: d.Location.Country,
-			State: d.Location.State,
+			State:   d.Location.State,
 			ZipCode: d.Location.ZipCode,
-			Street: d.Location.Street,
+			Street:  d.Location.Street,
 		},
 		SharedMediaId: d.SharedMediaID,
-		Tags: tags,
-		Url: d.URL,
+		Tags:          tags,
+		Url:           d.URL,
+		MimeType:      mimeType,
 	}
 }
 
@@ -136,6 +151,7 @@ func (db *DBConn) AddMediaToStory(storyId uint64, media *Media) error {
 }
 
 var ErrMediaNotFound = fmt.Errorf("media not found")
+
 func (db *DBConn) GetMediaByIds(ids ...uint64) ([]*Media, error) {
 	media := []*Media{}
 	res := db.DB.Preload(clause.Associations).Find(&media, ids)
@@ -150,6 +166,7 @@ func (db *DBConn) GetMediaByIds(ids ...uint64) ([]*Media, error) {
 }
 
 var ErrStoryNotFound = fmt.Errorf("story not found")
+
 func (db *DBConn) GetStory(storyId uint64) (*Story, error) {
 	story := Story{}
 	res := db.DB.Preload("SharedMedia").First(&story, storyId)
@@ -181,6 +198,7 @@ func (db *DBConn) GetSharedMedia(id uint64) (*SharedMedia, error) {
 }
 
 var ErrStoriesNotFound = fmt.Errorf("stories not found")
+
 func (db *DBConn) GetStoryByUser(id uint64) ([]*Story, error) {
 	story := []*Story{}
 	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Where("user_id = ?", id).Find(&story).Error
@@ -209,6 +227,7 @@ func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 }
 
 var ErrPostNotFound = fmt.Errorf("post not found")
+
 func (db *DBConn) GetPost(id uint64) (*Post, error) {
 	post := Post{}
 	res := db.DB.Preload("SharedMedia").First(&post, id)

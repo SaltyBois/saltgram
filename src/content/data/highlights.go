@@ -8,9 +8,9 @@ import (
 
 type Highlight struct {
 	data.Identifiable
-	Name string `json:"name"`
+	Name    string   `json:"name"`
 	Stories []*Media `json:"stories" gorm:"many2many:highlight_stories;"`
-	UserID uint64 `json:"userId" gorm:"type:numeric"`
+	UserID  uint64   `json:"userId" gorm:"type:numeric"`
 }
 
 func (db *DBConn) CreateHighlight(highlight *Highlight) error {
@@ -18,6 +18,7 @@ func (db *DBConn) CreateHighlight(highlight *Highlight) error {
 }
 
 var ErrHiglightNotFound = fmt.Errorf("higlight not found")
+
 func (db *DBConn) GetHighlights(userId uint64) ([]*Highlight, error) {
 	highlights := []*Highlight{}
 	res := db.DB.Preload("Stories").Where("user_id = ?", userId).Find(&highlights)
@@ -32,12 +33,13 @@ func (db *DBConn) GetHighlights(userId uint64) ([]*Highlight, error) {
 }
 
 func DataToPRHighlight(d *Highlight) *prcontent.Highlight {
-	urls := []string{}
-	for _, m := range d.Stories {
-		urls = append(urls, m.URL)
+	stories := []*prcontent.Media{}
+	for _, s := range d.Stories {
+		stories = append(stories, DataToPRMedia(s))
 	}
+
 	return &prcontent.Highlight{
-		Name: d.Name,
-		Urls: urls,
+		Name:    d.Name,
+		Stories: stories,
 	}
 }

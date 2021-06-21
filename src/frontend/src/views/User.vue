@@ -39,7 +39,7 @@
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
-        <StoryHighlight v-for="highlight in highlights" :key="highlight.name" :src="highlight.urls[0]" :name="highlight.name"/>
+        <StoryHighlight v-for="highlight in highlights" :key="highlight.name" :stories="highlight.stories" :name="highlight.name"/>
         <div id="new-highlight" @click="openHighlightDialog">
           +
         </div>

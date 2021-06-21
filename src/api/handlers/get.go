@@ -247,7 +247,12 @@ func (c *Content) GetHighlights(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	saltdata.ToJSON(resp.Highlights, w)
+
+	dto := []*saltdata.HighlightDTO{}
+	for _, h := range resp.Highlights {
+		dto = append(dto, saltdata.PRToDTOHighlight(h))
+	}
+	saltdata.ToJSON(dto, w)
 }
 
 func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
@@ -273,15 +278,15 @@ func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
 			tags = append(tags, *saltdata.PRToDTOTag(t))
 		}
 		dto = append(dto, &saltdata.MediaDTO{
-			Id: strconv.FormatUint(s.Id, 10),
-			UserId: userId,
-			Filename: s.Filename,
-			Tags: tags,
-			Description: s.Description,
-			AddedOn: s.AddedOn,
-			Location: *saltdata.PRToDTOLocation(s.Location),
+			Id:            strconv.FormatUint(s.Id, 10),
+			UserId:        userId,
+			Filename:      s.Filename,
+			Tags:          tags,
+			Description:   s.Description,
+			AddedOn:       s.AddedOn,
+			Location:      *saltdata.PRToDTOLocation(s.Location),
 			SharedMediaID: strconv.FormatUint(s.SharedMediaId, 10),
-			URL: s.Url,
+			URL:           s.Url,
 		})
 	}
 	saltdata.ToJSON(dto, w)
@@ -403,7 +408,6 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	claims, ok := token.Claims.(*saltdata.AccessClaims)
 
-
 	if !ok {
 		u.l.Println("[ERROR] unable to parse claims")
 		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
@@ -427,17 +431,19 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < len(queryResults.SearchedUser); i++ {
 		su := queryResults.SearchedUser[i]
-		if su.Username == claims.Username {continue}
-		if i == MAX_NUMBER_OF_RESULTS {break}
+		if su.Username == claims.Username {
+			continue
+		}
+		if i == MAX_NUMBER_OF_RESULTS {
+			break
+		}
 		finalResult = append(finalResult, &prusers.SearchedUser{
-			Username: su.Username,
-			ProfilePictureAddress: su.ProfilePictureAddress} )
+			Username:              su.Username,
+			ProfilePictureAddress: su.ProfilePictureAddress})
 
 	}
 
 	err = saltdata.ToJSON(&finalResult, w)
-
-
 
 	if err != nil {
 		u.l.Println("[ERROR] Searching users failed")
