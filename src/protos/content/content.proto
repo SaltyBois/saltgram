@@ -31,7 +31,7 @@ message CreatePostResponse {
 
 message AddHighlightRequest {
     string name = 1;
-    repeated Media stories = 2;
+    repeated uint64 stories = 2;
     uint64 userId = 3;
 }
 message AddHighlightResponse{}
@@ -78,6 +78,7 @@ message Media {
     repeated Tag tags = 6;
     uint64 sharedMediaId = 7;
     string url = 8;
+    uint64 id = 9;
 }
 
 message Tag {

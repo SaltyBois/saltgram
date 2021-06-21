@@ -8,16 +8,16 @@ import (
 type Highlight struct {
 	data.Identifiable
 	Name string `json:"name"`
-	Stories []*Media `json:"stories"`
+	Stories []*Media `json:"stories" gorm:"many2many:highlight_stories;"`
 	UserID uint64 `json:"userId" gorm:"type:numeric"`
 }
 
 func (db *DBConn) CreateHighlight(highlight *Highlight) error {
-	return db.DB.Create(highlight).Error
+	return db.DB.Omit("Stories").Create(highlight).Error
 }
 
 var ErrHiglightNotFound = fmt.Errorf("higlight not found")
-func (db *DBConn) AddStoriesToHighlight(highlightId uint64, stories []*Media) error {
+func (db *DBConn) AddStoriesToHighlight(highlightId uint64, ids ...uint64) error {
 	highlight := Highlight{}
 	res := db.DB.First(&highlight, highlightId)
 	if res.Error != nil {
@@ -27,6 +27,10 @@ func (db *DBConn) AddStoriesToHighlight(highlightId uint64, stories []*Media) er
 		return ErrHiglightNotFound
 	}
 
-	highlight.Stories = append(highlight.Stories, stories...)
-	return db.DB.Save(&highlight).Error
+	stories, err := db.GetMediaByIds(ids...)
+	if err != nil {
+		return err
+	}
+
+	return db.DB.Model(&highlight).Association("Stories").Append(stories)
 }

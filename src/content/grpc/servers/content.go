@@ -47,24 +47,22 @@ func (c *Content) GetStoriesIndividual(ctx context.Context, r *prcontent.GetStor
 }
 
 func (c *Content) AddHighlight(ctx context.Context, r *prcontent.AddHighlightRequest) (*prcontent.AddHighlightResponse, error) {
-	newHighlight := data.Highlight{
-		Name: r.Name,
-		UserID: r.UserId,
-	}
-	err := c.db.CreateHighlight(&newHighlight)
+	storyIds := r.Stories
+
+	stories, err := c.db.GetMediaByIds(storyIds...)
 	if err != nil {
-		c.l.Errorf("failed to create highlight: %v", err)
+		c.l.Errorf("failed to get stories for highlight: %v", err)
 		return &prcontent.AddHighlightResponse{}, status.Error(codes.Internal, "Internal error")
 	}
 
-	stories := []*data.Media{}
-	for _, s := range r.Stories {
-		stories = append(stories, data.PRToDataMedia(s))
+	newHighlight := data.Highlight{
+		Name: r.Name,
+		UserID: r.UserId,
+		Stories: stories,
 	}
-
-	err = c.db.AddStoriesToHighlight(newHighlight.ID, stories)
+	err = c.db.CreateHighlight(&newHighlight)
 	if err != nil {
-		c.l.Errorf("failed to add stories to highlight: %v", err)
+		c.l.Errorf("failed to create highlight: %v", err)
 		return &prcontent.AddHighlightResponse{}, status.Error(codes.Internal, "Internal error")
 	}
 

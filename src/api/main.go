@@ -98,6 +98,7 @@ func main() {
 	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/story", contentHandler.AddStory).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/highlight", contentHandler.AddHighlight).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)

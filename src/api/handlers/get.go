@@ -246,7 +246,26 @@ func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	saltdata.ToJSON(resp.Stories, w)
+
+	dto := []*saltdata.MediaDTO{}
+	for _, s := range resp.Stories {
+		tags := []saltdata.TagDTO{}
+		for _, t := range s.Tags {
+			tags = append(tags, *saltdata.PRToDTOTag(t))
+		}
+		dto = append(dto, &saltdata.MediaDTO{
+			Id: strconv.FormatUint(s.Id, 10),
+			UserId: userId,
+			Filename: s.Filename,
+			Tags: tags,
+			Description: s.Description,
+			AddedOn: s.AddedOn,
+			Location: *saltdata.PRToDTOLocation(s.Location),
+			SharedMediaID: strconv.FormatUint(s.SharedMediaId, 10),
+			URL: s.Url,
+		})
+	}
+	saltdata.ToJSON(dto, w)
 }
 
 func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {

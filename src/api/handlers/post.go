@@ -11,6 +11,7 @@ import (
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -373,6 +374,40 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 // 		return
 // 	}
 // }
+
+func (c *Content) AddHighlight(w http.ResponseWriter, r *http.Request) {
+	user, err := getUserByJWS(r, c.uc)
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.HighlightRequest{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failed to parse request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	stories := []uint64{}
+	for _, s := range dto.Stories {
+		id, err := strconv.ParseUint(s.Id, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse uint: %v", err)
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+		stories = append(stories, id)
+	}
+	_, err = c.cc.AddHighlight(context.Background(), &prcontent.AddHighlightRequest{Name: dto.Name, UserId: user.Id, Stories: stories})
+	if err != nil {
+		c.l.Errorf("failed to add highlight")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("Added"))
+}
 
 func (c *Content) AddProfilePicture(w http.ResponseWriter, r *http.Request) {
 

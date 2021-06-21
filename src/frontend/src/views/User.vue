@@ -53,16 +53,22 @@
                 <v-text-field
                 v-model="highlightName"
                 label="Highlight name"
+                :rules="[noempty]"
                 required/>
                 <div id="story-selection">
-                  <div v-for="story in stories" :key="story.filename" class="story-thumbnail">
-                    <v-img :src="story.url" width="256px" height="256px" />
+                  <div v-for="(story, i) in stories" :key="story.filename" class="story-thumbnail" @click="selectStory(i)">
+                    <v-img :src="story.url" width="128px" height="128px" />
+                    <v-simple-checkbox class="story-checkbox" v-model="stories[i].isSelected" absolute @click="selectStory(i)" />
                   </div>
                 </div>
               </v-form>
             </v-card-text>
             <v-card-action>
-              <v-btn :disabled="!highlightForm">Add highlight</v-btn>
+              <div class="d-flex flex-row">
+                <v-btn plain @click="highlightDialog = false">Cancel</v-btn>
+                <v-spacer></v-spacer>
+                <v-btn :disabled="!highlightForm" color="accent" @click="addHighlight">Add highlight</v-btn>
+              </div>
             </v-card-action>
           </v-card>
         </v-dialog>
@@ -126,6 +132,10 @@ export default {
     },
     data: function() {
       return {
+        highlightSuccess: true,
+        noempty: v => !!v || 'Required',
+        highlightName: '',
+        highlightForm: false,
         stories: [],
         highlightDialog: false,
         highlights: [],
@@ -154,6 +164,32 @@ export default {
       }
     },
     methods: {
+        addHighlight: function() {
+          let data = {
+            name: this.highlightName,
+            stories: [],
+          };
+          this.stories.forEach(s => {
+            if(s.isSelected) {
+              data.stories.push(s);
+            }
+          });
+
+          this.refreshToken(this.getAHeader())
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+              this.axios.post('content/highlight', data, {headers: this.getAHeader()})
+                .then(() => this.highlightSuccess = true)
+                .catch(r => console.log(r));
+            }).catch(() => this.$router.push('/'));
+
+        },
+
+        selectStory: function(index) {
+          this.stories[index].isSelected = !this.stories[index].isSelected;
+          this.stories = [...this.stories];
+        },
+
         openHighlightDialog: function() {
           this.highlightDialog = true;
           this.refreshToken(this.getAHeader())
@@ -162,6 +198,9 @@ export default {
               this.axios.get('content/story/' + this.user.id)
                 .then(r => {
                   this.stories = r.data;
+                  this.stories.forEach(s => {
+                    s.isSelected = false;
+                  })
                 })
             }).catch(() => this.$router.push('/'));
         },
@@ -331,6 +370,23 @@ export default {
       background: #ddd;
       font-weight: 500;
       font-size: 3rem;
+    }
+
+    #story-selection {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .story-thumbnail {
+      cursor: pointer;
+      position: relative;
+      display: inline-block;
+    }
+
+    .story-checkbox {
+      position: absolute;
+      top: 0;
+      right: 15px;
     }
 
 </style>

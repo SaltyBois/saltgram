@@ -14,7 +14,6 @@ import (
 type Media struct {
 	data.Identifiable
 	SharedMediaID uint64   `json:"sharedMediaId" gorm:"type:numeric"`
-	HighlightID    uint64   `json:"highlightId" gorm:"type:numeric"`
 	Filename      string   `json:"filename" validate:"required"`
 	Tags          []Tag    `gorm:"many2many:media_tags" json:"tags" validate:"required"`
 	Description   string   `json:"description" validate:"required"`
@@ -84,6 +83,7 @@ func DataToPRMedia (d *Media) *prcontent.Media {
 		})
 	}
 	return &prcontent.Media{
+		Id: d.ID,
 		Filename: d.Filename,
 		Description: d.Description,
 		AddedOn: d.AddedOn,
@@ -133,6 +133,20 @@ func (db *DBConn) AddMediaToStory(storyId uint64, media *Media) error {
 		return err
 	}
 	return db.AddMediaToSharedMedia(story.SharedMediaID, media)
+}
+
+var ErrMediaNotFound = fmt.Errorf("media not found")
+func (db *DBConn) GetMediaByIds(ids ...uint64) ([]*Media, error) {
+	media := []*Media{}
+	res := db.DB.Find(&media, ids)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, ErrMediaNotFound
+	}
+
+	return media, nil
 }
 
 var ErrStoryNotFound = fmt.Errorf("story not found")
