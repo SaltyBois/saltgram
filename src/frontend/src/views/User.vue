@@ -39,7 +39,7 @@
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
-        <StoryHighlight v-for="index in 10" :key="index"/>
+        <!--<StoryHighlight v-for="index in 10" :key="index"/>-->
       </v-layout>
     </v-layout >
 
@@ -117,6 +117,7 @@ export default {
         radioButton: 'posts',
         followingUser: false,
         usersPosts: [],
+        userStories: [],
       }
     },
     computed: {
@@ -162,6 +163,7 @@ export default {
 
               console.log(r.data.userId)
               this.getUserPosts(r.data.userId);
+              this.getUserStories(r.data.userId);
             }).catch(err => {
               console.log(err)
               // console.log('Pushing Back to Login Page after fetching profile')
@@ -176,6 +178,20 @@ export default {
               //console.log(JSON.parse(r.data.toString()));
               this.usersPosts = r.data;
               console.log(this.usersPosts);
+            }).catch(err => {
+              console.log(err)
+              this.$router.push('/');
+            })
+        },
+        getUserStories(id) {
+           this.axios.get("content/story/" + id, {headers: this.getAHeader()})
+           .then(r => {
+              //console.log(JSON.parse(r.data.toString()));
+              this.userStories = r.data;
+              console.log(r.data);
+              this.$refs.profileImage.$data.userStories = this.userStories[0];
+              //console.log(this.$refs.profileImage.$data.userStories);
+
             }).catch(err => {
               console.log(err)
               this.$router.push('/');

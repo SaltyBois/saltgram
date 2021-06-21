@@ -92,6 +92,42 @@ func (c *Content) GetProfilePicture(ctx context.Context, r *prcontent.GetProfile
 	return &prcontent.GetProfilePictureResponse{Url: profilePicture.URL}, nil
 }
 
+/*func (c *Content) GetPostsByUser(ctx context.Context, r *prcontent.GetPostsRequest) (*prcontent.GetPostsResponse, error) {
+	posts, err := c.db.GetPostByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting user posts: %v\n", err)
+		return &prcontent.GetPostsResponse{}, err
+	}
+	response := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+				Url: m.URL,
+			})
+		}
+		response = append(response, &prcontent.Post{
+			Id:     p.ID,
+			UserId: p.UserID,
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		})
+
+	}
+	return &prcontent.GetPostsResponse{Post: response}, nil
+}*/
+
 func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserServer) error {
 	posts, err := c.db.GetPostByUser(r.UserId)
 	if err != nil {
@@ -132,7 +168,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	return nil
 }
 
-func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
+/*func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
 	posts, err := c.db.GetPostsByReaction(r.UserId)
 	if err != nil {
 		c.l.Errorf("failure getting user posts: %v\n", err)
@@ -169,7 +205,7 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 		}
 	}
 	return nil
-}
+}*/
 
 func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureServer) error {
 	r, err := stream.Recv()
@@ -489,7 +525,7 @@ func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.
 	return nil
 }
 
-func (c *Content) GetStoriesByUser(r *prcontent.GetStoryRequest, stream prcontent.Content_GetStoriesServer) error {
+func (c *Content) GetStories(r *prcontent.GetStoryRequest, stream prcontent.Content_GetStoriesServer) error {
 	stories, err := c.db.GetStoryByUser(r.UserId)
 	if err != nil {
 		c.l.Errorf("failure getting user stories: %v\n", err)

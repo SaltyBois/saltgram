@@ -28,8 +28,9 @@ type TagDTO struct {
 }
 
 type PostDTO struct {
+	Id          string `json:"id"`
 	SharedMedia SharedMediaDTO
-	User        UserDTO
+	UserId      string `json:"userId"`
 }
 
 type CommentDTO struct {

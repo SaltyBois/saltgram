@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ContentClient interface {
 	GetSharedMedia(ctx context.Context, in *SharedMediaRequest, opts ...grpc.CallOption) (Content_GetSharedMediaClient, error)
+	//rpc GetPostsByUser(GetPostsRequest) returns(GetPostsResponse);
 	GetPostsByUser(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserClient, error)
 	GetStories(ctx context.Context, in *GetStoryRequest, opts ...grpc.CallOption) (Content_GetStoriesClient, error)
 	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error)
@@ -386,6 +387,7 @@ func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFold
 // for forward compatibility
 type ContentServer interface {
 	GetSharedMedia(*SharedMediaRequest, Content_GetSharedMediaServer) error
+	//rpc GetPostsByUser(GetPostsRequest) returns(GetPostsResponse);
 	GetPostsByUser(*GetPostsRequest, Content_GetPostsByUserServer) error
 	GetStories(*GetStoryRequest, Content_GetStoriesServer) error
 	GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error)

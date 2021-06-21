@@ -80,7 +80,7 @@ func (db *DBConn) GetSharedMedia(id uint64) (*SharedMedia, error) {
 
 func (db *DBConn) GetStoryByUser(id uint64) (*[]Story, error) {
 	story := []Story{}
-	err := db.DB.Where("user_id = ?", id).Find(&story).Error
+	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Where("user_id = ?", id).Find(&story).Error
 	return &story, err
 }
 

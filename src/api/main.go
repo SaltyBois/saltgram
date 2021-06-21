@@ -103,11 +103,11 @@ func main() {
 	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/comment/{id}", contentHandler.GetCommentsByPost).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/reaction/{id}", contentHandler.GetReactionsByPost).Methods(http.MethodGet)
-	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodGet)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
+		AllowedOrigins: []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
 		//AllowedOrigins:   []string{"*"},
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},

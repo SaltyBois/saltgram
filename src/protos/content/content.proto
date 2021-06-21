@@ -3,6 +3,7 @@ option go_package = "./content/prcontent";
 
 service Content {
     rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
+    //rpc GetPostsByUser(GetPostsRequest) returns(GetPostsResponse);
     rpc GetPostsByUser(GetPostsRequest) returns(stream GetPostsResponse);
     rpc GetStories(GetStoryRequest) returns(stream GetStoriesResponse);
     rpc GetProfilePicture(GetProfilePictureRequest) returns(GetProfilePictureResponse);
@@ -90,6 +91,10 @@ message Post {
     uint64 userId = 2;
     SharedMedia sharedMedia = 3;
 }
+
+/*message GetPostsResponse {
+    repeated Post post = 1;
+}*/
 
 message GetPostsResponse {
     Post post = 1;
