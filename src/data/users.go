@@ -27,6 +27,7 @@ type ProflieDTO struct {
 	Username       string    `json:"username" validate:"required"`
 	Public         bool      `json:"public"`   /* `json:"public" validate:"required"` */
 	Taggable       bool      `json:"taggable"` /* `json:"taggable" validate:"required"` */
+	Messageable    bool      `json:"messageable"` /* `json:"taggable" validate:"required"` */
 	Description    string    `json:"description" validate:"required"`
 	PhoneNumber    string    `json:"phoneNumber" validate:"required"`
 	Gender         string    `json:"gender" validate:"required"`
@@ -46,6 +47,7 @@ type ProfileDTO struct {
 	Username          string `json:"username" validate:"required"`
 	Public            bool   `json:"public"`   /* `json:"public" validate:"required"` */
 	Taggable          bool   `json:"taggable"` /* `json:"taggable" validate:"required"` */
+	Messageable    bool      `json:"messageable"` /* `json:"taggable" validate:"required"` */
 	Description       string `json:"description" validate:"required"`
 	PhoneNumber       string `json:"phoneNumber" validate:"required"`
 	Gender            string `json:"gender" validate:"required"`

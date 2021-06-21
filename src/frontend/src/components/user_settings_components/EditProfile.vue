@@ -133,7 +133,7 @@
           <h3 style="margin-top: 14px;">Do you want to receive messages from users that you don't follow?</h3>
         </div>
         <div style="width: 25%;">
-          <v-checkbox outlined style="width: 400px; margin-left: 20%"/>
+          <v-checkbox outlined v-model="profile.messageable" style="width: 400px; margin-left: 20%"/>
         </div>
       </div>
     </div>
@@ -143,7 +143,7 @@
           <h3 style="margin-top: 14px; ">Do you want to allow other users to tag you on their posts, stories or comments?</h3>
         </div>
         <div style="width: 25%;">
-          <v-checkbox outlined style="width: 400px; margin-left: 20%"/>
+          <v-checkbox outlined v-model="profile.taggable" style="width: 400px; margin-left: 20%"/>
         </div>
       </div>
     </div>
@@ -174,7 +174,9 @@ export default {
         phoneNumber: '',
         gender: '',
         dateOfBirth: '',
-        email: ''
+        email: '',
+        taggable: '',
+        messageable: ''
       },
       user: '',
       maxDate: ''
@@ -238,6 +240,9 @@ export default {
             this.profile.gender = r.data.gender;
             this.profile.dateOfBirth = r.data.dateOfBirth * 1000;
             this.dateFunc();
+            this.profile.taggable = r.data.taggable;
+            this.profile.messageable = r.data.messageable;
+            console.log(this.profile.taggable)
           }).catch(err => {
         console.log(err)
         console.log('Pushing Back to Login Page after fetching profile')
@@ -301,7 +306,9 @@ export default {
             phoneNumber: this.profile.phoneNumber,
             gender: this.profile.gender,
             dateOfBirth: this.profile.dateOfBirth,
-            email: this.profile.email
+            email: this.profile.email,
+            taggable: this.profile.taggable,
+            messageable: this.profile.messageable
         }
       this.axios.put("users/profile/" + this.$route.params.username, profileData, {headers: this.getAHeader()} )
       .then(() => {

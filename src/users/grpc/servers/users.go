@@ -147,7 +147,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 	profile := data.Profile{
 		Username:        r.Username,
 		UserID:          user.ID,
-		Taggable:        false,
+		Taggable:        true,
 		Public:          false,
 		Description:     r.Description,
 		PhoneNumber:     r.PhoneNumber,
@@ -158,6 +158,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		ProfileFolderId: resp.ProfileFolderId,
 		PostsFolderId:   resp.PostsFolderId,
 		StoriesFolderId: resp.StoryFolderId,
+		Messagable: 	 true,
 	}
 
 	err = u.db.AddProfile(&profile)
@@ -261,6 +262,8 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		StoriesFolderId:   profile.StoriesFolderId,
 		UserId:            profile.UserID,
 		ProfilePictureURL: profile.ProfilePictureURL,
+		Taggable: 		   profile.Taggable,
+		Messageable: 	   profile.Messagable,
 	}, nil
 }
 
@@ -371,6 +374,7 @@ func (u *Users) UpdateProfile(ctx context.Context, r *prusers.UpdateRequest) (*p
 	profile.WebSite = r.WebSite
 	profile.PrivateProfile = r.PrivateProfile
 	profile.Description = r.Description
+	profile.Messagable = r.Messageable
 
 	err = u.db.UpdateUser(user)
 	if err != nil {

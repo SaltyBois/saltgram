@@ -206,6 +206,8 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth:       profile.DateOfBirth,
 		WebSite:           profile.WebSite,
 		ProfilePictureURL: profile.ProfilePictureURL,
+		Taggable: 		   profile.Taggable,
+		Messageable: 	   profile.Messageable,
 	}
 
 	saltdata.ToJSON(response, w)
