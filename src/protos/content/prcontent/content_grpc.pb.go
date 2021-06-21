@@ -20,17 +20,20 @@ const _ = grpc.SupportPackageIsVersion7
 type ContentClient interface {
 	GetSharedMedia(ctx context.Context, in *SharedMediaRequest, opts ...grpc.CallOption) (Content_GetSharedMediaClient, error)
 	GetPostsByUser(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserClient, error)
-	GetStories(ctx context.Context, in *GetStoryRequest, opts ...grpc.CallOption) (Content_GetStoriesClient, error)
+	GetStoriesIndividual(ctx context.Context, in *GetStoriesIndividualRequest, opts ...grpc.CallOption) (*GetStoriesIndividualResponse, error)
 	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error)
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error)
 	GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error)
-	CreateSharedMedia(ctx context.Context, in *CreateSharedMediaRequest, opts ...grpc.CallOption) (*CreateSharedMediaResponse, error)
+	GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error)
+	CreateStory(ctx context.Context, in *CreateStoryRequest, opts ...grpc.CallOption) (*CreateStoryResponse, error)
+	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatePostResponse, error)
 	AddPost(ctx context.Context, opts ...grpc.CallOption) (Content_AddPostClient, error)
 	AddStory(ctx context.Context, opts ...grpc.CallOption) (Content_AddStoryClient, error)
 	AddComment(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
 	AddReaction(ctx context.Context, in *AddReactionRequest, opts ...grpc.CallOption) (*AddReactionResponse, error)
 	AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error)
+	AddHighlight(ctx context.Context, in *AddHighlightRequest, opts ...grpc.CallOption) (*AddHighlightResponse, error)
 	CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error)
 }
 
@@ -106,36 +109,13 @@ func (x *contentGetPostsByUserClient) Recv() (*GetPostsResponse, error) {
 	return m, nil
 }
 
-func (c *contentClient) GetStories(ctx context.Context, in *GetStoryRequest, opts ...grpc.CallOption) (Content_GetStoriesClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[2], "/Content/GetStories", opts...)
+func (c *contentClient) GetStoriesIndividual(ctx context.Context, in *GetStoriesIndividualRequest, opts ...grpc.CallOption) (*GetStoriesIndividualResponse, error) {
+	out := new(GetStoriesIndividualResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetStoriesIndividual", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &contentGetStoriesClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Content_GetStoriesClient interface {
-	Recv() (*GetStoriesResponse, error)
-	grpc.ClientStream
-}
-
-type contentGetStoriesClient struct {
-	grpc.ClientStream
-}
-
-func (x *contentGetStoriesClient) Recv() (*GetStoriesResponse, error) {
-	m := new(GetStoriesResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *contentClient) GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error) {
@@ -148,7 +128,7 @@ func (c *contentClient) GetProfilePicture(ctx context.Context, in *GetProfilePic
 }
 
 func (c *contentClient) GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[3], "/Content/GetComments", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[2], "/Content/GetComments", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +160,7 @@ func (x *contentGetCommentsClient) Recv() (*GetCommentsResponse, error) {
 }
 
 func (c *contentClient) GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/GetReactions", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[3], "/Content/GetReactions", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +192,7 @@ func (x *contentGetReactionsClient) Recv() (*GetReactionsResponse, error) {
 }
 
 func (c *contentClient) GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/GetPostsByUserReaction", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/GetPostsByUserReaction", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -243,9 +223,27 @@ func (x *contentGetPostsByUserReactionClient) Recv() (*GetPostsResponse, error) 
 	return m, nil
 }
 
-func (c *contentClient) CreateSharedMedia(ctx context.Context, in *CreateSharedMediaRequest, opts ...grpc.CallOption) (*CreateSharedMediaResponse, error) {
-	out := new(CreateSharedMediaResponse)
-	err := c.cc.Invoke(ctx, "/Content/CreateSharedMedia", in, out, opts...)
+func (c *contentClient) GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error) {
+	out := new(GetHighlightsResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetHighlights", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) CreateStory(ctx context.Context, in *CreateStoryRequest, opts ...grpc.CallOption) (*CreateStoryResponse, error) {
+	out := new(CreateStoryResponse)
+	err := c.cc.Invoke(ctx, "/Content/CreateStory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatePostResponse, error) {
+	out := new(CreatePostResponse)
+	err := c.cc.Invoke(ctx, "/Content/CreatePost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +251,7 @@ func (c *contentClient) CreateSharedMedia(ctx context.Context, in *CreateSharedM
 }
 
 func (c *contentClient) AddPost(ctx context.Context, opts ...grpc.CallOption) (Content_AddPostClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddPost", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddPost", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +285,7 @@ func (x *contentAddPostClient) CloseAndRecv() (*AddPostResponse, error) {
 }
 
 func (c *contentClient) AddStory(ctx context.Context, opts ...grpc.CallOption) (Content_AddStoryClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[7], "/Content/AddStory", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddStory", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +337,7 @@ func (c *contentClient) AddReaction(ctx context.Context, in *AddReactionRequest,
 }
 
 func (c *contentClient) AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[8], "/Content/AddProfilePicture", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[7], "/Content/AddProfilePicture", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -372,6 +370,15 @@ func (x *contentAddProfilePictureClient) CloseAndRecv() (*AddProfilePictureRespo
 	return m, nil
 }
 
+func (c *contentClient) AddHighlight(ctx context.Context, in *AddHighlightRequest, opts ...grpc.CallOption) (*AddHighlightResponse, error) {
+	out := new(AddHighlightResponse)
+	err := c.cc.Invoke(ctx, "/Content/AddHighlight", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error) {
 	out := new(CreateUserFolderResponse)
 	err := c.cc.Invoke(ctx, "/Content/CreateUserFolder", in, out, opts...)
@@ -387,17 +394,20 @@ func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFold
 type ContentServer interface {
 	GetSharedMedia(*SharedMediaRequest, Content_GetSharedMediaServer) error
 	GetPostsByUser(*GetPostsRequest, Content_GetPostsByUserServer) error
-	GetStories(*GetStoryRequest, Content_GetStoriesServer) error
+	GetStoriesIndividual(context.Context, *GetStoriesIndividualRequest) (*GetStoriesIndividualResponse, error)
 	GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error)
 	GetComments(*GetCommentsRequest, Content_GetCommentsServer) error
 	GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error
 	GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error
-	CreateSharedMedia(context.Context, *CreateSharedMediaRequest) (*CreateSharedMediaResponse, error)
+	GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error)
+	CreateStory(context.Context, *CreateStoryRequest) (*CreateStoryResponse, error)
+	CreatePost(context.Context, *CreatePostRequest) (*CreatePostResponse, error)
 	AddPost(Content_AddPostServer) error
 	AddStory(Content_AddStoryServer) error
 	AddComment(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
 	AddReaction(context.Context, *AddReactionRequest) (*AddReactionResponse, error)
 	AddProfilePicture(Content_AddProfilePictureServer) error
+	AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error)
 	CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
@@ -412,8 +422,8 @@ func (UnimplementedContentServer) GetSharedMedia(*SharedMediaRequest, Content_Ge
 func (UnimplementedContentServer) GetPostsByUser(*GetPostsRequest, Content_GetPostsByUserServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetPostsByUser not implemented")
 }
-func (UnimplementedContentServer) GetStories(*GetStoryRequest, Content_GetStoriesServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetStories not implemented")
+func (UnimplementedContentServer) GetStoriesIndividual(context.Context, *GetStoriesIndividualRequest) (*GetStoriesIndividualResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStoriesIndividual not implemented")
 }
 func (UnimplementedContentServer) GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfilePicture not implemented")
@@ -427,8 +437,14 @@ func (UnimplementedContentServer) GetReactions(*GetReactionsRequest, Content_Get
 func (UnimplementedContentServer) GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetPostsByUserReaction not implemented")
 }
-func (UnimplementedContentServer) CreateSharedMedia(context.Context, *CreateSharedMediaRequest) (*CreateSharedMediaResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateSharedMedia not implemented")
+func (UnimplementedContentServer) GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHighlights not implemented")
+}
+func (UnimplementedContentServer) CreateStory(context.Context, *CreateStoryRequest) (*CreateStoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateStory not implemented")
+}
+func (UnimplementedContentServer) CreatePost(context.Context, *CreatePostRequest) (*CreatePostResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
 }
 func (UnimplementedContentServer) AddPost(Content_AddPostServer) error {
 	return status.Errorf(codes.Unimplemented, "method AddPost not implemented")
@@ -444,6 +460,9 @@ func (UnimplementedContentServer) AddReaction(context.Context, *AddReactionReque
 }
 func (UnimplementedContentServer) AddProfilePicture(Content_AddProfilePictureServer) error {
 	return status.Errorf(codes.Unimplemented, "method AddProfilePicture not implemented")
+}
+func (UnimplementedContentServer) AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddHighlight not implemented")
 }
 func (UnimplementedContentServer) CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserFolder not implemented")
@@ -503,25 +522,22 @@ func (x *contentGetPostsByUserServer) Send(m *GetPostsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Content_GetStories_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetStoryRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _Content_GetStoriesIndividual_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStoriesIndividualRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(ContentServer).GetStories(m, &contentGetStoriesServer{stream})
-}
-
-type Content_GetStoriesServer interface {
-	Send(*GetStoriesResponse) error
-	grpc.ServerStream
-}
-
-type contentGetStoriesServer struct {
-	grpc.ServerStream
-}
-
-func (x *contentGetStoriesServer) Send(m *GetStoriesResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(ContentServer).GetStoriesIndividual(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetStoriesIndividual",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetStoriesIndividual(ctx, req.(*GetStoriesIndividualRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Content_GetProfilePicture_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -605,20 +621,56 @@ func (x *contentGetPostsByUserReactionServer) Send(m *GetPostsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Content_CreateSharedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateSharedMediaRequest)
+func _Content_GetHighlights_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHighlightsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ContentServer).CreateSharedMedia(ctx, in)
+		return srv.(ContentServer).GetHighlights(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Content/CreateSharedMedia",
+		FullMethod: "/Content/GetHighlights",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContentServer).CreateSharedMedia(ctx, req.(*CreateSharedMediaRequest))
+		return srv.(ContentServer).GetHighlights(ctx, req.(*GetHighlightsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_CreateStory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateStoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).CreateStory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/CreateStory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).CreateStory(ctx, req.(*CreateStoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_CreatePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).CreatePost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/CreatePost",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).CreatePost(ctx, req.(*CreatePostRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -737,6 +789,24 @@ func (x *contentAddProfilePictureServer) Recv() (*AddProfilePictureRequest, erro
 	return m, nil
 }
 
+func _Content_AddHighlight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddHighlightRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).AddHighlight(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/AddHighlight",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).AddHighlight(ctx, req.(*AddHighlightRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Content_CreateUserFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateUserFolderRequest)
 	if err := dec(in); err != nil {
@@ -763,12 +833,24 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ContentServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "GetStoriesIndividual",
+			Handler:    _Content_GetStoriesIndividual_Handler,
+		},
+		{
 			MethodName: "GetProfilePicture",
 			Handler:    _Content_GetProfilePicture_Handler,
 		},
 		{
-			MethodName: "CreateSharedMedia",
-			Handler:    _Content_CreateSharedMedia_Handler,
+			MethodName: "GetHighlights",
+			Handler:    _Content_GetHighlights_Handler,
+		},
+		{
+			MethodName: "CreateStory",
+			Handler:    _Content_CreateStory_Handler,
+		},
+		{
+			MethodName: "CreatePost",
+			Handler:    _Content_CreatePost_Handler,
 		},
 		{
 			MethodName: "AddComment",
@@ -777,6 +859,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddReaction",
 			Handler:    _Content_AddReaction_Handler,
+		},
+		{
+			MethodName: "AddHighlight",
+			Handler:    _Content_AddHighlight_Handler,
 		},
 		{
 			MethodName: "CreateUserFolder",
@@ -792,11 +878,6 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetPostsByUser",
 			Handler:       _Content_GetPostsByUser_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetStories",
-			Handler:       _Content_GetStories_Handler,
 			ServerStreams: true,
 		},
 		{

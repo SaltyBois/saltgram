@@ -7,7 +7,7 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" image-src="Insert image source" @toggle-following="toggleFollow"/>
+          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" v-bind:image-src="profile.profilePictureURL" @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -16,7 +16,7 @@
                     justify-center
                     column>
 
-            <ProfileHeader />
+            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers"/>
 
           </v-layout>
 
@@ -39,7 +39,43 @@
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
-        <StoryHighlight v-for="index in 10" :key="index"/>
+        <StoryHighlight v-for="highlight in highlights" :key="highlight.name" :stories="highlight.stories" :name="highlight.name"/>
+        <div id="new-highlight" @click="openHighlightDialog">
+          +
+        </div>
+        <v-dialog
+        v-model="highlightDialog"
+        width="500px">
+          <div v-if="highlightSuccess" class="success-dialog">
+            <p><i class="fa fa-check" aria-hidden="true"></i></p>
+            <b>Highlight added!</b>
+          </div>
+          <v-card v-else>
+            <v-card-title>Add highlight</v-card-title>
+            <v-card-text>
+              <v-form v-model="highlightForm">
+                <v-text-field
+                v-model="highlightName"
+                label="Highlight name"
+                :rules="[noempty]"
+                required/>
+                <div id="story-selection">
+                  <div v-for="(story, i) in stories" :key="story.filename" class="story-thumbnail" @click="selectStory(i)">
+                    <v-img :src="story.url" width="128px" height="128px" />
+                    <v-simple-checkbox class="story-checkbox" v-model="stories[i].isSelected" absolute @click="selectStory(i)" />
+                  </div>
+                </div>
+              </v-form>
+            </v-card-text>
+            <v-card-action>
+              <div class="d-flex flex-row">
+                <v-btn plain @click="highlightDialog = false">Cancel</v-btn>
+                <v-spacer></v-spacer>
+                <v-btn :disabled="!highlightForm" color="accent" @click="addHighlight">Add highlight</v-btn>
+              </div>
+            </v-card-action>
+          </v-card>
+        </v-dialog>
       </v-layout>
     </v-layout >
 
@@ -100,6 +136,15 @@ export default {
     },
     data: function() {
       return {
+        highlightSuccess: false,
+        noempty: v => !!v || 'Required',
+        highlightName: '',
+        highlightForm: false,
+        stories: [],
+        highlightDialog: false,
+        highlights: [],
+        //
+        user: {},
         profile : {
           privateUser: true,
           description: '',
@@ -109,7 +154,8 @@ export default {
           followersList:[],
           followingList: [],
           username: '',
-          webSite: ''
+          webSite: '',
+          profilePictureURL: '',
         },
         isMyProfile: false,
         radioButton: 'posts',
@@ -123,6 +169,59 @@ export default {
       }
     },
     methods: {
+
+        getHighlights: function() {
+          this.refreshToken(this.getAHeader())
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+              this.axios.get('content/highlight/' + this.user.id)
+                .then(r => this.highlights = r.data)
+                .catch(r => console.log(r));
+            }).catch(r => console.log(r));
+        },
+
+        addHighlight: function() {
+          this.highlightSuccess = false;
+          let data = {
+            name: this.highlightName,
+            stories: [],
+          };
+          this.stories.forEach(s => {
+            if(s.isSelected) {
+              data.stories.push(s);
+            }
+          });
+
+          this.refreshToken(this.getAHeader())
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+              this.axios.post('content/highlight', data, {headers: this.getAHeader()})
+                .then(() => this.highlightSuccess = true)
+                .catch(r => console.log(r));
+            }).catch(() => this.$router.push('/'));
+
+        },
+
+        selectStory: function(index) {
+          this.stories[index].isSelected = !this.stories[index].isSelected;
+          this.stories = [...this.stories];
+        },
+
+        openHighlightDialog: function() {
+          this.highlightDialog = true;
+          this.refreshToken(this.getAHeader())
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+              this.axios.get('content/story/' + this.user.id)
+                .then(r => {
+                  this.stories = r.data;
+                  this.stories.forEach(s => {
+                    s.isSelected = false;
+                  })
+                })
+            }).catch(() => this.$router.push('/'));
+        },
+
         getUserInfo: function() {
             // this.refreshToken(this.getAHeader())
             //     .then(rr => {
@@ -130,6 +229,7 @@ export default {
                     this.axios.get("users/" + this.$route.params.username)
                         .then(r =>{ 
                           this.user = r.data
+                          this.getHighlights();
                           this.getUser();
                           });
                       
@@ -156,6 +256,7 @@ export default {
               this.profile.fullName = r.data.fullName;
               this.profile.description = r.data.description;
               this.profile.webSite = r.data.webSite;
+              this.profile.profilePictureURL = r.data.profilePictureURL;
             }).catch(err => {
               console.log(err)
               // console.log('Pushing Back to Login Page after fetching profile')
@@ -237,7 +338,7 @@ export default {
       overflow-x: auto;
       overflow-y: hidden;
       white-space: nowrap;
-
+      align-items: center;
     }
 
     .inner-post-layout > div {
@@ -252,6 +353,46 @@ export default {
       text-align: -webkit-center;
       padding-top: 50px;
       height: 100px;
+    }
+
+    #new-highlight {
+      display: grid;
+      place-items: center;
+      width: 80px;
+      height: 80px;
+      background: #ddd;
+      font-weight: 500;
+      font-size: 3rem;
+    }
+
+    #story-selection {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .story-thumbnail {
+      cursor: pointer;
+      position: relative;
+      display: inline-block;
+    }
+
+    .story-checkbox {
+      position: absolute;
+      top: 0;
+      right: 15px;
+    }
+
+    .success-dialog {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      background: #fff;
+      min-height: 40vh;
+    }
+
+    .success-dialog p {
+      font-size: 4rem;
     }
 
 </style>

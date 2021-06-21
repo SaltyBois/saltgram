@@ -16,21 +16,25 @@
                 align-center
                 column>
         <v-hover v-slot="{ hover }">
-          <v-carousel class="post-content-media" :cycle="!hover" :interval="10000" :continuous="false">
-            <v-carousel-item v-for="(item, index) in contentPlaceHolder.length" :key="index">
+          <v-carousel
+          class="post-content-media"
+          :cycle="!hover"
+          :interval="10000"
+          :continuous="false"
+          progress>
+            <v-carousel-item v-for="(story, index) in stories" :key="index">
               <v-img contain
-                     v-if="contentPlaceHolder[index].endsWith('.jpg') || contentPlaceHolder[index].endsWith('.png') || contentPlaceHolder[index].endsWith('.jpeg')"
-                     :src="contentPlaceHolder[index]"/>
+                      v-if="story.mimeType == 'image'"
+                     :src="story.url"/>
               <video autoplay
                      playsinline
-                     v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
-                     :src="contentPlaceHolder[index]"/>
+                     :src="story.url"/>
             </v-carousel-item>
-            <div class="close-friends-div" :v-if="true">
+            <!-- <div class="close-friends-div" :v-if="true">
               <h3>
                 CLOSE FRIENDS
               </h3>
-            </div>
+            </div> -->
           </v-carousel>
         </v-hover>
         <div class="viewers">
@@ -61,8 +65,8 @@ export default {
     }
   },
   props: {
-    imageSrc: {
-      type: String,
+    stories: {
+      type: Array,
       required: true
     }
   },

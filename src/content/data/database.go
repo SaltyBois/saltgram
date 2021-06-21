@@ -53,4 +53,5 @@ func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&Reaction{})
 	db.DB.AutoMigrate(&Comment{})
 	db.DB.AutoMigrate(&ProfilePicture{})
+	db.DB.AutoMigrate(&Highlight{})
 }
