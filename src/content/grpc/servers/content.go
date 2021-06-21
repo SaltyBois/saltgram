@@ -28,6 +28,24 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
+func (c *Content) GetHighlights(ctx context.Context, r *prcontent.GetHighlightsRequest) (*prcontent.GetHighlightsResponse, error) {
+	highlights, err := c.db.GetHighlights(r.UserId)
+	if err != nil {
+		c.l.Errorf("failed to get highlights: %v", err)
+		return &prcontent.GetHighlightsResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	highlightsPR := []*prcontent.Highlight{}
+
+	for _, h := range highlights {
+		highlightsPR = append(highlightsPR, data.DataToPRHighlight(h))
+	}
+	
+	return &prcontent.GetHighlightsResponse{
+		Highlights: highlightsPR,
+	}, nil
+}
+
 func (c *Content) GetStoriesIndividual(ctx context.Context, r *prcontent.GetStoriesIndividualRequest) (*prcontent.GetStoriesIndividualResponse, error) {
 	stories, err := c.db.GetStoriesByUserAsMedia(r.UserId)
 	if err != nil {

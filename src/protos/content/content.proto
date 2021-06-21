@@ -9,6 +9,7 @@ service Content {
     rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
     rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
     rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
+    rpc GetHighlights(GetHighlightsRequest) returns (GetHighlightsResponse);
 
     rpc CreateStory(CreateStoryRequest) returns(CreateStoryResponse);
     rpc CreatePost(CreatePostRequest) returns(CreatePostResponse);
@@ -20,6 +21,19 @@ service Content {
     rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
 
     rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
+}
+
+message GetHighlightsRequest {
+    uint64 userId = 1;
+}
+
+message GetHighlightsResponse {
+    repeated Highlight highlights = 1;
+}
+
+message Highlight {
+    string name = 1;
+    repeated string urls = 2;
 }
 
 message CreatePostRequest {

@@ -39,14 +39,18 @@
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
-        <StoryHighlight v-for="highlight in highlights" :key="highlight.id"/>
+        <StoryHighlight v-for="highlight in highlights" :key="highlight.name" :src="highlight.urls[0]" :name="highlight.name"/>
         <div id="new-highlight" @click="openHighlightDialog">
           +
         </div>
         <v-dialog
         v-model="highlightDialog"
         width="500px">
-          <v-card>
+          <div v-if="highlightSuccess" class="success-dialog">
+            <p><i class="fa fa-check" aria-hidden="true"></i></p>
+            <b>Highlight added!</b>
+          </div>
+          <v-card v-else>
             <v-card-title>Add highlight</v-card-title>
             <v-card-text>
               <v-form v-model="highlightForm">
@@ -132,7 +136,7 @@ export default {
     },
     data: function() {
       return {
-        highlightSuccess: true,
+        highlightSuccess: false,
         noempty: v => !!v || 'Required',
         highlightName: '',
         highlightForm: false,
@@ -140,6 +144,7 @@ export default {
         highlightDialog: false,
         highlights: [],
         //
+        user: {},
         profile : {
           privateUser: true,
           description: '',
@@ -164,7 +169,19 @@ export default {
       }
     },
     methods: {
+
+        getHighlights: function() {
+          this.refreshToken(this.getAHeader())
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+              this.axios.get('content/highlight/' + this.user.id)
+                .then(r => this.highlights = r.data)
+                .catch(r => console.log(r));
+            }).catch(r => console.log(r));
+        },
+
         addHighlight: function() {
+          this.highlightSuccess = false;
           let data = {
             name: this.highlightName,
             stories: [],
@@ -212,6 +229,7 @@ export default {
                     this.axios.get("users", {headers: this.getAHeader()})
                         .then(r =>{ 
                           this.user = r.data
+                          this.getHighlights();
                           this.getUser();
                           });
                       
@@ -387,6 +405,19 @@ export default {
       position: absolute;
       top: 0;
       right: 15px;
+    }
+
+    .success-dialog {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      background: #fff;
+      min-height: 40vh;
+    }
+
+    .success-dialog p {
+      font-size: 4rem;
     }
 
 </style>

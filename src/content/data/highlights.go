@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"saltgram/data"
+	"saltgram/protos/content/prcontent"
 )
 
 type Highlight struct {
@@ -13,24 +14,30 @@ type Highlight struct {
 }
 
 func (db *DBConn) CreateHighlight(highlight *Highlight) error {
-	return db.DB.Omit("Stories").Create(highlight).Error
+	return db.DB.Create(highlight).Error
 }
 
 var ErrHiglightNotFound = fmt.Errorf("higlight not found")
-func (db *DBConn) AddStoriesToHighlight(highlightId uint64, ids ...uint64) error {
-	highlight := Highlight{}
-	res := db.DB.First(&highlight, highlightId)
+func (db *DBConn) GetHighlights(userId uint64) ([]*Highlight, error) {
+	highlights := []*Highlight{}
+	res := db.DB.Preload("Stories").Where("user_id = ?", userId).Find(&highlights)
 	if res.Error != nil {
-		return res.Error
+		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return ErrHiglightNotFound
+		return nil, ErrHiglightNotFound
 	}
+	db.l.Infof("Media[0] Id: %v", highlights[0].Stories[0].ID)
+	return highlights, nil
+}
 
-	stories, err := db.GetMediaByIds(ids...)
-	if err != nil {
-		return err
+func DataToPRHighlight(d *Highlight) *prcontent.Highlight {
+	urls := []string{}
+	for _, m := range d.Stories {
+		urls = append(urls, m.URL)
 	}
-
-	return db.DB.Model(&highlight).Association("Stories").Append(stories)
+	return &prcontent.Highlight{
+		Name: d.Name,
+		Urls: urls,
+	}
 }

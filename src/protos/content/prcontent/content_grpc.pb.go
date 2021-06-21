@@ -25,6 +25,7 @@ type ContentClient interface {
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error)
 	GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error)
+	GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error)
 	CreateStory(ctx context.Context, in *CreateStoryRequest, opts ...grpc.CallOption) (*CreateStoryResponse, error)
 	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatePostResponse, error)
 	AddPost(ctx context.Context, opts ...grpc.CallOption) (Content_AddPostClient, error)
@@ -222,6 +223,15 @@ func (x *contentGetPostsByUserReactionClient) Recv() (*GetPostsResponse, error) 
 	return m, nil
 }
 
+func (c *contentClient) GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error) {
+	out := new(GetHighlightsResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetHighlights", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) CreateStory(ctx context.Context, in *CreateStoryRequest, opts ...grpc.CallOption) (*CreateStoryResponse, error) {
 	out := new(CreateStoryResponse)
 	err := c.cc.Invoke(ctx, "/Content/CreateStory", in, out, opts...)
@@ -389,6 +399,7 @@ type ContentServer interface {
 	GetComments(*GetCommentsRequest, Content_GetCommentsServer) error
 	GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error
 	GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error
+	GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error)
 	CreateStory(context.Context, *CreateStoryRequest) (*CreateStoryResponse, error)
 	CreatePost(context.Context, *CreatePostRequest) (*CreatePostResponse, error)
 	AddPost(Content_AddPostServer) error
@@ -425,6 +436,9 @@ func (UnimplementedContentServer) GetReactions(*GetReactionsRequest, Content_Get
 }
 func (UnimplementedContentServer) GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetPostsByUserReaction not implemented")
+}
+func (UnimplementedContentServer) GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHighlights not implemented")
 }
 func (UnimplementedContentServer) CreateStory(context.Context, *CreateStoryRequest) (*CreateStoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStory not implemented")
@@ -605,6 +619,24 @@ type contentGetPostsByUserReactionServer struct {
 
 func (x *contentGetPostsByUserReactionServer) Send(m *GetPostsResponse) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _Content_GetHighlights_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHighlightsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetHighlights(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetHighlights",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetHighlights(ctx, req.(*GetHighlightsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Content_CreateStory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -807,6 +839,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProfilePicture",
 			Handler:    _Content_GetProfilePicture_Handler,
+		},
+		{
+			MethodName: "GetHighlights",
+			Handler:    _Content_GetHighlights_Handler,
 		},
 		{
 			MethodName: "CreateStory",

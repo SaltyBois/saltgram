@@ -138,7 +138,7 @@ func (db *DBConn) AddMediaToStory(storyId uint64, media *Media) error {
 var ErrMediaNotFound = fmt.Errorf("media not found")
 func (db *DBConn) GetMediaByIds(ids ...uint64) ([]*Media, error) {
 	media := []*Media{}
-	res := db.DB.Find(&media, ids)
+	res := db.DB.Preload(clause.Associations).Find(&media, ids)
 	if res.Error != nil {
 		return nil, res.Error
 	}

@@ -231,6 +231,25 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("}"))
 }
 
+func (c *Content) GetHighlights(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["id"]
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		c.l.Errorf("failed to parse user id: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := c.cc.GetHighlights(context.Background(), &prcontent.GetHighlightsRequest{UserId: userId})
+	if err != nil {
+		c.l.Errorf("failed to get highlights: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	saltdata.ToJSON(resp.Highlights, w)
+}
+
 func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userIdStr := vars["id"]
