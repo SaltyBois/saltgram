@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ContentClient interface {
 	GetSharedMedia(ctx context.Context, in *SharedMediaRequest, opts ...grpc.CallOption) (Content_GetSharedMediaClient, error)
+	//rpc GetPostsByUser(GetPostsRequest) returns(GetPostsResponse);
 	GetPostsByUser(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserClient, error)
 	GetStoriesIndividual(ctx context.Context, in *GetStoriesIndividualRequest, opts ...grpc.CallOption) (*GetStoriesIndividualResponse, error)
 	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error)
@@ -34,6 +35,7 @@ type ContentClient interface {
 	AddReaction(ctx context.Context, in *AddReactionRequest, opts ...grpc.CallOption) (*AddReactionResponse, error)
 	AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error)
 	AddHighlight(ctx context.Context, in *AddHighlightRequest, opts ...grpc.CallOption) (*AddHighlightResponse, error)
+	PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error)
 	CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error)
 }
 
@@ -379,6 +381,15 @@ func (c *contentClient) AddHighlight(ctx context.Context, in *AddHighlightReques
 	return out, nil
 }
 
+func (c *contentClient) PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error) {
+	out := new(PutReactionResponse)
+	err := c.cc.Invoke(ctx, "/Content/PutReaction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error) {
 	out := new(CreateUserFolderResponse)
 	err := c.cc.Invoke(ctx, "/Content/CreateUserFolder", in, out, opts...)
@@ -393,6 +404,7 @@ func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFold
 // for forward compatibility
 type ContentServer interface {
 	GetSharedMedia(*SharedMediaRequest, Content_GetSharedMediaServer) error
+	//rpc GetPostsByUser(GetPostsRequest) returns(GetPostsResponse);
 	GetPostsByUser(*GetPostsRequest, Content_GetPostsByUserServer) error
 	GetStoriesIndividual(context.Context, *GetStoriesIndividualRequest) (*GetStoriesIndividualResponse, error)
 	GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error)
@@ -408,6 +420,7 @@ type ContentServer interface {
 	AddReaction(context.Context, *AddReactionRequest) (*AddReactionResponse, error)
 	AddProfilePicture(Content_AddProfilePictureServer) error
 	AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error)
+	PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error)
 	CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
@@ -463,6 +476,9 @@ func (UnimplementedContentServer) AddProfilePicture(Content_AddProfilePictureSer
 }
 func (UnimplementedContentServer) AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddHighlight not implemented")
+}
+func (UnimplementedContentServer) PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutReaction not implemented")
 }
 func (UnimplementedContentServer) CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserFolder not implemented")
@@ -807,6 +823,24 @@ func _Content_AddHighlight_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_PutReaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).PutReaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/PutReaction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).PutReaction(ctx, req.(*PutReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Content_CreateUserFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateUserFolderRequest)
 	if err := dec(in); err != nil {
@@ -863,6 +897,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddHighlight",
 			Handler:    _Content_AddHighlight_Handler,
+		},
+		{
+			MethodName: "PutReaction",
+			Handler:    _Content_PutReaction_Handler,
 		},
 		{
 			MethodName: "CreateUserFolder",

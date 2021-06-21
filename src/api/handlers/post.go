@@ -550,6 +550,7 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 		closeFriends := false
 		if len(r.PostForm["closeFriends"]) > 0 {
+			c.l.Info("friends: %v", r.PostForm["closeFriends"])
 			closeFriends = r.PostForm["closeFriends"][0] == "true"
 		}
 
@@ -758,7 +759,14 @@ func (c *Content) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.cc.AddComment(context.Background(), &prcontent.AddCommentRequest{Content: dto.Content, UserId: user.Id, PostId: dto.PostId})
+	i, err := strconv.ParseUint(dto.PostId, 0, 64)
+	if err != nil {
+		c.l.Errorf("failed to convert id post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.AddComment(context.Background(), &prcontent.AddCommentRequest{Content: dto.Content, UserId: user.Id, PostId: i})
 
 	if err != nil {
 		c.l.Errorf("failed to add post: %v\n", err)
@@ -813,7 +821,14 @@ func (c *Content) AddReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{ /*ReactionType: dto.ReactionType,*/ UserId: user.Id, PostId: dto.PostId})
+	i, err := strconv.ParseUint(dto.PostId, 0, 64)
+	if err != nil {
+		c.l.Errorf("failed to convert id post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{ReactionType: dto.ReactionType, UserId: user.Id, PostId: i})
 
 	if err != nil {
 		c.l.Errorf("failed to add reaction: %v\n", err)

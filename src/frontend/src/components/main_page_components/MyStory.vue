@@ -1,6 +1,6 @@
 <template>
   <div class="story-layout">
-    <StoryView ref="storyView" image-src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"/>
+    <!--<StoryView ref="storyView" image-src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"/>-->
     <v-img  class="story"
             @click="toggle()"
             src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"

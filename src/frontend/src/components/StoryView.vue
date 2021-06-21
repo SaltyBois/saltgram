@@ -16,25 +16,21 @@
                 align-center
                 column>
         <v-hover v-slot="{ hover }">
-          <v-carousel
-          class="post-content-media"
-          :cycle="!hover"
-          :interval="10000"
-          :continuous="false"
-          progress>
-            <v-carousel-item v-for="(story, index) in stories" :key="index">
-              <v-img contain
-                      v-if="story.mimeType == 'image'"
+          <v-carousel class="post-content-media" :cycle="!hover" :interval="10000" :continuous="false">
+            <div v-for="(story, index) in stories" :key="index">
+              <v-carousel-item>
+              <v-img v-if="story.mimeType == 'image'" contain
                      :src="story.url"/>
-              <video autoplay
+              <video v-else autoplay
                      playsinline
                      :src="story.url"/>
-            </v-carousel-item>
-            <!-- <div class="close-friends-div" :v-if="true">
-              <h3>
-                CLOSE FRIENDS
-              </h3>
-            </div> -->
+              </v-carousel-item>
+              <div class="close-friends-div" v-if="story.closeFriends">
+                <h3>
+                  CLOSE FRIENDS
+                </h3>
+              </div>
+            </div>
           </v-carousel>
         </v-hover>
         <div class="viewers">
@@ -54,14 +50,8 @@ export default {
     return {
       visible: false,
       timerSeconds: 10,
-      contentPlaceHolder: [
-        'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
-        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
-        'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
-        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg',
-        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg',
-        'https://www.w3schools.com/html/movie.mp4'
-      ]
+      contentPlaceHolder: [],
+      //stories: {},
     }
   },
   props: {
@@ -78,21 +68,24 @@ export default {
         // this.countDownTimer()
       }
     },
-    // countDownTimer() {
-    //   if(this.timerSeconds > 0) {
-    //     setTimeout(() => {
-    //       this.timerSeconds -= 1
-    //       this.countDownTimer()
-    //     }, 1000)
+    // loadingStory() {
+    //   console.log(this.stories.story.sharedMedia.media.length);
+    //   for(let i = 0; i < this.stories.story.sharedMedia.media.length; i++){
+    //     let s = {url: this.stories.story.sharedMedia.media[i].url, closeFriends: this.stories.story.closeFriends};
+    //     this.contentPlaceHolder.push(s);
+    //     console.log(s);
     //   }
-    //   else {
-    //     this.visible = false;
-    //   }
-    // }
+    //   console.log(this.contentPlaceHolder);
+    // },
   },
   computed() {
     this.countDownTimer()
   },
+  mounted() {
+        console.log(this.stories);
+
+  //  this.loadingStory();
+  }
 }
 </script>
 

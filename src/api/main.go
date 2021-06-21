@@ -104,6 +104,10 @@ func main() {
 	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/comment/{id}", contentHandler.GetCommentsByPost).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/reaction/{id}", contentHandler.GetReactionsByPost).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/reaction", contentHandler.PutReaction).Methods(http.MethodPut)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{

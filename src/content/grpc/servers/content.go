@@ -7,6 +7,7 @@ import (
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -47,16 +48,16 @@ func (c *Content) GetHighlights(ctx context.Context, r *prcontent.GetHighlightsR
 }
 
 func (c *Content) GetStoriesIndividual(ctx context.Context, r *prcontent.GetStoriesIndividualRequest) (*prcontent.GetStoriesIndividualResponse, error) {
-	stories, err := c.db.GetStoriesByUserAsMedia(r.UserId)
+	stories, err := c.db.GetStoryByUser(r.UserId)
 	if err != nil {
 		c.l.Errorf("failed to get users stories: %v", err)
 		return &prcontent.GetStoriesIndividualResponse{}, status.Error(codes.Internal, "Internal error")
 	}
 
-	s := []*prcontent.Media{}
+	s := []*prcontent.Story{}
 
 	for _, st := range stories {
-		s = append(s, data.DataToPRMedia(st))
+		s = append(s, data.DataToPRStory(st))
 	}
 
 	return &prcontent.GetStoriesIndividualResponse{
@@ -168,6 +169,42 @@ func (c *Content) GetProfilePicture(ctx context.Context, r *prcontent.GetProfile
 	return &prcontent.GetProfilePictureResponse{Url: profilePicture.URL}, nil
 }
 
+/*func (c *Content) GetPostsByUser(ctx context.Context, r *prcontent.GetPostsRequest) (*prcontent.GetPostsResponse, error) {
+	posts, err := c.db.GetPostByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting user posts: %v\n", err)
+		return &prcontent.GetPostsResponse{}, err
+	}
+	response := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+				Url: m.URL,
+			})
+		}
+		response = append(response, &prcontent.Post{
+			Id:     p.ID,
+			UserId: p.UserID,
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		})
+
+	}
+	return &prcontent.GetPostsResponse{Post: response}, nil
+}*/
+
 func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserServer) error {
 	posts, err := c.db.GetPostByUser(r.UserId)
 	if err != nil {
@@ -187,10 +224,11 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
 				},
+				Url: m.URL,
 			})
 		}
 		post := &prcontent.Post{
-			Id:     p.ID,
+			Id:     strconv.FormatUint(p.ID, 10),
 			UserId: p.UserID,
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
@@ -229,7 +267,7 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 			})
 		}
 		post := &prcontent.Post{
-			Id:     p.ID,
+			Id:     strconv.FormatUint(p.ID, 10),
 			UserId: p.UserID,
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
@@ -499,7 +537,7 @@ func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionReque
 	return &prcontent.AddReactionResponse{}, nil
 }
 
-func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prcontent.Content_GetReactionsServer) error {
+func (c *Content) GetReactions(r *prcontent.GetReactionsRequest, stream prcontent.Content_GetReactionsServer) error {
 	reactions, err := c.db.GetReactionByPostId(r.PostId)
 	if err != nil {
 		c.l.Errorf("failure getting reactions: %v\n", err)
@@ -507,8 +545,8 @@ func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prc
 	}
 	for _, r := range *reactions {
 		err = stream.Send(&prcontent.GetReactionsResponse{
-			Id:           r.ID,
-			UserId:       r.UserID,
+			Id:           strconv.FormatUint(r.ID, 10),
+			UserId:       strconv.FormatUint(r.UserID, 10),
 			ReactionType: r.ReactionType,
 		})
 		if err != nil {
@@ -517,4 +555,85 @@ func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prc
 		}
 	}
 	return nil
+}
+
+func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.Content_GetCommentsServer) error {
+	comments, err := c.db.GetCommentByPostId(r.PostId)
+	if err != nil {
+		c.l.Errorf("failure getting comments: %v\n", err)
+		return err
+	}
+	for _, cm := range *comments {
+		comment := &prcontent.Comment{
+			Content: cm.Content,
+			UserId:  cm.UserID,
+			PostId:  cm.PostID,
+		}
+		err = stream.Send(&prcontent.GetCommentsResponse{
+			Comment: comment,
+		})
+		if err != nil {
+			c.l.Errorf("failure getting comments response: %v\n", err)
+			return err
+		}
+	}
+	return nil
+}
+
+// func (c *Content) GetStories(r *prcontent.GetStoryRequest, stream prcontent.Content_GetStoriesServer) error {
+// 	stories, err := c.db.GetStoryByUser(r.UserId)
+// 	if err != nil {
+// 		c.l.Errorf("failure getting user stories: %v\n", err)
+// 		return err
+// 	}
+// 	for _, p := range *stories {
+// 		media := []*prcontent.Media{}
+// 		for _, m := range p.SharedMedia.Media {
+// 			media = append(media, &prcontent.Media{
+// 				Filename:    m.Filename,
+// 				Description: m.Description,
+// 				AddedOn:     m.AddedOn,
+// 				Location: &prcontent.Location{
+// 					Country: m.Location.Country,
+// 					State:   m.Location.State,
+// 					ZipCode: m.Location.ZipCode,
+// 					Street:  m.Location.Street,
+// 				},
+// 				Url: m.URL,
+// 			})
+// 		}
+// 		story := &prcontent.Story{
+// 			Id:     p.ID,
+// 			UserId: p.UserID,
+// 			SharedMedia: &prcontent.SharedMedia{
+// 				Media: media,
+// 			},
+// 			CloseFriends: p.CloseFriends,
+// 		}
+// 		err = stream.Send(&prcontent.GetStoriesResponse{
+// 			Story: story,
+// 		})
+// 		if err != nil {
+// 			c.l.Errorf("failed getting story response: %v\n", err)
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
+
+func (c *Content) PutReaction(ctx context.Context, r *prcontent.PutReactionRequest) (*prcontent.PutReactionResponse, error) {
+
+	i, err := strconv.ParseUint(r.Id, 10, 64)
+	if err != nil {
+		c.l.Errorf("failure converting reaction id: %v\n", err)
+		return &prcontent.PutReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	err = data.PutReaction(c.db, r.ReactionType, i)
+	if err != nil {
+		c.l.Errorf("failure updating reaction: %v\n", err)
+		return &prcontent.PutReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.PutReactionResponse{}, nil
 }

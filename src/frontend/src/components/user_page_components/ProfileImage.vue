@@ -8,6 +8,7 @@
             :src="imageSrc"
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
+    <StoryView ref="storyView" v-if="userStories" :stories="userStories"/>
     <v-img v-else class="head"
       @click="showContent = true"
       :src="require('@/assets/profile_placeholder.png')"/>
@@ -28,21 +29,21 @@
         <v-btn class="primary mb-2"
                v-if="isMyProfile && $store.state.jws"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn  @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="userStories" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
           Show story
         </v-btn>
-        <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showDialog = false" class="other-buttons my-2">
+        <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="other-buttons my-2">
           Mute
         </v-btn>
-        <v-btn v-if="!isMutedBtnVisible && $store.state.jws" @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="!isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="mute-button my-2">
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
                v-if="!isMyProfile && $store.state.jws"
-               @click="showDialog = false">Report</v-btn>
+               @click="showProfileImageDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
                v-if="!isMyProfile && $store.state.jws"
-               @click="showDialog = false">Block @{{username}}</v-btn>
+               @click="showProfileImageDialog = false">Block @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
         <v-btn @click="showProfileImageDialog = false" class="accent">
@@ -60,8 +61,11 @@
 </template>
 
 <script>
+import StoryView from "@/components/StoryView";
+
 export default {
   name: "ProfileImage",
+  components: {StoryView},
   data: function () {
     return {
       showProfileImageDialog: false,
@@ -70,6 +74,8 @@ export default {
       isMyProfile: false,
       profile: '',
       waitingForResponse: false,
+      userStories: [],
+      storyVisible: false,
     }
   },
   mounted() {
@@ -90,7 +96,7 @@ export default {
     isMyProfileProp: {
       type: Boolean,
       required: true
-    }
+    },
   },
   computed: {
     isFollowBtnVisible() {
@@ -107,6 +113,13 @@ export default {
     }
   },
   methods: {
+    toggle() {
+      //this.$refs.storyView.$data.stories = this.userStories;
+      this.$refs.storyView.toggleView();
+
+      //console.log(this.$refs.storyView.$data.stories);
+      //console.log(this.userStories);
+    },
     onSelectedFile(event) {
       console.log(event)
       this.profilePicture = event.target.files[0]

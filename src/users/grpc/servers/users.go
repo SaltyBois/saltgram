@@ -202,8 +202,6 @@ func (u *Users) CheckEmail(ctx context.Context, r *prusers.CheckEmailRequest) (*
 }
 
 func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequest) (*prusers.ProfileResponse, error) {
-	//var response = &prusers.ProfileResponse{}
-
 	profile, err := u.db.GetProfileByUsername(r.User)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
@@ -250,7 +248,7 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		Username:          profile.Username,
 		Followers:         followers,
 		Following:         following,
-		FullName:          user.FullName,
+		FullName:          user_profile.FullName,
 		Description:       profile.Description,
 		IsFollowing:       isFollowing,
 		IsPublic:          profile.Public,
