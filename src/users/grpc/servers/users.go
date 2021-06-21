@@ -436,12 +436,16 @@ func (u *Users) SetFollowRequestRespond(ctx context.Context, r *prusers.FollowRe
 
 	err = data.FollowRequestRespond(u.db, profile, profile_request, r.Accepted)
 	if err != nil {
-		u.l.Printf("[ERROR] Seting respond")
+		u.l.Printf("[ERROR] Setting respond")
 		return &prusers.FollowRequestSet{}, err
 	}
 
 	if r.Accepted {
-		data.SetFollow(u.db, profile, profile_request)
+		err := data.SetFollow(u.db, profile, profile_request)
+		if err != nil {
+			u.l.Printf("[ERROR] following: %v\n", err)
+			return &prusers.FollowRequestSet{}, err
+		}
 	}
 
 	return &prusers.FollowRequestSet{}, nil

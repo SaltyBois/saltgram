@@ -106,8 +106,8 @@ func GetFollowingCount(db *DBConn, profile *Profile) (int64, error) {
 }
 
 func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
-	//db.DB.Model(&profile).Association("Following").Append(&profileToFollow)
-	profile.Following = append(profile.Following, profileToFollow)
+	db.DB.Model(&profile).Association("Following").Append(&profileToFollow)
+	//profile.Following = append(profile.Following, profileToFollow)
 	return db.DB.Save(&profile).Error
 }
 
