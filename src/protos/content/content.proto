@@ -18,6 +18,8 @@ service Content {
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
     rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
 
+    rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
+
     rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
 }
 
@@ -87,14 +89,10 @@ message SharedMedia {
 // message AddSharedMediaResponse {}
 
 message Post {
-    uint64 id = 1;
+    string id = 1;
     uint64 userId = 2;
     SharedMedia sharedMedia = 3;
 }
-
-/*message GetPostsResponse {
-    repeated Post post = 1;
-}*/
 
 message GetPostsResponse {
     Post post = 1;
@@ -197,7 +195,14 @@ message GetReactionsRequest {
 }
 
 message GetReactionsResponse {
-    uint64 id = 1;
-    uint64 userId = 2;
+    string id = 1;
+    string userId = 2;
     string reactionType = 3;
 }
+
+message PutReactionRequest {
+    string id = 1;
+    string reactionType = 2;
+}
+
+message PutReactionResponse {}

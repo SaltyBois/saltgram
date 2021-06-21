@@ -36,7 +36,7 @@ type PostDTO struct {
 type CommentDTO struct {
 	Content string
 	UserId  uint64
-	PostId  uint64
+	PostId  string
 }
 
 type ReactionType string
@@ -47,12 +47,17 @@ const (
 )
 
 type ReactionDTO struct {
-	ReactionType ReactionType
+	ReactionType string
 	UserId       uint64
-	PostId       uint64
+	PostId       string
 }
 
 func (sm *SharedMediaDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(sm)
+}
+
+type ReactionPutDTO struct {
+	Id           string
+	ReactionType string
 }

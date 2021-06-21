@@ -11,6 +11,7 @@ import (
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -715,7 +716,14 @@ func (c *Content) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.cc.AddComment(context.Background(), &prcontent.AddCommentRequest{Content: dto.Content, UserId: user.Id, PostId: dto.PostId})
+	i, err := strconv.ParseUint(dto.PostId, 0, 64)
+	if err != nil {
+		c.l.Errorf("failed to convert id post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.AddComment(context.Background(), &prcontent.AddCommentRequest{Content: dto.Content, UserId: user.Id, PostId: i})
 
 	if err != nil {
 		c.l.Errorf("failed to add post: %v\n", err)
@@ -770,7 +778,14 @@ func (c *Content) AddReaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{ /*ReactionType: dto.ReactionType,*/ UserId: user.Id, PostId: dto.PostId})
+	i, err := strconv.ParseUint(dto.PostId, 0, 64)
+	if err != nil {
+		c.l.Errorf("failed to convert id post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.AddReaction(context.Background(), &prcontent.AddReactionRequest{ReactionType: dto.ReactionType, UserId: user.Id, PostId: i})
 
 	if err != nil {
 		c.l.Errorf("failed to add reaction: %v\n", err)

@@ -189,7 +189,9 @@ export default {
               //console.log(JSON.parse(r.data.toString()));
               this.userStories = r.data;
               console.log(r.data);
-              this.$refs.profileImage.$data.userStories = this.userStories[0];
+              if (this.userStories !== null)  {
+               this.$refs.profileImage.$data.userStories = this.userStories[0];
+              }
               //console.log(this.$refs.profileImage.$data.userStories);
 
             }).catch(err => {

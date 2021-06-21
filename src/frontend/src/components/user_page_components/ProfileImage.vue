@@ -26,7 +26,7 @@
         <v-btn class="primary mb-2"
                v-if="isMyProfile && $store.state.jws"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn  @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
+        <v-btn v-if="userStories" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
           Show story
         </v-btn>
         <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="other-buttons my-2">

@@ -502,34 +502,6 @@ func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(postsArray, w)
 }
 
-/*func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
-
-	vars := mux.Vars(r)
-	userId := vars["id"]
-	id, err := strconv.ParseUint(userId, 10, 64)
-	if err != nil {
-		s.l.Println("converting id")
-		return
-	}
-
-	posts, err := s.cc.GetPostsByUser(context.Background(), &prcontent.GetPostsRequest{UserId: id})
-	if err != nil {
-		s.l.Errorf("failed fetching posts %v\n", err)
-		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
-		return
-	}
-
-	retVal := []saltdata.PostDTO{}
-
-	for i := 0; i < len(posts.Post); i++ {
-		retVal = append(retVal, saltdata.PostDTO{
-
-		})
-	}
-
-	saltdata.ToJSON(&retVal, w)
-}*/
-
 func (s *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)

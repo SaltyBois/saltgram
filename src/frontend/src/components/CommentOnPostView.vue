@@ -6,7 +6,7 @@
               @click="$router.push('/user')"
               alt="Profile picture"/>
       <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
-      <p style="margin: 0 0 0 5px; font-size: 13px; text-align: left;">My First comment askj dsajdaskjds a;kj d;kaslk ja dksadkjasdk;jsakjd askjdhsakjh daskjhdsa;jhkdsa;kjhd djsahjhldkaskjlhdas kjhlasjkhldasjklhdaskjlhdaslkjhdlkjhasdlkjh asdkjlhaskjhdas;kjh ;dkjh as;jkhdsaj;khdj;khasd;kjhsa ;kjhdsa;kjhd;kjhsad;kjhasdjhka jashkjh;kdsaas;jhkdasj;hkd;jahskd;jhasasjh;d j;hasjh; sajh;d jhsajhd asjh;d asjh;jh; sa;jhdasj;hd sa;jhsdaskjdaskjhdksl ajdkljaskdlj sakjld;askl;das;k lhdask;lhd;klahsjd;klhjsakdh;ljalsd jklasdkjaskj adjkb;kjsad;j klsad;as;jds a;jbdas;j dsj;b</p>
+      <p style="margin: 0 0 0 5px; font-size: 13px; text-align: left;">{{comment.comment.content}}</p>
       <p style="text-align: left; font-size: 10pt; margin: 0 0 0 5px; color: #858585; width: 120px">
         Posted 1 hour ago
       </p>
@@ -18,7 +18,17 @@
 <script>
 export default {
   name: "CommentOnPostView",
-
+  props: {
+    comment: {
+      type: Object,
+      required: false,
+    }
+  },
+  mounted() {
+    //todo getUserByUserId
+    //username
+    console.log(this.comment.comment);
+  }
 }
 </script>
 

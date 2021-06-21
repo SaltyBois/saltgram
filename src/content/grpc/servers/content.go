@@ -7,6 +7,7 @@ import (
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -151,7 +152,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 			})
 		}
 		post := &prcontent.Post{
-			Id:     p.ID,
+			Id:     strconv.FormatUint(p.ID, 10),
 			UserId: p.UserID,
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
@@ -168,7 +169,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	return nil
 }
 
-/*func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
+func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
 	posts, err := c.db.GetPostsByReaction(r.UserId)
 	if err != nil {
 		c.l.Errorf("failure getting user posts: %v\n", err)
@@ -190,7 +191,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 			})
 		}
 		post := &prcontent.Post{
-			Id:     p.ID,
+			Id:     strconv.FormatUint(p.ID, 10),
 			UserId: p.UserID,
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
@@ -205,7 +206,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 		}
 	}
 	return nil
-}*/
+}
 
 func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureServer) error {
 	r, err := stream.Recv()
@@ -490,8 +491,8 @@ func (c *Content) GetReactions(r *prcontent.GetReactionsRequest, stream prconten
 	}
 	for _, r := range *reactions {
 		err = stream.Send(&prcontent.GetReactionsResponse{
-			Id:           r.ID,
-			UserId:       r.UserID,
+			Id:           strconv.FormatUint(r.ID, 10),
+			UserId:       strconv.FormatUint(r.UserID, 10),
 			ReactionType: r.ReactionType,
 		})
 		if err != nil {
@@ -564,4 +565,21 @@ func (c *Content) GetStories(r *prcontent.GetStoryRequest, stream prcontent.Cont
 		}
 	}
 	return nil
+}
+
+func (c *Content) PutReaction(ctx context.Context, r *prcontent.PutReactionRequest) (*prcontent.PutReactionResponse, error) {
+
+	i, err := strconv.ParseUint(r.Id, 10, 64)
+	if err != nil {
+		c.l.Errorf("failure converting reaction id: %v\n", err)
+		return &prcontent.PutReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	err = data.PutReaction(c.db, r.ReactionType, i)
+	if err != nil {
+		c.l.Errorf("failure updating reaction: %v\n", err)
+		return &prcontent.PutReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.PutReactionResponse{}, nil
 }

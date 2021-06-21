@@ -32,6 +32,7 @@ type ContentClient interface {
 	AddComment(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
 	AddReaction(ctx context.Context, in *AddReactionRequest, opts ...grpc.CallOption) (*AddReactionResponse, error)
 	AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error)
+	PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error)
 	CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error)
 }
 
@@ -373,6 +374,15 @@ func (x *contentAddProfilePictureClient) CloseAndRecv() (*AddProfilePictureRespo
 	return m, nil
 }
 
+func (c *contentClient) PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error) {
+	out := new(PutReactionResponse)
+	err := c.cc.Invoke(ctx, "/Content/PutReaction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error) {
 	out := new(CreateUserFolderResponse)
 	err := c.cc.Invoke(ctx, "/Content/CreateUserFolder", in, out, opts...)
@@ -400,6 +410,7 @@ type ContentServer interface {
 	AddComment(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
 	AddReaction(context.Context, *AddReactionRequest) (*AddReactionResponse, error)
 	AddProfilePicture(Content_AddProfilePictureServer) error
+	PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error)
 	CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
@@ -446,6 +457,9 @@ func (UnimplementedContentServer) AddReaction(context.Context, *AddReactionReque
 }
 func (UnimplementedContentServer) AddProfilePicture(Content_AddProfilePictureServer) error {
 	return status.Errorf(codes.Unimplemented, "method AddProfilePicture not implemented")
+}
+func (UnimplementedContentServer) PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutReaction not implemented")
 }
 func (UnimplementedContentServer) CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserFolder not implemented")
@@ -739,6 +753,24 @@ func (x *contentAddProfilePictureServer) Recv() (*AddProfilePictureRequest, erro
 	return m, nil
 }
 
+func _Content_PutReaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).PutReaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/PutReaction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).PutReaction(ctx, req.(*PutReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Content_CreateUserFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateUserFolderRequest)
 	if err := dec(in); err != nil {
@@ -779,6 +811,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddReaction",
 			Handler:    _Content_AddReaction_Handler,
+		},
+		{
+			MethodName: "PutReaction",
+			Handler:    _Content_PutReaction_Handler,
 		},
 		{
 			MethodName: "CreateUserFolder",
