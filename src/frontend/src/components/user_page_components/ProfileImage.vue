@@ -74,11 +74,8 @@ export default {
       isMyProfile: false,
       profile: '',
       waitingForResponse: false,
-<<<<<<< HEAD
       userStories: false,
       storyVisible: false,
-=======
->>>>>>> develop
     }
   },
   mounted() {

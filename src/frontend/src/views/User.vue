@@ -251,7 +251,6 @@ export default {
 
             this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
             .then(r => {
-              // console.log(r.data)
               this.profile.privateUser = !r.data.isPublic;
               this.profile.followingUser = r.data.isFollowing;
               this.profile.username = r.data.username;
@@ -260,18 +259,12 @@ export default {
               this.profile.fullName = r.data.fullName;
               this.profile.description = r.data.description;
               this.profile.webSite = r.data.webSite;
-<<<<<<< HEAD
-
+              this.profile.profilePictureURL = r.data.profilePictureURL;
               console.log(r.data.userId)
               this.getUserPosts(r.data.userId);
               this.getUserStories(r.data.userId);
-=======
-              this.profile.profilePictureURL = r.data.profilePictureURL;
->>>>>>> develop
             }).catch(err => {
               console.log(err)
-              // console.log('Pushing Back to Login Page after fetching profile')
-              // console.log('No User is logged in!');
             })
 
 
@@ -279,7 +272,6 @@ export default {
         getUserPosts(id) {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
            .then(r => {
-              //console.log(JSON.parse(r.data.toString()));
               this.usersPosts = r.data;
               console.log(this.usersPosts);
             }).catch(err => {
