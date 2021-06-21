@@ -34,7 +34,7 @@ jobs:
         run: ls $HOME/secrets
           
       - name: Disable mono service
-        run: sudo update-rc.d mono-xsp4 disable
+        run: sudo update-rc.d mono disable
           
       - name: View port usage
         run: sudo lsof -i -P -n | grep LISTEN
