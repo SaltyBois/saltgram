@@ -5,10 +5,10 @@ import "saltgram/data"
 type Comment struct {
 	data.Identifiable
 	Content  string `json:"content" validate:"required"`
-	Likes    int64  `json:"likes" validate:"required"`
-	Dislikes int64  `json:"dislikes" validate:"required"`
-	UserID   uint64 `json:"userId"`
-	PostID   uint64 `json:"postId"`
+	Likes    int64  `json:"likes" validate:"required" gorm:"type:numeric"`
+	Dislikes int64  `json:"dislikes" validate:"required" gorm:"type:numeric"`
+	UserID   uint64 `json:"userId" gorm:"type:numeric"`
+	PostID   uint64 `json:"postId" gorm:"type:numeric"`
 	Post     Post   `json:"post" validate:"required"`
 }
 

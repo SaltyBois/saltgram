@@ -3,6 +3,7 @@ option go_package = "./content/prcontent";
 
 service Content {
     rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
+    //rpc GetPostsByUser(GetPostsRequest) returns(GetPostsResponse);
     rpc GetPostsByUser(GetPostsRequest) returns(stream GetPostsResponse);
     rpc GetStoriesIndividual(GetStoriesIndividualRequest) returns(GetStoriesIndividualResponse);
     rpc GetProfilePicture(GetProfilePictureRequest) returns(GetProfilePictureResponse);
@@ -19,6 +20,8 @@ service Content {
     rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
     rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
     rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
+
+    rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
 
     rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
 }
@@ -125,7 +128,7 @@ message SharedMedia {
 // message AddSharedMediaResponse {}
 
 message Post {
-    uint64 id = 1;
+    string id = 1;
     uint64 userId = 2;
     SharedMedia sharedMedia = 3;
 }
@@ -142,7 +145,8 @@ message Story {
 }
 
 message GetStoriesIndividualResponse {
-    repeated Media stories = 1;
+    // repeated Media stories = 1;
+    repeated Story stories = 1;
 }
 
 message GetProfilePictureRequest {
@@ -233,7 +237,14 @@ message GetReactionsRequest {
 }
 
 message GetReactionsResponse {
-    uint64 id = 1;
-    uint64 userId = 2;
+    string id = 1;
+    string userId = 2;
     string reactionType = 3;
 }
+
+message PutReactionRequest {
+    string id = 1;
+    string reactionType = 2;
+}
+
+message PutReactionResponse {}

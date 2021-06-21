@@ -24,6 +24,12 @@ type MediaDTO struct {
 	MimeType      string `json:"mimeType"`
 }
 
+type StoryDTO struct {
+	UserID       string     `json:"userId"`
+	Stories      []MediaDTO `json:"stories"`
+	CloseFriends bool       `json:"closeFriends"`
+}
+
 type LocationDTO struct {
 	Country string `json:"country" validate:"required"`
 	State   string `json:"state" validate:"required"`
@@ -37,14 +43,15 @@ type TagDTO struct {
 }
 
 type PostDTO struct {
+	Id          string `json:"id"`
 	SharedMedia SharedMediaDTO
-	User        UserDTO
+	UserId      string `json:"userId"`
 }
 
 type CommentDTO struct {
 	Content string
 	UserId  uint64
-	PostId  uint64
+	PostId  string
 }
 
 type ReactionType string
@@ -55,9 +62,9 @@ const (
 )
 
 type ReactionDTO struct {
-	ReactionType ReactionType
+	ReactionType string
 	UserId       uint64
-	PostId       uint64
+	PostId       string
 }
 
 type HighlightRequest struct {
@@ -73,6 +80,23 @@ type HighlightDTO struct {
 func (sm *SharedMediaDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(sm)
+}
+
+type ReactionPutDTO struct {
+	Id           string
+	ReactionType string
+}
+
+func PRToDTOStory(pr *prcontent.Story) *StoryDTO {
+	stories := []MediaDTO{}
+	for _, m := range pr.Media {
+		stories = append(stories, *PRToDTOMedia(m))
+	}
+	return &StoryDTO{
+		UserID:       strconv.FormatUint(pr.UserId, 10),
+		Stories:      stories,
+		CloseFriends: pr.CloseFriends,
+	}
 }
 
 func PRToDTOHighlight(pr *prcontent.Highlight) *HighlightDTO {

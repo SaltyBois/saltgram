@@ -94,7 +94,9 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'posts' && isContentVisible"
                 column>
-        <PostOnUserPage/>
+                <div v-for="(object, index) in usersPosts" :key="index">
+                  <PostOnUserPage :post="object"/>
+                </div>
       </v-layout>
     </transition>
 
@@ -104,8 +106,8 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'saved' && isContentVisible"
                 column>
-        <PostOnUserPage/>
-        <PostOnUserPage/>
+        <!--<PostOnUserPage/>
+        <PostOnUserPage/>-->
       </v-layout>
     </transition>
 
@@ -114,9 +116,9 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'tagged' && isContentVisible"
                 column>
+        <!--<PostOnUserPage/>
         <PostOnUserPage/>
-        <PostOnUserPage/>
-        <PostOnUserPage/>
+        <PostOnUserPage/>-->
       </v-layout>
     </transition>
   </div>
@@ -160,6 +162,8 @@ export default {
         isMyProfile: false,
         radioButton: 'posts',
         followingUser: false,
+        usersPosts: [],
+        userStories: [],
       }
     },
     computed: {
@@ -214,7 +218,14 @@ export default {
               this.$store.state.jws = rr.data;
               this.axios.get('content/story/' + this.user.id)
                 .then(r => {
-                  this.stories = r.data;
+                  this.stories = [];
+                  r.data.forEach(s => {
+                    s.stories.forEach(ss => {
+                      let newSS = ss;
+                      newSS.closeFriends = s.closeFriends;
+                      this.stories.push(newSS);
+                    });
+                  });
                   this.stories.forEach(s => {
                     s.isSelected = false;
                   })
@@ -247,7 +258,6 @@ export default {
 
             this.axios.get("users/profile/" + this.$route.params.username, {headers: this.getAHeader()})
             .then(r => {
-              // console.log(r.data)
               this.profile.privateUser = !r.data.isPublic;
               this.profile.followingUser = r.data.isFollowing;
               this.profile.username = r.data.username;
@@ -257,13 +267,48 @@ export default {
               this.profile.description = r.data.description;
               this.profile.webSite = r.data.webSite;
               this.profile.profilePictureURL = r.data.profilePictureURL;
+              console.log(r.data.userId)
+              this.getUserPosts(r.data.userId);
+              this.getUserStories(r.data.userId);
             }).catch(err => {
               console.log(err)
-              // console.log('Pushing Back to Login Page after fetching profile')
-              // console.log('No User is logged in!');
             })
 
 
+        },
+        getUserPosts(id) {
+           this.axios.get("content/post/" + id, {headers: this.getAHeader()})
+           .then(r => {
+              this.usersPosts = r.data;
+              console.log(this.usersPosts);
+            }).catch(err => {
+              console.log(err)
+              this.$router.push('/');
+            })
+        },
+        getUserStories(id) {
+           this.axios.get("content/story/" + id, {headers: this.getAHeader()})
+           .then(r => {
+              //console.log(JSON.parse(r.data.toString()));
+              this.userStories = r.data;
+              console.log("stories:", r.data);
+              if (this.userStories !== null)  {
+                let newStories = []
+                this.userStories.forEach(s => {
+                  s.stories.forEach(ss => {
+                    let newSS = ss;
+                    newSS.closeFriends = s.closeFriends;
+                    newStories.push(newSS);
+                  });
+                });
+               this.$refs.profileImage.$data.userStories = newStories;//this.userStories;
+              }
+              
+
+            }).catch(err => {
+              console.log(err)
+              this.$router.push('/');
+            })
         },
         toggleFollow(follow) {
           this.followingUser = follow

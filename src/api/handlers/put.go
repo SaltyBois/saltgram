@@ -3,15 +3,17 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
 	"saltgram/protos/auth/prauth"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/gorilla/mux"
 )
@@ -225,4 +227,23 @@ func (a *Auth) UpdateJWTUsername(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/plain")
 	w.Write([]byte(res.Jws))
 
+}
+
+func (c *Content) PutReaction(w http.ResponseWriter, r *http.Request) {
+
+	dto := saltdata.ReactionPutDTO{}
+	err := saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failure updating: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.cc.PutReaction(context.Background(), &prcontent.PutReactionRequest{Id: dto.Id, ReactionType: dto.ReactionType})
+
+	if err != nil {
+		c.l.Errorf("failed to updating: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
 }
