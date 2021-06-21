@@ -7,11 +7,10 @@
       </div>
       <v-layout class="user-media"
                 column>
-        <PostOnUserPage v-for="index in 20" :key="index"/>
+        <PostOnUserPage v-for="(item, index) in content" :key="index" :post="item"/>
       </v-layout>
     </div>
   </div>
-
 </template>
 
 <script>
@@ -20,7 +19,35 @@ import PostOnUserPage from "@/components/user_page_components/PostOnUserPage";
 
 export default {
   name: "Reactions",
-  components: { TopBar, PostOnUserPage }
+  components: { TopBar, PostOnUserPage },
+  data() {
+    return {
+      content: []
+    }
+  },
+  mounted() {
+    this.loadReactedContent();
+  },
+  methods: {
+    loadReactedContent() {
+      this.refreshToken(this.getAHeader())
+          .then(rr => {
+            this.$store.state.jws = rr.data;
+            let config = {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': 'Bearer ' + this.$store.state.jws,
+              },
+            };
+            this.axios.get('content/reaction/user', config)
+                .then(r => {
+                  this.content = r.data
+                  console.log(this.content)
+                })
+                .catch(r => console.log(r));
+          }).catch(() => this.$router.push('/'));
+    }
+  }
 }
 </script>
 

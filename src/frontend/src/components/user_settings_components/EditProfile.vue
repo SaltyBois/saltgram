@@ -2,7 +2,7 @@
   <div class="main-div">
     <div class="item-container">
       <div class="profile-head-layout">
-        <ImageMessage v-if="showContent" :image-src="this.profileImage" @toggle-image-message="showContent = false"/>
+        <ImageMessage v-if="showContent" :image-src="this.profilePicture" @toggle-image-message="showContent = false"/>
         <v-img v-if="profilePicture" class="head"
                 @click="showContent = true"
                 :src="profilePicture"

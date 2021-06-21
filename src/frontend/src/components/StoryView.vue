@@ -82,7 +82,7 @@ export default {
     this.countDownTimer()
   },
   mounted() {
-        console.log(this.stories);
+        // console.log(this.stories);
 
   //  this.loadingStory();
   }
