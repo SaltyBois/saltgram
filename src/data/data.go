@@ -13,6 +13,9 @@ type Identifiable struct {
 }
 
 func (i *Identifiable) BeforeCreate(tx *gorm.DB) error {
+	if i.ID != 0 {
+		return nil
+	}
 	i.ID = generateUint64()
 	return nil
 }

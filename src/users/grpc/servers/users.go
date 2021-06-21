@@ -36,6 +36,15 @@ func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premai
 	}
 }
 
+func (u *Users) UpdateProfilePicture(ctx context.Context, r *prusers.UpdateProfilePictureRequest) (*prusers.UpdateProfilePictureResponse, error) {
+	err := u.db.UpdateProfilePicture(r.Url, r.Username)
+	if err != nil {
+		u.l.Errorf("failed to update profile picture: %v", err)
+		return &prusers.UpdateProfilePictureResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prusers.UpdateProfilePictureResponse{}, nil
+}
+
 func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) (*prusers.UserResetResponse, error) {
 	err := data.ResetPassword(u.db, r.Email, r.Password)
 	if err != nil {
@@ -238,21 +247,22 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 	}
 
 	return &prusers.ProfileResponse{
-		Username:        profile_show.Username,
-		Followers:       followers,
-		Following:       following,
-		FullName:        user_profile.FullName,
-		Description:     profile_show.Description,
-		IsFollowing:     isFollowing,
-		IsPublic:        profile_show.Public,
-		PhoneNumber:     profile_show.PhoneNumber,
-		Gender:          profile_show.Gender,
-		DateOfBirth:     date,
-		WebSite:         profile_show.WebSite,
-		ProfileFolderId: profile_show.ProfileFolderId,
-		PostsFolderId:   profile_show.PostsFolderId,
-		StoriesFolderId: profile_show.StoriesFolderId,
-		UserId:          profile_show.UserID,
+		Username:          profile.Username,
+		Followers:         followers,
+		Following:         following,
+		FullName:          user.FullName,
+		Description:       profile.Description,
+		IsFollowing:       isFollowing,
+		IsPublic:          profile.Public,
+		PhoneNumber:       profile.PhoneNumber,
+		Gender:            profile.Gender,
+		DateOfBirth:       date,
+		WebSite:           profile.WebSite,
+		ProfileFolderId:   profile.ProfileFolderId,
+		PostsFolderId:     profile.PostsFolderId,
+		StoriesFolderId:   profile.StoriesFolderId,
+		UserId:            profile.UserID,
+		ProfilePictureURL: profile.ProfilePictureURL,
 	}, nil
 }
 

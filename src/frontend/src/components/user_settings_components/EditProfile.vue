@@ -6,7 +6,20 @@
         <v-img v-if="profilePicture" class="head"
                 @click="showContent = true"
                 :src="profilePicture"
-                alt="Profile picture"/>
+                alt="Profile picture">
+          <template v-slot:placeholder v-if="uploadingImg">
+            <v-row
+              class="fill-height ma-0"
+              align="center"
+              justify="center"
+              >
+              <v-progress-circular
+                indeterminate
+                color="grey lighten-5"
+              ></v-progress-circular>
+            </v-row>
+          </template>
+        </v-img>
         <v-img v-else class="head"
           @click="showContent = true"
           :src="require('@/assets/profile_placeholder.png')"/>
@@ -128,6 +141,7 @@ export default {
   components: {ImageMessage},
   data: function () {
     return {
+      uploadingImg: false,
       profilePicture: null,
       showContent: false,
       genderRoles: [ 'Male', 'Female' ],
@@ -148,6 +162,7 @@ export default {
   },
   methods: {
     onSelectedFile(event) {
+      this.uploadingImg = true;
       var files = event.target.files || event.dataTransfer.files;
       if (!files.length)
         return;
@@ -168,6 +183,7 @@ export default {
           this.axios.post("content/profilepicture", data, config)
             .then(r => {
               this.isUploadedContent = true;
+              this.uploadingImg = false;
               this.profilePicture = r.data;
             })
             .catch(r => console.log(r));
