@@ -192,7 +192,7 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saltdata.ToJSON(profile, w)
+	saltdata.ToProtoJSON(profile, w)
 
 }
 
@@ -211,7 +211,7 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var profiles []*prusers.ProfileFollower
 	for {
 		profile, err := stream.Recv()
 		if err == io.EOF {
@@ -222,9 +222,9 @@ func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error couldn't fetch followers", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(profile, w)
+		profiles = append(profiles, profile)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(profiles, w)
 }
 
 func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
@@ -238,24 +238,24 @@ func (u *Users) GetFollowing(w http.ResponseWriter, r *http.Request) {
 
 	stream, err := u.uc.GerFollowing(context.Background(), &prusers.FollowerRequest{Username: username})
 	if err != nil {
-		u.l.Println("[ERROR] fetching following")
+		u.l.Println("[ERROR] fetching following", err)
 		http.Error(w, "Following fetching error", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var profiles []*prusers.ProfileFollower
 	for {
 		profile, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			u.l.Println("[ERROR] fetching following")
+			u.l.Println("[ERROR] fetching following", err)
 			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(profile, w)
+		profiles = append(profiles, profile)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(profiles, w)
 }
 
 func (c *Content) GetHighlights(w http.ResponseWriter, r *http.Request) {

@@ -11,14 +11,14 @@
               class="following-follower-div"
               @click="toggleVisibility(); title='Following'">
       <h4>Following</h4>
-      <h3><b>1000</b></h3>
+      <h3><b>{{this.followingProp}}</b></h3>
     </v-layout>
     <v-layout column
               align-center
               class="following-follower-div"
               @click="toggleVisibility(); title='Followers'">
       <h4>Followers</h4>
-      <h3><b>10k</b></h3>
+      <h3><b>{{this.followersProp}}</b></h3>
     </v-layout>
     <ModalListOfProfiles ref="modalList" :title="title"/>
   </v-layout>
@@ -34,6 +34,16 @@ export default {
     return {
       title: ''
     }
+  },
+  props: {
+    followingProp: {
+      type: Number,
+      required: true
+    },
+    followersProp: {
+      type: Number,
+      required: true
+    },
   },
   methods: {
     toggleVisibility() {
