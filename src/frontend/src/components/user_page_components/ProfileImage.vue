@@ -12,9 +12,9 @@
       @click="showContent = true"
       :src="require('@/assets/profile_placeholder.png')"/>
 
-    <v-btn class="follow-button" v-if="isFollowBtnVisible" @click="emitToggleFollowing()">Follow</v-btn>
-    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible" @click="emitToggleFollowing()">Requested</v-btn>
-    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible" @click="emitToggleFollowing()">Unfollow</v-btn>
+    <v-btn class="follow-button" v-if="isFollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Follow</v-btn>
+    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Requested</v-btn>
+    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Unfollow</v-btn>
 
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
@@ -26,22 +26,22 @@
                 justify-center
                 column>
         <v-btn class="primary mb-2"
-               v-if="isMyProfile"
+               v-if="isMyProfile && $store.state.jws"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn v-if="!isMyProfile" @click="showDialog = false" class="mute-button my-2">
+        <v-btn  @click="showDialog = false" class="mute-button my-2">
           Show story
         </v-btn>
-        <v-btn v-if="isMutedBtnVisible" @click="showDialog = false" class="other-buttons my-2">
+        <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showDialog = false" class="other-buttons my-2">
           Mute
         </v-btn>
-        <v-btn v-if="!isMutedBtnVisible" @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="!isMutedBtnVisible && $store.state.jws" @click="showDialog = false" class="mute-button my-2">
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile"
+               v-if="!isMyProfile && $store.state.jws"
                @click="showDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile"
+               v-if="!isMyProfile && $store.state.jws"
                @click="showDialog = false">Block @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
