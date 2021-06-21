@@ -4,14 +4,18 @@
       {{this.username}}
       <i class="fa fa-check-square verified-icon ml-5"/>
     </h2>
-    <v-img  id="profile-image"
-            src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
+    <v-img v-if="imageSrc" id="profile-image"
+            :src="imageSrc"
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
+    <StoryView ref="storyView" v-if="userStories" :stories="userStories"/>
+    <v-img v-else class="head"
+      @click="showContent = true"
+      :src="require('@/assets/profile_placeholder.png')"/>
 
-    <v-btn class="follow-button" v-if="isFollowBtnVisible" @click="emitToggleFollowing()">Follow</v-btn>
-    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible" @click="emitToggleFollowing()">Requested</v-btn>
-    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible" @click="emitToggleFollowing()">Unfollow</v-btn>
+    <v-btn class="follow-button" v-if="isFollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Follow</v-btn>
+    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Requested</v-btn>
+    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Unfollow</v-btn>
 
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
@@ -23,23 +27,23 @@
                 justify-center
                 column>
         <v-btn class="primary mb-2"
-               v-if="isMyProfile"
+               v-if="isMyProfile && $store.state.jws"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn v-if="!isMyProfile" @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="userStories" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
           Show story
         </v-btn>
-        <v-btn v-if="isMutedBtnVisible" @click="showDialog = false" class="other-buttons my-2">
+        <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="other-buttons my-2">
           Mute
         </v-btn>
-        <v-btn v-if="!isMutedBtnVisible" @click="showDialog = false" class="mute-button my-2">
+        <v-btn v-if="!isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="mute-button my-2">
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile"
-               @click="showDialog = false">Report</v-btn>
+               v-if="!isMyProfile && $store.state.jws"
+               @click="showProfileImageDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile"
-               @click="showDialog = false">Block @{{username}}</v-btn>
+               v-if="!isMyProfile && $store.state.jws"
+               @click="showProfileImageDialog = false">Block @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
         <v-btn @click="showProfileImageDialog = false" class="accent">
@@ -57,8 +61,11 @@
 </template>
 
 <script>
+import StoryView from "@/components/StoryView";
+
 export default {
   name: "ProfileImage",
+  components: {StoryView},
   data: function () {
     return {
       showProfileImageDialog: false,
@@ -66,7 +73,9 @@ export default {
       muted: false,
       isMyProfile: false,
       profile: '',
-      waitingForResponse: false
+      waitingForResponse: false,
+      userStories: [],
+      storyVisible: false,
     }
   },
   mounted() {
@@ -82,12 +91,12 @@ export default {
     },
     imageSrc: {
       type: String,
-      required: false
+      required: true,
     },
     isMyProfileProp: {
       type: Boolean,
       required: true
-    }
+    },
   },
   computed: {
     isFollowBtnVisible() {
@@ -104,6 +113,13 @@ export default {
     }
   },
   methods: {
+    toggle() {
+      //this.$refs.storyView.$data.stories = this.userStories;
+      this.$refs.storyView.toggleView();
+
+      //console.log(this.$refs.storyView.$data.stories);
+      //console.log(this.userStories);
+    },
     onSelectedFile(event) {
       console.log(event)
       this.profilePicture = event.target.files[0]

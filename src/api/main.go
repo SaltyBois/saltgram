@@ -61,6 +61,7 @@ func main() {
 	usersRouter := s.S.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/{username}", usersHandler.GetByUsernameRoute).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/resetpass", usersHandler.ResetPassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/changepass", usersHandler.ChangePassword).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
@@ -98,9 +99,16 @@ func main() {
 	contentRouter.HandleFunc("/post/{id}", contentHandler.GetPostsByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/post", contentHandler.AddPost).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/story", contentHandler.AddStory).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/highlight", contentHandler.AddHighlight).Methods(http.MethodPost)
+	contentRouter.HandleFunc("/highlight/{id}", contentHandler.GetHighlights).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/comment", contentHandler.AddComment).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction", contentHandler.AddReaction).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/reaction/user", contentHandler.GetPostsByUserReaction).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/comment/{id}", contentHandler.GetCommentsByPost).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/reaction/{id}", contentHandler.GetReactionsByPost).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/reaction", contentHandler.PutReaction).Methods(http.MethodPut)
 
 	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
 	if err != nil {
@@ -115,8 +123,10 @@ func main() {
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.ReviewVerificationRequest).Methods(http.MethodPut)
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
 
+	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
+		AllowedOrigins: []string{fmt.Sprintf("https://localhost:%s", os.Getenv("SALT_WEB_PORT"))},
+		//AllowedOrigins:   []string{"*"},
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPut, http.MethodOptions},
 		AllowCredentials: true,

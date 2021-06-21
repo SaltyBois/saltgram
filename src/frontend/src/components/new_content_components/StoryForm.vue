@@ -64,6 +64,9 @@
           </template>
         </v-combobox>
         <v-spacer></v-spacer>
+        <v-checkbox
+        v-model="closeFriends"
+        label="Close friends"/>
         <v-btn color="accent" :disabled="!images.length" @click="uploadFiles" :loading="uploading">Upload</v-btn>
       </div>
     </div>
@@ -79,6 +82,7 @@ export default {
   components: {ImageMessage, Media},
   data: function () {
     return {
+      closeFriends: false,
       uploading: false,
       description: "",
       location: {
@@ -106,6 +110,7 @@ export default {
       });
       data.append('description', this.description)
       data.append('location', JSON.stringify(this.location))
+      data.append('closeFriends', this.closeFriends)
       this.refreshToken(this.getAHeader())
         .then(rr => {
           this.$store.state.jws = rr.data;
@@ -116,7 +121,10 @@ export default {
             },
           };
           this.axios.post('content/story', data, config)
-            .then(() => this.uploading = false)
+            .then(() => {
+              this.uploading = false
+              this.$router.push('/main')
+            })
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));
     },

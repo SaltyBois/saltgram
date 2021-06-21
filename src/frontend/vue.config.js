@@ -9,7 +9,7 @@ module.exports = {
           config.devServer = {
               https: {
                 key: fs.readFileSync('./certs/saltgram-web-server.key'),
-                cert: fs.readFileSync('./certs/altgram-web-server.crt'),
+                cert: fs.readFileSync('./certs/saltgram-web-server.crt'),
               },
           }
       }

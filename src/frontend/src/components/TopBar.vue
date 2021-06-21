@@ -3,7 +3,7 @@
     <div id="margin-div">
       <div>
         <v-btn id="main-button"
-               @click="$router.push('/main')"
+               @click="navigate"
                depressed
                height="100%">
           <v-img id="logo-image"
@@ -24,7 +24,7 @@
         </div>
       </div>
 
-      <div id="buttons-div">
+      <div id="buttons-div" v-if="isUserLogged">
         <v-btn  id="right-side-button0"
                 @click="$router.push('/main')"
                 depressed>
@@ -134,7 +134,8 @@ export default {
         tags: [],
         locations: []
       },
-      debouncedSearch: ''
+      debouncedSearch: '',
+      isUserLogged: false
     }
   },
   mounted() {
@@ -158,15 +159,25 @@ export default {
       this.$store.state.jws = "";
       this.$router.push('/');
     },
+    navigate() {
+      if (this.isUserLogged) this.$router.push('/main');
+      else this.$router.push('/');
+    },
     loadingJWSOnMounted() {
       this.refreshToken(this.getAHeader())
           .then(rr => {
             this.$store.state.jws = rr.data;
             this.axios.get("users", {headers: this.getAHeader()})
                 .then(r =>{
-                  this.username = r.data.username
-                });
-
+                  this.username = r.data.username;
+                  this.isUserLogged = true;
+                })
+                .catch(() => {
+                  this.isUserLogged = false;
+                })
+          })
+          .catch(() => {
+            this.isUserLogged = false;
           })
     },
     getQuery() {

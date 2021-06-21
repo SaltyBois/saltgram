@@ -7,6 +7,7 @@ import (
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -28,14 +29,90 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
-func (c *Content) CreateSharedMedia(ctx context.Context, r *prcontent.CreateSharedMediaRequest) (*prcontent.CreateSharedMediaResponse, error) {
-	sharedMedia := &data.SharedMedia{}
-	err := c.db.AddSharedMedia(sharedMedia)
+func (c *Content) GetHighlights(ctx context.Context, r *prcontent.GetHighlightsRequest) (*prcontent.GetHighlightsResponse, error) {
+	highlights, err := c.db.GetHighlights(r.UserId)
+	if err != nil {
+		c.l.Errorf("failed to get highlights: %v", err)
+		return &prcontent.GetHighlightsResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	highlightsPR := []*prcontent.Highlight{}
+
+	for _, h := range highlights {
+		highlightsPR = append(highlightsPR, data.DataToPRHighlight(h))
+	}
+
+	return &prcontent.GetHighlightsResponse{
+		Highlights: highlightsPR,
+	}, nil
+}
+
+func (c *Content) GetStoriesIndividual(ctx context.Context, r *prcontent.GetStoriesIndividualRequest) (*prcontent.GetStoriesIndividualResponse, error) {
+	stories, err := c.db.GetStoryByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failed to get users stories: %v", err)
+		return &prcontent.GetStoriesIndividualResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	s := []*prcontent.Story{}
+
+	for _, st := range stories {
+		s = append(s, data.DataToPRStory(st))
+	}
+
+	return &prcontent.GetStoriesIndividualResponse{
+		Stories: s,
+	}, nil
+}
+
+func (c *Content) AddHighlight(ctx context.Context, r *prcontent.AddHighlightRequest) (*prcontent.AddHighlightResponse, error) {
+	storyIds := r.Stories
+
+	stories, err := c.db.GetMediaByIds(storyIds...)
+	if err != nil {
+		c.l.Errorf("failed to get stories for highlight: %v", err)
+		return &prcontent.AddHighlightResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	newHighlight := data.Highlight{
+		Name:    r.Name,
+		UserID:  r.UserId,
+		Stories: stories,
+	}
+	err = c.db.CreateHighlight(&newHighlight)
+	if err != nil {
+		c.l.Errorf("failed to create highlight: %v", err)
+		return &prcontent.AddHighlightResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	return &prcontent.AddHighlightResponse{}, nil
+}
+
+func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest) (*prcontent.CreatePostResponse, error) {
+	post := &data.Post{
+		UserID:      r.UserId,
+		SharedMedia: data.SharedMedia{},
+	}
+	err := c.db.AddPost(post)
+	if err != nil {
+		c.l.Errorf("failed to create post: %v", err)
+		return &prcontent.CreatePostResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	return &prcontent.CreatePostResponse{PostId: post.ID}, nil
+}
+
+func (c *Content) CreateStory(ctx context.Context, r *prcontent.CreateStoryRequest) (*prcontent.CreateStoryResponse, error) {
+	story := &data.Story{
+		UserID:      r.UserId,
+		SharedMedia: data.SharedMedia{},
+	}
+	err := c.db.AddStory(story)
 	if err != nil {
 		c.l.Errorf("failed to create shared media: %v", err)
-		return &prcontent.CreateSharedMediaResponse{}, status.Error(codes.Internal, "Internal error")
+		return &prcontent.CreateStoryResponse{}, status.Error(codes.Internal, "Internal error")
 	}
-	return &prcontent.CreateSharedMediaResponse{SharedMediaId: sharedMedia.ID}, nil
+	return &prcontent.CreateStoryResponse{StoryId: story.ID}, nil
 }
 
 func (c *Content) CreateUserFolder(ctx context.Context, r *prcontent.CreateUserFolderRequest) (*prcontent.CreateUserFolderResponse, error) {
@@ -92,6 +169,42 @@ func (c *Content) GetProfilePicture(ctx context.Context, r *prcontent.GetProfile
 	return &prcontent.GetProfilePictureResponse{Url: profilePicture.URL}, nil
 }
 
+/*func (c *Content) GetPostsByUser(ctx context.Context, r *prcontent.GetPostsRequest) (*prcontent.GetPostsResponse, error) {
+	posts, err := c.db.GetPostByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting user posts: %v\n", err)
+		return &prcontent.GetPostsResponse{}, err
+	}
+	response := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+				Url: m.URL,
+			})
+		}
+		response = append(response, &prcontent.Post{
+			Id:     p.ID,
+			UserId: p.UserID,
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		})
+
+	}
+	return &prcontent.GetPostsResponse{Post: response}, nil
+}*/
+
 func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserServer) error {
 	posts, err := c.db.GetPostByUser(r.UserId)
 	if err != nil {
@@ -111,10 +224,11 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
 				},
+				Url: m.URL,
 			})
 		}
 		post := &prcontent.Post{
-			Id:     p.ID,
+			Id:     strconv.FormatUint(p.ID, 10),
 			UserId: p.UserID,
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
@@ -153,7 +267,7 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 			})
 		}
 		post := &prcontent.Post{
-			Id:     p.ID,
+			Id:     strconv.FormatUint(p.ID, 10),
 			UserId: p.UserID,
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
@@ -268,10 +382,9 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
-		SharedMediaID: r.GetInfo().Media.SharedMediaId,
-		Filename:      r.GetInfo().Media.Filename,
-		Tags:          tags,
-		Description:   r.GetInfo().Media.Description,
+		Filename:    r.GetInfo().Media.Filename,
+		Tags:        tags,
+		Description: r.GetInfo().Media.Description,
 		Location: data.Location{
 			Country: location.Country,
 			State:   location.State,
@@ -279,18 +392,6 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 			Street:  location.Street,
 		},
 		AddedOn: r.GetInfo().Media.AddedOn,
-	}
-
-	story := data.Story{
-		UserID:        r.GetInfo().UserId,
-		SharedMediaID: media.SharedMediaID,
-		CloseFriends:  r.GetInfo().CloseFriends,
-	}
-
-	err = c.db.AddStory(&story)
-	if err != nil {
-		c.l.Errorf("failed to add story: %v", err)
-		return status.Error(codes.Internal, "Internal error")
 	}
 
 	imageData := bytes.Buffer{}
@@ -311,15 +412,16 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 			return status.Error(codes.Internal, "Internal server error")
 		}
 	}
-	url, err := c.g.UploadStory(r.GetInfo().StoriesFolderId, media.Filename, &imageData)
+	url, mimeType, err := c.g.UploadStory(r.GetInfo().StoriesFolderId, media.Filename, &imageData)
 	if err != nil {
 		c.l.Errorf("failed to upload story: %v", err)
 		return status.Error(codes.Internal, "Internal error")
 	}
 	media.URL = url
-	err = c.db.AddMediaToSharedMedia(media.SharedMediaID, media)
+	media.MimeType = mimeType
+	err = c.db.AddMediaToStory(r.GetInfo().StoryId, media)
 	if err != nil {
-		c.l.Errorf("faield to add media to shared media: %v", err)
+		c.l.Errorf("faield to add media to story: %v", err)
 		return status.Error(codes.Internal, "Internal error")
 	}
 	err = stream.SendAndClose(&prcontent.AddStoryResponse{})
@@ -360,17 +462,6 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 		AddedOn: r.GetInfo().Media.AddedOn,
 	}
 
-	post := data.Post{
-		UserID:        r.GetInfo().UserId,
-		SharedMediaID: r.GetInfo().Media.SharedMediaId,
-	}
-
-	err = c.db.AddPost(&post)
-	if err != nil {
-		c.l.Errorf("failure adding post: %v\n", err)
-		return status.Error(codes.Internal, "Internal error")
-	}
-
 	imageData := bytes.Buffer{}
 	for {
 		chunk, err := stream.Recv()
@@ -390,14 +481,15 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 		}
 	}
 
-	url, err := c.g.UploadPost(r.GetInfo().PostsFolderId, media.Filename, &imageData)
+	url, mimeType, err := c.g.UploadPost(r.GetInfo().PostsFolderId, media.Filename, &imageData)
 	if err != nil {
 		c.l.Errorf("failure to upload post: %v", err)
 		return status.Error(codes.Internal, "Internal error")
 	}
 
 	media.URL = url
-	err = c.db.AddMediaToSharedMedia(r.GetInfo().Media.SharedMediaId, media)
+	media.MimeType = mimeType
+	err = c.db.AddMediaToPost(r.GetInfo().PostId, media)
 	if err != nil {
 		c.l.Errorf("failed to add media to shared media: %v", err)
 		return status.Error(codes.Internal, "Internal error")
@@ -445,7 +537,7 @@ func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionReque
 	return &prcontent.AddReactionResponse{}, nil
 }
 
-func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prcontent.Content_GetReactionsServer) error {
+func (c *Content) GetReactions(r *prcontent.GetReactionsRequest, stream prcontent.Content_GetReactionsServer) error {
 	reactions, err := c.db.GetReactionByPostId(r.PostId)
 	if err != nil {
 		c.l.Errorf("failure getting reactions: %v\n", err)
@@ -453,8 +545,8 @@ func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prc
 	}
 	for _, r := range *reactions {
 		err = stream.Send(&prcontent.GetReactionsResponse{
-			Id:           r.ID,
-			UserId:       r.UserID,
+			Id:           strconv.FormatUint(r.ID, 10),
+			UserId:       strconv.FormatUint(r.UserID, 10),
 			ReactionType: r.ReactionType,
 		})
 		if err != nil {
@@ -463,4 +555,85 @@ func (c *Content) GetReactionByPost(r *prcontent.GetReactionsRequest, stream prc
 		}
 	}
 	return nil
+}
+
+func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.Content_GetCommentsServer) error {
+	comments, err := c.db.GetCommentByPostId(r.PostId)
+	if err != nil {
+		c.l.Errorf("failure getting comments: %v\n", err)
+		return err
+	}
+	for _, cm := range *comments {
+		comment := &prcontent.Comment{
+			Content: cm.Content,
+			UserId:  cm.UserID,
+			PostId:  cm.PostID,
+		}
+		err = stream.Send(&prcontent.GetCommentsResponse{
+			Comment: comment,
+		})
+		if err != nil {
+			c.l.Errorf("failure getting comments response: %v\n", err)
+			return err
+		}
+	}
+	return nil
+}
+
+// func (c *Content) GetStories(r *prcontent.GetStoryRequest, stream prcontent.Content_GetStoriesServer) error {
+// 	stories, err := c.db.GetStoryByUser(r.UserId)
+// 	if err != nil {
+// 		c.l.Errorf("failure getting user stories: %v\n", err)
+// 		return err
+// 	}
+// 	for _, p := range *stories {
+// 		media := []*prcontent.Media{}
+// 		for _, m := range p.SharedMedia.Media {
+// 			media = append(media, &prcontent.Media{
+// 				Filename:    m.Filename,
+// 				Description: m.Description,
+// 				AddedOn:     m.AddedOn,
+// 				Location: &prcontent.Location{
+// 					Country: m.Location.Country,
+// 					State:   m.Location.State,
+// 					ZipCode: m.Location.ZipCode,
+// 					Street:  m.Location.Street,
+// 				},
+// 				Url: m.URL,
+// 			})
+// 		}
+// 		story := &prcontent.Story{
+// 			Id:     p.ID,
+// 			UserId: p.UserID,
+// 			SharedMedia: &prcontent.SharedMedia{
+// 				Media: media,
+// 			},
+// 			CloseFriends: p.CloseFriends,
+// 		}
+// 		err = stream.Send(&prcontent.GetStoriesResponse{
+// 			Story: story,
+// 		})
+// 		if err != nil {
+// 			c.l.Errorf("failed getting story response: %v\n", err)
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
+
+func (c *Content) PutReaction(ctx context.Context, r *prcontent.PutReactionRequest) (*prcontent.PutReactionResponse, error) {
+
+	i, err := strconv.ParseUint(r.Id, 10, 64)
+	if err != nil {
+		c.l.Errorf("failure converting reaction id: %v\n", err)
+		return &prcontent.PutReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	err = data.PutReaction(c.db, r.ReactionType, i)
+	if err != nil {
+		c.l.Errorf("failure updating reaction: %v\n", err)
+		return &prcontent.PutReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.PutReactionResponse{}, nil
 }

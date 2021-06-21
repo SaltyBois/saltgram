@@ -113,7 +113,10 @@ export default {
             },
           };
           this.axios.post('content/post', data, config)
-            .then(() => this.uploading=false)
+            .then(() => {
+              this.uploading = false
+              this.$router.push('/main')
+            })
             .catch(r => console.log(r));
         }).catch(() => this.$router.push('/'));
     },
