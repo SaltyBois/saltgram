@@ -422,7 +422,7 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 }
 
 func (u *Users) SetFollowRequestRespond(ctx context.Context, r *prusers.FollowRequestRespond) (*prusers.FollowRequestSet, error) {
-	profile, err := u.db.GetProfileByUsername(r.Username)
+	UserProfile, err := u.db.GetProfileByUsername(r.Username)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
 		return &prusers.FollowRequestSet{}, err
@@ -434,18 +434,24 @@ func (u *Users) SetFollowRequestRespond(ctx context.Context, r *prusers.FollowRe
 		return &prusers.FollowRequestSet{}, err
 	}
 
-	err = data.FollowRequestRespond(u.db, profile, profile_request, r.Accepted)
+	err = data.FollowRequestRespond(u.db, UserProfile, profile_request, r.Accepted)
 	if err != nil {
 		u.l.Printf("[ERROR] Setting respond")
 		return &prusers.FollowRequestSet{}, err
 	}
 
-	if r.Accepted {
-		err := data.SetFollow(u.db, profile, profile_request)
-		if err != nil {
-			u.l.Printf("[ERROR] following: %v\n", err)
-			return &prusers.FollowRequestSet{}, err
-		}
+	u.l.Printf("[INFO] trying ot follow")
+	u.l.Printf("[INFO] profile request: %v", profile_request)
+
+	u.l.Printf("[INFO] profile: %v", UserProfile)
+	if !r.Accepted {
+		return &prusers.FollowRequestSet{}, nil
+	}
+	u.l.Printf("[INFO] trying to set follow for user %v to follow user: %v\n", profile_request, UserProfile)
+	err = data.SetFollow(u.db, profile_request, UserProfile)
+	if err != nil {
+		u.l.Printf("[ERROR] following: %v\n", err)
+		return &prusers.FollowRequestSet{}, err
 	}
 
 	return &prusers.FollowRequestSet{}, nil

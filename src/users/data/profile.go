@@ -106,9 +106,7 @@ func GetFollowingCount(db *DBConn, profile *Profile) (int64, error) {
 }
 
 func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
-	db.DB.Model(&profile).Association("Following").Append(&profileToFollow)
-	//profile.Following = append(profile.Following, profileToFollow)
-	return db.DB.Save(&profile).Error
+	return db.DB.Exec("INSERT INTO profile_following (profile_id, following_id) VALUES (?, ?)", profile.ID, profileToFollow.ID).Error
 }
 
 func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
@@ -175,7 +173,7 @@ func GetFollowRequests(db *DBConn, profile *Profile) ([]Profile, error) {
 
 func FollowRequestRespond(db *DBConn, profile *Profile, profile_request *Profile, accepted bool) error {
 	fr := FollowRequest{}
-	err := db.DB.Where("profile_id = ? AND request_id = ?", profile.ID, profile_request.ID).First(&fr).Error
+	err := db.DB.Where("profile_id = ? AND request_id = ? AND request_status = ?", profile.ID, profile_request.ID, PENDING).First(&fr).Error
 	if err != nil {
 		return err
 	}
