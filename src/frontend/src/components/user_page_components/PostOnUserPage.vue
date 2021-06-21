@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PostView ref="postView" :post="post"/>
+    <PostView ref="postView" :post="post" :key="reloadKey" @reload="reloadPostView"/>
     <v-img  class="post"
             :src="post.post.sharedMedia.media[0].url"
             @click="showPostFun"
@@ -16,6 +16,7 @@ export default {
   components: {PostView},
   data() {
     return {
+      reloadKey: 0,
       //post: [],
     }
 
@@ -26,7 +27,12 @@ export default {
   methods: {
     showPostFun() {
       this.$refs.postView.$data.show = !this.$refs.postView.$data.show
-    }
+    },
+
+    reloadPostView: function() {
+      ++this.reloadKey;
+      this.showPostFun();
+    },
   },
   mounted() {
     //console.log(this.post);

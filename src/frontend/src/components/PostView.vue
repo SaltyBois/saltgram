@@ -1,5 +1,5 @@
 <template>
-  <div :key="renderKey">
+  <div>
     <transition name="fade" appear>
       <v-layout class="modal-overlay"
                 align-center
@@ -156,7 +156,7 @@ export default {
            .then(r => {
               console.log(r);
               this.commentContent = '';
-              this.renderKey++;
+              this.$emit('reload');
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -169,7 +169,7 @@ export default {
             .then(r => {
                 console.log(r);
                 this.userReactionStatus = 'LIKE';
-              this.renderKey++;
+              this.$emit('reload');
               }).catch(err => {
                 console.log(err)
                 this.$router.push('/');
@@ -180,7 +180,7 @@ export default {
            .then(r => {
               console.log(r);
               this.userReactionStatus = 'LIKE';
-              this.renderKey++;
+              this.$emit('reload');
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -194,7 +194,7 @@ export default {
            .then(r => {
               console.log(r);
               this.userReactionStatus = 'DISLIKE';
-              this.renderKey++;
+              this.$emit('reload');
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -205,7 +205,7 @@ export default {
            .then(r => {
               console.log(r);
               this.userReactionStatus = 'DISLIKE';
-              this.renderKey++;
+              this.$emit('reload');
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -278,7 +278,6 @@ export default {
       likes: 0,
       dislikes: 0,
       reactionId: '',
-      renderKey: 0,
     }
   }
 }
