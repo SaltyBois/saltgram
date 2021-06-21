@@ -70,6 +70,8 @@ func main() {
 	usersRouter.HandleFunc("/search/{username}", usersHandler.SearchUsers).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/follow/requests/", usersHandler.GetFollowingRequest).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/follow/request/", usersHandler.FollowRespond).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/followers/detailed/{username}", usersHandler.GetFollowersDetailed).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/following/detailed/{username}", usersHandler.GetFollowingDetailed).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {

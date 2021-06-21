@@ -825,14 +825,14 @@ func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = u.uc.Follow(context.Background(), &prusers.FollowRequest{Username: profileRequest, ToFollow: dto.ProfileToFollow})
+	message, err := u.uc.Follow(context.Background(), &prusers.FollowRequest{Username: profileRequest, ToFollow: dto.ProfileToFollow})
 	if err != nil {
 		u.l.Printf("[ERROR] following profile: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
-	w.Write([]byte("Following %s"))
+	w.Write([]byte(message.Message))
 
 }
 

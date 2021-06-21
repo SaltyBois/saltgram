@@ -40,6 +40,12 @@ type FollowRequestDOT struct {
 	IsAccepted     bool   `json:"accepted"`
 }
 
+type ProfileFollowDetailedDTO struct {
+	Username  string `json:"username"`
+	Following bool   `json:"following"`
+	Pending   bool   `json:"pending"`
+}
+
 type FollowDTO struct {
 	ProfileToFollow string `json:"profile" validate:"required"`
 }

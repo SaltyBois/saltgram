@@ -3,18 +3,22 @@
     <div style="width: 70px">
       <v-img  class="head"
               src="https://i.pinimg.com/564x/4e/c4/f2/4ec4f2d69c9bc6b152abcb420252c3a8.jpg"
-              @click="$router.push('/user')"
+              @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-left; width: 300px; padding-top: 5px">
-      <h3>@USERNAME</h3>
-      <h5>Ime i prezime</h5>
+      <h3>@{{usernameProp}}</h3>
     </div>
-    <div style="margin: 0 3px; text-align: -webkit-center">
-      <v-btn v-if="!clicked"
-             @click="clicked=!clicked"
+    <div style="margin: 0 3px; text-align: -webkit-center" v-if="usernameProp !== userProp">
+      <v-btn v-if="!followingProp && pendingProp"
              depressed
              class="follow-button">
+        pending
+      </v-btn>
+      <v-btn v-else-if="!followingProp"
+            @click="follow()"
+             depressed
+             class="unfollow-button">
         follow
       </v-btn>
       <v-btn v-else
@@ -33,6 +37,39 @@ export default {
   data: function () {
     return {
       clicked: false,
+    }
+  },
+  props: {
+    userProp: {
+      type: String,
+      required: true
+    },
+    usernameProp: {
+      type: String,
+      required: true
+    },
+    followingProp: {
+      type: Boolean,
+      required: true
+    },
+    pendingProp: {
+      type: Boolean,
+      required: true
+    },
+  },
+  methods: {
+    follow: function() {
+      let dto = {
+        profile: this.usernameProp
+      };
+      this.axios.post("users/create/follow", dto, {headers: this.getAHeader()})
+      .then(r => {
+        if(r.data == "PENDING") {
+          this.pendingProp = true;
+        } else if(r.data == "Following") {
+          this.followingProp = true;
+        }
+      })
     }
   }
 }

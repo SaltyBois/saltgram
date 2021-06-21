@@ -529,3 +529,135 @@ func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request)
 	}
 	w.Write([]byte("}"))
 }
+
+func (u *Users) GetFollowersDetailed(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("getting jws: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Errorf("parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Errorf("unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	vars := mux.Vars(r)
+	username, er := vars["username"]
+	if !er {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := u.uc.GetFollowersDetailed(context.Background(), &prusers.ProflieFollowRequest{Logeduser: claims.Username, Username: username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching followers")
+		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
+		return
+	}
+	var profiles []saltdata.ProfileFollowDetailedDTO
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching followers")
+			http.Error(w, "Error couldn't fetch followers", http.StatusInternalServerError)
+			return
+		}
+		dto := saltdata.ProfileFollowDetailedDTO{
+			Username:  profile.Username,
+			Following: profile.Following,
+			Pending:   profile.Pending,
+		}
+		profiles = append(profiles, dto)
+	}
+	saltdata.ToJSON(profiles, w)
+}
+
+func (u *Users) GetFollowingDetailed(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		u.l.Println("getting jws: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		u.l.Errorf("parsing claims: %v", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		u.l.Errorf("unable to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	vars := mux.Vars(r)
+	username, er := vars["username"]
+	if !er {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := u.uc.GetFollowingDetailed(context.Background(), &prusers.ProflieFollowRequest{Logeduser: claims.Username, Username: username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching following")
+		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
+		return
+	}
+	var profiles []saltdata.ProfileFollowDetailedDTO
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching followers")
+			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+			return
+		}
+		dto := saltdata.ProfileFollowDetailedDTO{
+			Username:  profile.Username,
+			Following: profile.Following,
+			Pending:   profile.Pending,
+		}
+		profiles = append(profiles, dto)
+	}
+	saltdata.ToJSON(profiles, w)
+}

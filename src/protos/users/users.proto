@@ -22,6 +22,8 @@ service Users {
     rpc GetSearchedUsers(SearchRequest) returns (SearchResponse);
     rpc GetFollowRequests(Profile) returns(stream FollowingRequest);
     rpc SetFollowRequestRespond(FollowRequestRespond) returns (FollowRequestSet);
+    rpc GetFollowersDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc GetFollowingDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
 }
 
 message RoleRequest {
@@ -171,7 +173,9 @@ message FollowRequest {
     string toFollow = 2;
 }
 
-message FollowRespose {}
+message FollowRespose {
+    string message = 1;
+}
 
 message FollowerRequest {
     string username = 1;
@@ -216,4 +220,15 @@ message FollowRequestRespond {
 }
 
 message FollowRequestSet {}
+
+message ProflieFollowRequest {
+    string logeduser = 1;
+    string username = 2;
+}
+
+message ProfileFollowDetaild {
+    string username = 1;
+    bool following = 2;
+    bool pending = 3;
+}
 

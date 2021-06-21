@@ -184,3 +184,12 @@ func FollowRequestRespond(db *DBConn, profile *Profile, profile_request *Profile
 	}
 	return db.DB.Save(&fr).Error
 }
+
+func CheckForFollowingRequest(db *DBConn, profile *Profile, profile_request *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Model(&FollowRequest{}).Where("profile_id = ? AND request_id = ? AND request_status = ?", profile.ID, profile_request.ID, PENDING).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, err
+}
