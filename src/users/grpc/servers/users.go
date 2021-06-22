@@ -159,6 +159,8 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		PostsFolderId:   resp.PostsFolderId,
 		StoriesFolderId: resp.StoryFolderId,
 		Messagable: 	 true,
+		Verified: false,
+		AccountType: "",
 	}
 
 	err = u.db.AddProfile(&profile)
@@ -264,6 +266,8 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		ProfilePictureURL: profile.ProfilePictureURL,
 		Taggable: 		   profile.Taggable,
 		Messageable: 	   profile.Messagable,
+		Verified: 		   profile.Verified,
+		AccountType:	   profile.AccountType,
 	}, nil
 }
 

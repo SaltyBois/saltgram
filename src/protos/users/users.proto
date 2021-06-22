@@ -161,6 +161,8 @@ message ProfileResponse {
     string profilePictureURL = 16;
     bool taggable = 17;
     bool messageable = 18;
+    bool verified = 19;
+    string accountType = 20;
 }
 
 message ChangePublicRequest {

@@ -34,6 +34,8 @@ type Profile struct {
 	PostsFolderId     string    `json:"-"`
 	StoriesFolderId   string    `json:"-"`
 	ProfilePictureURL string    `json:"profilePictureURL"`
+	AccountType 	  string    `json:"accountType"`
+	Verified 		  bool    	`json:"verified"`
 }
 
 type FollowRequest struct {

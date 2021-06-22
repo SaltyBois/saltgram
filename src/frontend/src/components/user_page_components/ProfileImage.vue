@@ -2,7 +2,7 @@
   <v-layout align-center column style="width: 40%;">
     <h2 style="text-align: center; margin-top: 10px">
       {{this.username}}
-      <i class="fa fa-check-square verified-icon ml-5"/>
+      <i v-if="verified" class="fa fa-check-square verified-icon ml-5"/>
     </h2>
     <v-img  class="profile-image"
             v-if="imageSrc"
@@ -100,6 +100,10 @@ export default {
       required: true,
     },
     isMyProfileProp: {
+      type: Boolean,
+      required: true
+    },
+    verified: {
       type: Boolean,
       required: true
     },
@@ -234,11 +238,6 @@ export default {
 }
 
 .verified-icon {
-  color: #858585;
-  transform: scale(1.5);
-}
-
-.verified-icon:hover {
   color: #016ddb;
   transform: scale(1.5);
 }

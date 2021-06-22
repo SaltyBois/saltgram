@@ -47,7 +47,7 @@ type ProfileDTO struct {
 	Username          string `json:"username" validate:"required"`
 	Public            bool   `json:"public"`   /* `json:"public" validate:"required"` */
 	Taggable          bool   `json:"taggable"` /* `json:"taggable" validate:"required"` */
-	Messageable    bool      `json:"messageable"` /* `json:"taggable" validate:"required"` */
+	Messageable       bool   `json:"messageable"` /* `json:"taggable" validate:"required"` */
 	Description       string `json:"description" validate:"required"`
 	PhoneNumber       string `json:"phoneNumber" validate:"required"`
 	Gender            string `json:"gender" validate:"required"`
@@ -60,6 +60,9 @@ type ProfileDTO struct {
 	IsPublic          bool   `json:"isPublic"`
 	IsFollowing       bool   `json:"isFollowing"`
 	ProfilePictureURL string `json:"profilePictureURL"`
+	AccountType 	  string `json:"accountType"`
+	Verified 		  bool   `json:"verified"`
+	IsThisMe          bool   `json:"isThisMe"`
 }
 
 type FollowDTO struct {
