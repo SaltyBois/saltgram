@@ -2,6 +2,7 @@ package servers
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
@@ -291,6 +292,36 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 
 	data.SetFollow(u.db, profile, profileToFollow)
 	return &prusers.FollowRespose{Message: "Following"}, nil
+}
+
+var ErrorNotFollowing = fmt.Errorf("Not following")
+
+func (u *Users) UnFollow(ctx context.Context, r *prusers.FollowRequest) (*prusers.FollowRespose, error) {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.FollowRespose{}, err
+	}
+	profileToUnfollow, err := u.db.GetProfileByUsername(r.ToFollow)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile to follow: %v\n", err)
+		return &prusers.FollowRespose{}, err
+	}
+
+	isFollowing, err := data.CheckIfFollowing(u.db, profile, profileToUnfollow)
+	if err != nil {
+		u.l.Printf("[ERROR] Checking if is following")
+		return &prusers.FollowRespose{}, err
+	}
+
+	if !isFollowing {
+		u.l.Printf("[ERROR] Is not following")
+		return &prusers.FollowRespose{Message: "Not following"}, ErrorNotFollowing
+
+	}
+
+	data.Unfollow(u.db, profile, profileToUnfollow)
+	return &prusers.FollowRespose{Message: "Unfollowed"}, nil
 }
 
 func (u *Users) GetFollowers(r *prusers.FollowerRequest, stream prusers.Users_GetFollowersServer) error {

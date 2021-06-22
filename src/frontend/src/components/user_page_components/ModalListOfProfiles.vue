@@ -12,7 +12,11 @@
         <h3>{{title}}</h3>
         <v-layout column
                   class="scroll-div">
-          <ProfileInList v-for="(item, index) in this.profiles" :key="index" :username-prop="item.username" :following-prop="item.following" :pending-prop="item.pending" :user-prop="userProp"/>
+          <ProfileInList v-for="(item, index) in this.profiles" :key="index" 
+          :username-prop="item.username" 
+          :following-prop="item.following" 
+          :pending-prop="item.pending" 
+          :user-prop="userProp"/>
         </v-layout>
         <v-divider class="mt-5 mb-5"/>
         <v-btn @click="show=!show;" class="accent">

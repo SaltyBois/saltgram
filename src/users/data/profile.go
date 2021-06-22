@@ -109,6 +109,10 @@ func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
 	return db.DB.Exec("INSERT INTO profile_following (profile_id, following_id) VALUES (?, ?)", profile.ID, profileToFollow.ID).Error
 }
 
+func Unfollow(db *DBConn, profile *Profile, profileToUnfollow *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_following WHERE profile_id = ? AND following_id = ?", profile.ID, profileToUnfollow.ID).Error
+}
+
 func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
 	//profile.Requests = append(profile.Requests, request)
 	fr := FollowRequest{

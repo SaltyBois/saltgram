@@ -22,7 +22,7 @@
         follow
       </v-btn>
       <v-btn v-else
-             @click="clicked=!clicked"
+             @click="unfollow()"
              depressed
              class="unfollow-button">
         unfollow
@@ -70,6 +70,17 @@ export default {
           this.followingProp = true;
         }
       })
+    },
+    unfollow: function() {
+      this.axios.post("users/unfollow", {profile: this.usernameProp}, {headers: this.getAHeader()})
+        .then(r => {
+          console.log(r)
+          this.followingProp = false;
+          this.pendingProp = false;
+        })
+        .catch(r => {
+          console.log(r)
+        })
     }
   }
 }

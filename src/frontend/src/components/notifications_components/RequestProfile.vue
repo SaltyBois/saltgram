@@ -28,7 +28,7 @@ export default {
     }
   },
   methods: {
-    acceptRequest() {
+    acceptRequest: function(){
       let dto = {
         profile: this.usernameProp,
         accepted: true,
@@ -39,7 +39,7 @@ export default {
         this.$emit('reload-requests')
       })
     },
-    ignoreRequest() {
+    ignoreRequest: function() {
       let dto = {
         profile: this.usernameProp,
         accepted: false,

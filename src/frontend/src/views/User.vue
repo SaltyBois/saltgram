@@ -12,6 +12,7 @@
           :username="this.profile.username" 
           image-src="Insert image source" 
           @toggle-following="toggleFollow" 
+          @following-changed="getFollowingNumb"
           />
         </v-layout>
         <v-layout column
@@ -211,9 +212,13 @@ export default {
 
 
         },
+
         toggleFollow(follow) {
           this.followingUser = follow
         },
+        getFollowingNumb() {
+          this.getUserInfo();
+        }
     },
     mounted() {
          this.getUserInfo(); // TODO UNCOMMENT THIS

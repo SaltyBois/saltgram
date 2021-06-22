@@ -11,7 +11,7 @@
 
     <v-btn class="follow-button" v-if="isFollowBtnVisible" @click="emitToggleFollowing()">Follow</v-btn>
     <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible">Pending</v-btn>
-    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible">Unfollow</v-btn>
+    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible" @click="emitToggleUnfollow()">Unfollow</v-btn>
 
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
@@ -135,11 +135,25 @@ export default {
             this.following = true;
           }
          this.$emit('toggle-following', this.following);
+         this.$emit('following-changed');
         })
         .catch(r => {
           console.log(r)
         })
     },
+    emitToggleUnfollow() {
+      this.axios.post("users/unfollow", {profile: this.username}, {headers: this.getAHeader()})
+        .then(r => {
+          console.log(r)
+          this.following = false;
+          this.waitingForResponse = false;
+          this.$emit('toggle-following', this.following);
+          this.$emit('following-changed');
+        })
+        .catch(r => {
+          console.log(r)
+        })
+    }
   }
 }
 </script>

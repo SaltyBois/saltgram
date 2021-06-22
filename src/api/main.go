@@ -65,6 +65,7 @@ func main() {
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.UpdateProfile).Methods(http.MethodPut)
 	usersRouter.HandleFunc("/create/follow", usersHandler.Follow).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/unfollow", usersHandler.Unfollow).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/get/followers/{username}", usersHandler.GetFollowers).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/get/following/{username}", usersHandler.GetFollowing).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/search/{username}", usersHandler.SearchUsers).Methods(http.MethodGet)
