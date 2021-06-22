@@ -20,8 +20,8 @@
       :src="require('@/assets/profile_placeholder.png')"/>
 
     <v-btn class="follow-button" v-if="isFollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Follow</v-btn>
-    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Requested</v-btn>
-    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible && $store.state.jws" @click="emitToggleFollowing()">Unfollow</v-btn>
+    <v-btn style="border-color: black; border-style: solid; border-width: 1px;" v-if="isRequestBtnVisible && $store.state.jws">Pending</v-btn>
+    <v-btn class="unfollow-button" v-if="isUnfollowBtnVisible && $store.state.jws" @click="emitToggleUnfollow()">Unfollow</v-btn>
 
     <transition name="fade" appear>
       <div class="modal-overlay" v-if="showProfileImageDialog" @click="showProfileImageDialog = false"></div>
@@ -87,10 +87,6 @@ export default {
   mounted() {
   },
   props: {
-    followingProp: {
-      type: Boolean,
-      required: true
-    },
     username: {
       type: String,
       required: true
@@ -106,16 +102,16 @@ export default {
   },
   computed: {
     isFollowBtnVisible() {
-      return !this.isMyProfile && !this.following;
+      return !this.isMyProfileProp && !this.following && !this.waitingForResponse;
     },
     isRequestBtnVisible() {
-      return !this.isMyProfile && !this.following && this.waitingForResponse;
+      return !this.isMyProfileProp && !this.following && this.waitingForResponse;
     },
     isUnfollowBtnVisible() {
-      return !this.isMyProfile && this.following;
+      return !this.isMyProfileProp && this.following;
     },
     isMutedBtnVisible() {
-      return !this.muted && !this.isMyProfile;
+      return !this.muted && !this.isMyProfileProp;
     }
   },
   methods: {
@@ -154,13 +150,32 @@ export default {
       this.axios.post("users/create/follow", {profile: this.username}, {headers: this.getAHeader()})
         .then(r => {
           console.log(r);
-          this.following = !this.following;
-          this.$emit('toggle-following', this.following);
+          if(r.data == "PENDING") {
+            this.following = false;
+            this.waitingForResponse = true;
+          } else if(r.data == "Following") {
+            this.following = true;
+          }
+         this.$emit('toggle-following', this.following);
+         this.$emit('following-changed');
         })
         .catch(r => {
           console.log(r)
         })
     },
+    emitToggleUnfollow() {
+      this.axios.post("users/unfollow", {profile: this.username}, {headers: this.getAHeader()})
+        .then(r => {
+          console.log(r)
+          this.following = false;
+          this.waitingForResponse = false;
+          this.$emit('toggle-following', this.following);
+          this.$emit('following-changed');
+        })
+        .catch(r => {
+          console.log(r)
+        })
+    }
   }
 }
 </script>

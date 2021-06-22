@@ -7,7 +7,13 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" v-bind:image-src="profile.profilePictureURL" @toggle-following="toggleFollow"/>
+          <ProfileImage ref="profileImage" 
+          :is-my-profile-prop="this.isMyProfile" 
+          :username="this.profile.username" 
+          @toggle-following="toggleFollow" 
+          @following-changed="getFollowingNumb"
+          v-bind:image-src="profile.profilePictureURL"
+          />
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -16,7 +22,7 @@
                     justify-center
                     column>
 
-            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers" :posts-number="usersPosts.length"/>
+            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers" :user-prop="this.user.username" :posts-number="usersPosts.length"/>
 
           </v-layout>
 
@@ -162,6 +168,7 @@ export default {
         isMyProfile: false,
         radioButton: 'posts',
         followingUser: false,
+        pendingRequest: false,
         usersPosts: [],
         userStories: [],
       }
@@ -273,8 +280,21 @@ export default {
             }).catch(err => {
               console.log(err)
             })
-
-
+            if(!this.isMyProfile) {
+              this.axios.get("users/check/follow/" + this.$route.params.username, {headers: this.getAHeader()})
+              .then(r => {
+                this.followingUser = r.data
+                this.$refs.profileImage.$data.following = r.data
+              })
+        
+              if(!this.followingUser) {
+                this.axios.get("users/check/followrequest/" + this.$route.params.username, {headers: this.getAHeader()})
+                .then(r => {
+                  //this.pendingRequest = r.data
+                  this.$refs.profileImage.$data.waitingForResponse = r.data
+                })
+              }
+            }
         },
         getUserPosts(id) {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
@@ -310,9 +330,13 @@ export default {
               this.$router.push('/');
             })
         },
+
         toggleFollow(follow) {
           this.followingUser = follow
         },
+        getFollowingNumb() {
+          this.getUserInfo();
+        }
     },
     mounted() {
          this.getUserInfo(); // TODO UNCOMMENT THIS

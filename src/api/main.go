@@ -67,9 +67,16 @@ func main() {
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.UpdateProfile).Methods(http.MethodPut)
 	usersRouter.HandleFunc("/create/follow", usersHandler.Follow).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/unfollow", usersHandler.Unfollow).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/get/followers/{username}", usersHandler.GetFollowers).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/get/following/{username}", usersHandler.GetFollowing).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/search/{username}", usersHandler.SearchUsers).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/follow/requests/", usersHandler.GetFollowingRequest).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/follow/request/", usersHandler.FollowRespond).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/followers/detailed/{username}", usersHandler.GetFollowersDetailed).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/following/detailed/{username}", usersHandler.GetFollowingDetailed).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/check/follow/{username}", usersHandler.CheckFollowing).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/check/followrequest/{username}", usersHandler.CheckFollowRequest).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {

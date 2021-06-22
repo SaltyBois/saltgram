@@ -38,6 +38,12 @@ type UsersClient interface {
 	GerFollowing(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GerFollowingClient, error)
 	GetByUserId(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*GetByIdResponse, error)
 	GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
+	GetFollowRequests(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowRequestsClient, error)
+	SetFollowRequestRespond(ctx context.Context, in *FollowRequestRespond, opts ...grpc.CallOption) (*FollowRequestSet, error)
+	GetFollowersDetailed(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (Users_GetFollowersDetailedClient, error)
+	GetFollowingDetailed(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (Users_GetFollowingDetailedClient, error)
+	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
+	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 }
 
 type usersClient struct {
@@ -274,6 +280,129 @@ func (c *usersClient) GetSearchedUsers(ctx context.Context, in *SearchRequest, o
 	return out, nil
 }
 
+func (c *usersClient) GetFollowRequests(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowRequestsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[2], "/Users/GetFollowRequests", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetFollowRequestsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetFollowRequestsClient interface {
+	Recv() (*FollowingRequest, error)
+	grpc.ClientStream
+}
+
+type usersGetFollowRequestsClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetFollowRequestsClient) Recv() (*FollowingRequest, error) {
+	m := new(FollowingRequest)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) SetFollowRequestRespond(ctx context.Context, in *FollowRequestRespond, opts ...grpc.CallOption) (*FollowRequestSet, error) {
+	out := new(FollowRequestSet)
+	err := c.cc.Invoke(ctx, "/Users/SetFollowRequestRespond", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetFollowersDetailed(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (Users_GetFollowersDetailedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[3], "/Users/GetFollowersDetailed", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetFollowersDetailedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetFollowersDetailedClient interface {
+	Recv() (*ProfileFollowDetaild, error)
+	grpc.ClientStream
+}
+
+type usersGetFollowersDetailedClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetFollowersDetailedClient) Recv() (*ProfileFollowDetaild, error) {
+	m := new(ProfileFollowDetaild)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) GetFollowingDetailed(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (Users_GetFollowingDetailedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[4], "/Users/GetFollowingDetailed", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetFollowingDetailedClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetFollowingDetailedClient interface {
+	Recv() (*ProfileFollowDetaild, error)
+	grpc.ClientStream
+}
+
+type usersGetFollowingDetailedClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetFollowingDetailedClient) Recv() (*ProfileFollowDetaild, error) {
+	m := new(ProfileFollowDetaild)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckIfFollowing", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckForFollowingRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -298,6 +427,12 @@ type UsersServer interface {
 	GerFollowing(*FollowerRequest, Users_GerFollowingServer) error
 	GetByUserId(context.Context, *GetByIdRequest) (*GetByIdResponse, error)
 	GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error)
+	GetFollowRequests(*Profile, Users_GetFollowRequestsServer) error
+	SetFollowRequestRespond(context.Context, *FollowRequestRespond) (*FollowRequestSet, error)
+	GetFollowersDetailed(*ProflieFollowRequest, Users_GetFollowersDetailedServer) error
+	GetFollowingDetailed(*ProflieFollowRequest, Users_GetFollowingDetailedServer) error
+	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
+	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -364,6 +499,24 @@ func (UnimplementedUsersServer) GetByUserId(context.Context, *GetByIdRequest) (*
 }
 func (UnimplementedUsersServer) GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSearchedUsers not implemented")
+}
+func (UnimplementedUsersServer) GetFollowRequests(*Profile, Users_GetFollowRequestsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetFollowRequests not implemented")
+}
+func (UnimplementedUsersServer) SetFollowRequestRespond(context.Context, *FollowRequestRespond) (*FollowRequestSet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetFollowRequestRespond not implemented")
+}
+func (UnimplementedUsersServer) GetFollowersDetailed(*ProflieFollowRequest, Users_GetFollowersDetailedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetFollowersDetailed not implemented")
+}
+func (UnimplementedUsersServer) GetFollowingDetailed(*ProflieFollowRequest, Users_GetFollowingDetailedServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetFollowingDetailed not implemented")
+}
+func (UnimplementedUsersServer) CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckIfFollowing not implemented")
+}
+func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckForFollowingRequest not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -744,6 +897,123 @@ func _Users_GetSearchedUsers_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_GetFollowRequests_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetFollowRequests(m, &usersGetFollowRequestsServer{stream})
+}
+
+type Users_GetFollowRequestsServer interface {
+	Send(*FollowingRequest) error
+	grpc.ServerStream
+}
+
+type usersGetFollowRequestsServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetFollowRequestsServer) Send(m *FollowingRequest) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_SetFollowRequestRespond_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowRequestRespond)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).SetFollowRequestRespond(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/SetFollowRequestRespond",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).SetFollowRequestRespond(ctx, req.(*FollowRequestRespond))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetFollowersDetailed_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProflieFollowRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetFollowersDetailed(m, &usersGetFollowersDetailedServer{stream})
+}
+
+type Users_GetFollowersDetailedServer interface {
+	Send(*ProfileFollowDetaild) error
+	grpc.ServerStream
+}
+
+type usersGetFollowersDetailedServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetFollowersDetailedServer) Send(m *ProfileFollowDetaild) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_GetFollowingDetailed_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ProflieFollowRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetFollowingDetailed(m, &usersGetFollowingDetailedServer{stream})
+}
+
+type Users_GetFollowingDetailedServer interface {
+	Send(*ProfileFollowDetaild) error
+	grpc.ServerStream
+}
+
+type usersGetFollowingDetailedServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetFollowingDetailedServer) Send(m *ProfileFollowDetaild) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_CheckIfFollowing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProflieFollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckIfFollowing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckIfFollowing",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckIfFollowing(ctx, req.(*ProflieFollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_CheckForFollowingRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProflieFollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckForFollowingRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckForFollowingRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckForFollowingRequest(ctx, req.(*ProflieFollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -823,6 +1093,18 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetSearchedUsers",
 			Handler:    _Users_GetSearchedUsers_Handler,
 		},
+		{
+			MethodName: "SetFollowRequestRespond",
+			Handler:    _Users_SetFollowRequestRespond_Handler,
+		},
+		{
+			MethodName: "CheckIfFollowing",
+			Handler:    _Users_CheckIfFollowing_Handler,
+		},
+		{
+			MethodName: "CheckForFollowingRequest",
+			Handler:    _Users_CheckForFollowingRequest_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -833,6 +1115,21 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GerFollowing",
 			Handler:       _Users_GerFollowing_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetFollowRequests",
+			Handler:       _Users_GetFollowRequests_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetFollowersDetailed",
+			Handler:       _Users_GetFollowersDetailed_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetFollowingDetailed",
+			Handler:       _Users_GetFollowingDetailed_Handler,
 			ServerStreams: true,
 		},
 	},

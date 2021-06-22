@@ -24,6 +24,12 @@ service Users {
     rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
     rpc GetByUserId(GetByIdRequest) returns (GetByIdResponse);
     rpc GetSearchedUsers(SearchRequest) returns (SearchResponse);
+    rpc GetFollowRequests(Profile) returns(stream FollowingRequest);
+    rpc SetFollowRequestRespond(FollowRequestRespond) returns (FollowRequestSet);
+    rpc GetFollowersDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc GetFollowingDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc CheckIfFollowing(ProflieFollowRequest) returns (BoolResponse);
+    rpc CheckForFollowingRequest(ProflieFollowRequest) returns (BoolResponse);
 }
 
 message UpdateProfilePictureRequest {
@@ -196,7 +202,9 @@ message FollowRequest {
     string toFollow = 2;
 }
 
-message FollowRespose {}
+message FollowRespose {
+    string message = 1;
+}
 
 message FollowerRequest {
     string username = 1;
@@ -223,5 +231,39 @@ message SearchedUser {
 
 message SearchResponse {
     repeated SearchedUser searchedUser = 1;
+}
+
+message Profile {
+    string username = 1;
+}
+
+message FollowingRequest{
+    string username = 1;
+    uint64 userId = 2;
+    string profilePicture = 3;
+}
+
+message FollowRequestRespond {
+    string username = 1;
+    string request_username = 2;
+    bool accepted = 3;
+}
+
+message FollowRequestSet {}
+
+message ProflieFollowRequest {
+    string logeduser = 1;
+    string username = 2;
+}
+
+message ProfileFollowDetaild {
+    string username = 1;
+    bool following = 2;
+    bool pending = 3;
+    string profliePicture = 4;
+}
+
+message BoolResponse {
+    bool resposne = 1;
 }
 
