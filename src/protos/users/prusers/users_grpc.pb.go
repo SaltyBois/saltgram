@@ -36,6 +36,7 @@ type UsersClient interface {
 	GetProfileByUsername(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error)
 	GetFollowers(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GetFollowersClient, error)
 	GerFollowing(ctx context.Context, in *FollowerRequest, opts ...grpc.CallOption) (Users_GerFollowingClient, error)
+	GetByUserId(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*GetByIdResponse, error)
 	GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 }
 
@@ -255,6 +256,15 @@ func (x *usersGerFollowingClient) Recv() (*ProfileFollower, error) {
 	return m, nil
 }
 
+func (c *usersClient) GetByUserId(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*GetByIdResponse, error) {
+	out := new(GetByIdResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetByUserId", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *usersClient) GetSearchedUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
 	out := new(SearchResponse)
 	err := c.cc.Invoke(ctx, "/Users/GetSearchedUsers", in, out, opts...)
@@ -286,6 +296,7 @@ type UsersServer interface {
 	GetProfileByUsername(context.Context, *ProfileRequest) (*ProfileResponse, error)
 	GetFollowers(*FollowerRequest, Users_GetFollowersServer) error
 	GerFollowing(*FollowerRequest, Users_GerFollowingServer) error
+	GetByUserId(context.Context, *GetByIdRequest) (*GetByIdResponse, error)
 	GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
@@ -347,6 +358,9 @@ func (UnimplementedUsersServer) GetFollowers(*FollowerRequest, Users_GetFollower
 }
 func (UnimplementedUsersServer) GerFollowing(*FollowerRequest, Users_GerFollowingServer) error {
 	return status.Errorf(codes.Unimplemented, "method GerFollowing not implemented")
+}
+func (UnimplementedUsersServer) GetByUserId(context.Context, *GetByIdRequest) (*GetByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByUserId not implemented")
 }
 func (UnimplementedUsersServer) GetSearchedUsers(context.Context, *SearchRequest) (*SearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSearchedUsers not implemented")
@@ -694,6 +708,24 @@ func (x *usersGerFollowingServer) Send(m *ProfileFollower) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Users_GetByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetByUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/GetByUserId",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetByUserId(ctx, req.(*GetByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Users_GetSearchedUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchRequest)
 	if err := dec(in); err != nil {
@@ -782,6 +814,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProfileByUsername",
 			Handler:    _Users_GetProfileByUsername_Handler,
+		},
+		{
+			MethodName: "GetByUserId",
+			Handler:    _Users_GetByUserId_Handler,
 		},
 		{
 			MethodName: "GetSearchedUsers",

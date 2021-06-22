@@ -204,6 +204,12 @@ func (db *DBConn) GetUserByUsername(username string) (*User, error) {
 	return &user, err
 }
 
+func (db *DBConn) GetUserById(id uint64) (*User, error) {
+	user := User{}
+	err := db.DB.Where("id = ?", id).First(&user).Error
+	return &user, err
+}
+
 func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]User, error) {
 	var users []User
 	query := "%" + username + "%"

@@ -2,11 +2,11 @@
   <div class="post-comment">
     <div class="post-comment-left-side">
       <v-img  class="post-comment-profile"
-              src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+              :src="comment.profilePicture"
               @click="$router.push('/user')"
               alt="Profile picture"/>
-      <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
-      <p style="margin: 0 0 0 5px; font-size: 13px; text-align: left;">{{comment.comment.content}}</p>
+      <b @click="$router.push('/user')" style="cursor: pointer">{{comment.username}}</b>
+      <p style="margin: 0 0 0 5px; font-size: 13px; text-align: left;">{{comment.content}}</p>
       <p style="text-align: left; font-size: 10pt; margin: 0 0 0 5px; color: #858585; width: 120px">
         Posted 1 hour ago
       </p>
@@ -25,9 +25,7 @@ export default {
     }
   },
   mounted() {
-    //todo getUserByUserId
-    //username
-    console.log(this.comment.comment);
+    console.log(this.comment);
   }
 }
 </script>
