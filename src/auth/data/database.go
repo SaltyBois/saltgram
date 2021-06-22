@@ -53,7 +53,9 @@ func (db *DBConn) MigradeData() {
 }
 
 func (db *DBConn) SeedAdmin() {
-	if db.DB.Where("username = ?", "admin").First(&Refresh{}).RowsAffected > 0 {return}
+	if db.DB.Where("username = ?", "admin").First(&Refresh{}).RowsAffected > 0 {
+		return
+	}
 
 	refreshClaims := data.RefreshClaims{
 		Username: "admin",
@@ -68,7 +70,7 @@ func (db *DBConn) SeedAdmin() {
 
 	token2 := &Refresh{
 		Username: "admin",
-		Token: jws,
+		Token:    jws,
 	}
 	if err != nil {
 		db.l.Fatalf("Hashing admin password failed")

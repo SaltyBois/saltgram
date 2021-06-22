@@ -51,13 +51,15 @@ func (db *DBConn) MigradeData() {
 }
 
 func (db *DBConn) SeedAdmin() {
-	if db.DB.Where("username = ?", "admin").First(&User{}).RowsAffected > 0 {return}
+	if db.DB.Where("username = ?", "admin").First(&User{}).RowsAffected > 0 {
+		return
+	}
 
 	user := &User{
-		Username: "admin",
+		Username:       "admin",
 		HashedPassword: "Saltadmin123!?",
-		Role: "admin",
-		Activated: true,
+		Role:           "admin",
+		Activated:      true,
 	}
 	err := user.GenerateSaltAndHashedPassword()
 	if err != nil {

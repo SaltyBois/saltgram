@@ -10,6 +10,7 @@ import (
 	"saltgram/internal"
 	"saltgram/log"
 	"saltgram/pki"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
@@ -66,9 +67,16 @@ func main() {
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.GetProfile).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/profile/{username}", usersHandler.UpdateProfile).Methods(http.MethodPut)
 	usersRouter.HandleFunc("/create/follow", usersHandler.Follow).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/unfollow", usersHandler.Unfollow).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/get/followers/{username}", usersHandler.GetFollowers).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/get/following/{username}", usersHandler.GetFollowing).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/search/{username}", usersHandler.SearchUsers).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/follow/requests/", usersHandler.GetFollowingRequest).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/follow/request/", usersHandler.FollowRespond).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/followers/detailed/{username}", usersHandler.GetFollowersDetailed).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/following/detailed/{username}", usersHandler.GetFollowingDetailed).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/check/follow/{username}", usersHandler.CheckFollowing).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/check/followrequest/{username}", usersHandler.CheckFollowRequest).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
@@ -108,6 +116,22 @@ func main() {
 	contentRouter.HandleFunc("/reaction/{id}", contentHandler.GetReactionsByPost).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/reaction", contentHandler.PutReaction).Methods(http.MethodPut)
+
+	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing admin connection: %v\n", err)
+	}
+	defer adminConnection.Close()
+	adminClient := pradmin.NewAdminClient(adminConnection)
+	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient, contentClient)
+	adminRouter := s.S.PathPrefix("/admin").Subrouter()
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
+	// Better suited for user router?
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.AddVerificationRequest).Methods(http.MethodPost)
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.ReviewVerificationRequest).Methods(http.MethodPut)
+	// Better suited for user router?
+	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
+	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.GetPendingReports).Methods(http.MethodGet)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{

@@ -30,7 +30,31 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
+
+::-webkit-scrollbar {
+  width: 13px;
+}
+::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #aeaeb5
+}
+::-webkit-scrollbar-thumb {
+  background: #dadae3;
+  border-radius: 10px;
+  border: 1px solid #aeaeb5
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c4c4cc
+}
+::-webkit-scrollbar-thumb:active {
+  background: #aeaeb5
+}
+
+::-webkit-scrollbar-corner {
+  border-radius: 10px;
+}
 
 </style>
 

@@ -25,8 +25,8 @@ type ProflieDTO struct {
 	Email          string    `json:"email" validate:"required"`
 	FullName       string    `json:"fullName" validate:"required"`
 	Username       string    `json:"username" validate:"required"`
-	Public         bool      `json:"public"`   /* `json:"public" validate:"required"` */
-	Taggable       bool      `json:"taggable"` /* `json:"taggable" validate:"required"` */
+	Public         bool      `json:"public"`      /* `json:"public" validate:"required"` */
+	Taggable       bool      `json:"taggable"`    /* `json:"taggable" validate:"required"` */
 	Messageable    bool      `json:"messageable"` /* `json:"taggable" validate:"required"` */
 	Description    string    `json:"description" validate:"required"`
 	PhoneNumber    string    `json:"phoneNumber" validate:"required"`
@@ -45,8 +45,8 @@ type ProfileDTO struct {
 	Email             string `json:"email" validate:"required"`
 	FullName          string `json:"fullName" validate:"required"`
 	Username          string `json:"username" validate:"required"`
-	Public            bool   `json:"public"`   /* `json:"public" validate:"required"` */
-	Taggable          bool   `json:"taggable"` /* `json:"taggable" validate:"required"` */
+	Public            bool   `json:"public"`      /* `json:"public" validate:"required"` */
+	Taggable          bool   `json:"taggable"`    /* `json:"taggable" validate:"required"` */
 	Messageable       bool   `json:"messageable"` /* `json:"taggable" validate:"required"` */
 	Description       string `json:"description" validate:"required"`
 	PhoneNumber       string `json:"phoneNumber" validate:"required"`
@@ -60,9 +60,21 @@ type ProfileDTO struct {
 	IsPublic          bool   `json:"isPublic"`
 	IsFollowing       bool   `json:"isFollowing"`
 	ProfilePictureURL string `json:"profilePictureURL"`
-	AccountType 	  string `json:"accountType"`
-	Verified 		  bool   `json:"verified"`
+	AccountType       string `json:"accountType"`
+	Verified          bool   `json:"verified"`
 	IsThisMe          bool   `json:"isThisMe"`
+}
+
+type FollowRequestDOT struct {
+	RequestProfile string `json:"profile" validate:"required"`
+	IsAccepted     bool   `json:"accepted"`
+}
+
+type ProfileFollowDetailedDTO struct {
+	Username       string `json:"username"`
+	Following      bool   `json:"following"`
+	Pending        bool   `json:"pending"`
+	ProfliePicture string `json:"profilePictureURL"`
 }
 
 type FollowDTO struct {
@@ -83,4 +95,9 @@ func (u *UserDTO) Validate() error {
 func (f *FollowDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(f)
+}
+
+func (fr *FollowRequestDOT) Validate() error {
+	validate := validator.New()
+	return validate.Struct(fr)
 }

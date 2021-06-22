@@ -175,6 +175,7 @@ export default {
         isMyProfile: false,
         radioButton: 'posts',
         followingUser: false,
+        pendingRequest: false,
         usersPosts: [],
         userStories: [],
       }
@@ -294,8 +295,21 @@ export default {
             }).catch(err => {
               console.log(err)
             })
-
-
+            if(!this.isMyProfile) {
+              this.axios.get("users/check/follow/" + this.$route.params.username, {headers: this.getAHeader()})
+              .then(r => {
+                this.followingUser = r.data
+                this.$refs.profileImage.$data.following = r.data
+              })
+        
+              if(!this.followingUser) {
+                this.axios.get("users/check/followrequest/" + this.$route.params.username, {headers: this.getAHeader()})
+                .then(r => {
+                  //this.pendingRequest = r.data
+                  this.$refs.profileImage.$data.waitingForResponse = r.data
+                })
+              }
+            }
         },
         getUserPosts(id) {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
@@ -331,9 +345,13 @@ export default {
               this.$router.push('/');
             })
         },
+
         toggleFollow(follow) {
           this.followingUser = follow
         },
+        getFollowingNumb() {
+          this.getUserInfo();
+        }
     },
     mounted() {
          this.getUserInfo(); // TODO UNCOMMENT THIS

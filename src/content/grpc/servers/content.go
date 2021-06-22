@@ -29,6 +29,59 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
+func (c *Content) GetPostPreviewURL(ctx context.Context, r *prcontent.GetPostPreviewURLRequest) (*prcontent.GetPostPreviewURLResponse, error) {
+	post, err := c.db.GetPost(r.PostId)
+	if err != nil {
+		c.l.Errorf("failed to get shared media: %v", err)
+		return &prcontent.GetPostPreviewURLResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	return &prcontent.GetPostPreviewURLResponse{Url: post.SharedMedia.Media[0].URL}, nil
+}
+
+func (c *Content) AddVerificationImage(stream prcontent.Content_AddVerificationImageServer) error {
+	r, err := stream.Recv()
+	if err != nil {
+		c.l.Errorf("failed to receive verification meta: %v", err)
+		return err
+	}
+	v := data.Verification{
+		UserID: r.GetInfo().UserId,
+	}
+	imageData := bytes.Buffer{}
+	for {
+		chunk, err := stream.Recv()
+		if err == io.EOF {
+			c.l.Info("verification image received")
+			break
+		}
+		if err != nil {
+			c.l.Errorf("error while receiving image data: %v", err)
+			return status.Error(codes.InvalidArgument, "Bad request")
+		}
+		// TODO(Jovan): Prevent large uploads?
+		_, err = imageData.Write(chunk.GetImage())
+		if err != nil {
+			c.l.Errorf("error appending image chunk data: %v", err)
+			return status.Error(codes.Internal, "Internal server error")
+		}
+	}
+	url, err := c.g.UploadVerificationImage(strconv.FormatUint(v.UserID, 10), r.GetInfo().Filename, &imageData)
+	if err != nil {
+		c.l.Errorf("failed to upload verification image: %v", err)
+		return err
+	}
+	v.URL = url
+	err = c.db.AddVerification(&v)
+	if err != nil {
+		c.l.Errorf("failed to save verification: %v", err)
+		return err
+	}
+
+	err = stream.SendAndClose(&prcontent.AddVerificationImageResponse{Url: url})
+	return err
+}
+
 func (c *Content) GetHighlights(ctx context.Context, r *prcontent.GetHighlightsRequest) (*prcontent.GetHighlightsResponse, error) {
 	highlights, err := c.db.GetHighlights(r.UserId)
 	if err != nil {
@@ -265,7 +318,7 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
 				},
-				Url: m.URL,
+				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
 			})
 		}

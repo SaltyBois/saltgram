@@ -25,7 +25,7 @@
               </div>
               <div v-if="isUserLoggedIn" class="post-header-right-side">
                 <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
-                <PostInfo username="Username1" ref="postInfo"/>
+                <PostInfo username="Username1" ref="postInfo" v-if="post" :shared-media-id="post.post.id"/>
               </div>
             </div>
             <div style="display: flex; justify-content: space-between;">
