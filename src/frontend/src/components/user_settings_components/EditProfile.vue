@@ -2,7 +2,7 @@
   <div class="main-div">
     <div class="item-container">
       <div class="profile-head-layout">
-        <ImageMessage v-if="showContent" :image-src="this.profileImage" @toggle-image-message="showContent = false"/>
+        <ImageMessage v-if="showContent" :image-src="this.profilePicture" @toggle-image-message="showContent = false"/>
         <v-img v-if="profilePicture" class="head"
                 @click="showContent = true"
                 :src="profilePicture"
@@ -117,13 +117,33 @@
         </div>
       </div>
     </div>
-    <div class="item-container mb-10">
+    <div class="item-container">
       <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
         <div style="width: 50%;">
           <v-btn class="mx-2" v-bind:class="!profile.privateUser ? 'primary' : 'accent'" @click="profile.privateUser  = false"><i class="fa fa-unlock mr-1"/>Public profile</v-btn>
         </div>
         <div style="width: 50%;">
           <v-btn class="mx-2" v-bind:class="profile.privateUser  ? 'primary' : 'accent'" @click="profile.privateUser  = true"><i class="fa fa-lock mr-1"/>Private profile</v-btn>
+        </div>
+      </div>
+    </div>
+    <div class="item-container ">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 75%;">
+          <h3 style="margin-top: 14px;">Do you want to receive messages from users that you don't follow?</h3>
+        </div>
+        <div style="width: 25%;">
+          <v-checkbox outlined v-model="profile.messageable" style="width: 400px; margin-left: 20%"/>
+        </div>
+      </div>
+    </div>
+    <div class="item-container mb-10">
+      <div style="display: inline-flex; flex-direction: row; margin-top: 20px; width: 70%">
+        <div style="width: 75%;">
+          <h3 style="margin-top: 14px; ">Do you want to allow other users to tag you on their posts, stories or comments?</h3>
+        </div>
+        <div style="width: 25%;">
+          <v-checkbox outlined v-model="profile.taggable" style="width: 400px; margin-left: 20%"/>
         </div>
       </div>
     </div>
@@ -154,7 +174,9 @@ export default {
         phoneNumber: '',
         gender: '',
         dateOfBirth: '',
-        email: ''
+        email: '',
+        taggable: '',
+        messageable: ''
       },
       user: '',
       maxDate: ''
@@ -218,6 +240,9 @@ export default {
             this.profile.gender = r.data.gender;
             this.profile.dateOfBirth = r.data.dateOfBirth * 1000;
             this.dateFunc();
+            this.profile.taggable = r.data.taggable;
+            this.profile.messageable = r.data.messageable;
+            console.log(this.profile.taggable)
           }).catch(err => {
         console.log(err)
         console.log('Pushing Back to Login Page after fetching profile')
@@ -281,7 +306,9 @@ export default {
             phoneNumber: this.profile.phoneNumber,
             gender: this.profile.gender,
             dateOfBirth: this.profile.dateOfBirth,
-            email: this.profile.email
+            email: this.profile.email,
+            taggable: this.profile.taggable,
+            messageable: this.profile.messageable
         }
       this.axios.put("users/profile/" + this.$route.params.username, profileData, {headers: this.getAHeader()} )
       .then(() => {

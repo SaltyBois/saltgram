@@ -23,9 +23,9 @@
     <div v-if="!processing" class="query-panel">
       <transition name="fade" appear>
         <div class="search-panel" v-if="category === 'profiles'" >
-          <div v-for="index in searchedData.profiles" :key="index">
+          <div v-for="(item, index) in searchedData.profiles" :key="index">
             <div>
-              <ProfileSearch :username-prop="index.username" :profile-picture-address-prop="index.profilePictureAddress" />
+              <ProfileSearch :username-prop="item.username" :profile-picture-address-prop="item.profilePictureURL" />
             </div>
             <v-divider/>
           </div>
@@ -77,6 +77,9 @@ export default {
   methods: {
 
   },
+  mounted() {
+    console.log(this.searchedData.profiles)
+  }
 
 }
 </script>

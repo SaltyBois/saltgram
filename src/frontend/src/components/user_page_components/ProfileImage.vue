@@ -4,8 +4,14 @@
       {{this.username}}
       <i class="fa fa-check-square verified-icon ml-5"/>
     </h2>
-    <v-img v-if="imageSrc" id="profile-image"
+    <v-img  class="profile-image"
+            v-if="imageSrc"
             :src="imageSrc"
+            alt="Profile picture"
+            @click="showProfileImageDialog = true"/>
+    <v-img  class="profile-image"
+            v-else
+            :src="require('@/assets/profile_placeholder.png')"
             alt="Profile picture"
             @click="showProfileImageDialog = true"/>
     <StoryView ref="storyView" v-if="userStories" :stories="userStories"/>
@@ -176,7 +182,7 @@ export default {
 
 <style scoped>
 
-#profile-image {
+.profile-image {
   width: 300px;
   height: 300px;
   object-fit: cover;
