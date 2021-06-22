@@ -1,11 +1,12 @@
 <template>
   <div class="story-highlight-layout">
-    <v-img  class="story-highlight"
+    <v-img v-if="stories" class="story-highlight"
             @click="$refs.storyView.$data.visible = true"
-            :src="src"
+            :src="stories[0].url"
             alt="Profile picture"/>
-    <h5>Highlights 1</h5>
-    <StoryView :image-src="src" ref="storyView"/>
+    <v-img v-else class="story-highlight" src="require('@/assets/profile_placeholder.png')" />
+    <h5>{{name}}</h5>
+    <StoryView :stories="stories" ref="storyView"/>
   </div>
 </template>
 
@@ -15,8 +16,18 @@ export default {
   name: "StoryHighlight",
   data: function () {
     return {
-      src: 'https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg'
+      
     }
+  },
+  props: {
+    stories: {
+      type: Array,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
   },
   components: {StoryView}
 }

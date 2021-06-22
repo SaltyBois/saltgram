@@ -117,38 +117,65 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 }
 
+func (u *Users) GetByUsernameRoute(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	username := vars["username"]
+
+	user, err := u.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: username})
+	if err != nil {
+		u.l.Errorf("failed to fetch user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	response := saltdata.UserDTO{
+		Id:       strconv.FormatUint(user.Id, 10),
+		Email:    user.Email,
+		FullName: user.FullName,
+		Username: user.Username,
+	}
+
+	err = saltdata.ToJSON(response, w)
+	if err != nil {
+		u.l.Errorf("Serializing user: %v", err)
+		http.Error(w, "Error serializing user", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+}
+
 func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 
-	jws, err := getUserJWS(r)
-	if err != nil {
-		u.l.Println("[ERROR] JWS not found")
-		http.Error(w, "JWS not found", http.StatusBadRequest)
-		return
-	}
+	//jws, err := getUserJWS(r)
+	//if err != nil {
+	//	u.l.Println("[ERROR] JWS not found")
+	//	http.Error(w, "JWS not found", http.StatusBadRequest)
+	//	return
+	//}
+	//
+	//token, err := jwt.ParseWithClaims(
+	//	jws,
+	//	&saltdata.AccessClaims{},
+	//	func(t *jwt.Token) (interface{}, error) {
+	//		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+	//	},
+	//)
+	//
+	//if err != nil {
+	//	u.l.Printf("[ERROR] parsing claims: %v", err)
+	//	http.Error(w, "Error parsing claims", http.StatusBadRequest)
+	//	return
+	//}
+	//
+	//claims, ok := token.Claims.(*saltdata.AccessClaims)
+	//
+	//if !ok {
+	//	u.l.Println("[ERROR] unable to parse claims")
+	//	http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+	//	return
+	//}
 
-	token, err := jwt.ParseWithClaims(
-		jws,
-		&saltdata.AccessClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-		},
-	)
-
-	if err != nil {
-		u.l.Printf("[ERROR] parsing claims: %v", err)
-		http.Error(w, "Error parsing claims", http.StatusBadRequest)
-		return
-	}
-
-	claims, ok := token.Claims.(*saltdata.AccessClaims)
-
-	if !ok {
-		u.l.Println("[ERROR] unable to parse claims")
-		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
-
-	user := claims.Username
+	//user := claims.Username
 
 	vars := mux.Vars(r)
 	profileUsername, er := vars["username"]
@@ -158,15 +185,30 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user, Username: profileUsername})
+	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: profileUsername, Username: profileUsername})
 	if err != nil {
 		u.l.Println("[ERROR] fetching profile")
 		http.Error(w, "Profile not found", http.StatusNotFound)
 		return
 	}
 
-	saltdata.ToProtoJSON(profile, w)
+	response := saltdata.ProfileDTO{
+		UserId:            strconv.FormatUint(profile.UserId, 10),
+		FullName:          profile.FullName,
+		Username:          profile.Username,
+		Followers:         profile.Followers,
+		Following:         profile.Following,
+		Description:       profile.Description,
+		IsPublic:          profile.IsPublic,
+		IsFollowing:       profile.IsFollowing,
+		PhoneNumber:       profile.PhoneNumber,
+		Gender:            profile.Gender,
+		DateOfBirth:       profile.DateOfBirth,
+		WebSite:           profile.WebSite,
+		ProfilePictureURL: profile.ProfilePictureURL,
+	}
 
+	saltdata.ToJSON(response, w)
 }
 
 func (u *Users) GetFollowers(w http.ResponseWriter, r *http.Request) {
@@ -282,7 +324,53 @@ func (u *Users) GetFollowingRequest(w http.ResponseWriter, r *http.Request) {
 		profiles = append(profiles, profile)
 	}
 	saltdata.ToJSON(profiles, w)
+}
 
+func (c *Content) GetHighlights(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["id"]
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		c.l.Errorf("failed to parse user id: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := c.cc.GetHighlights(context.Background(), &prcontent.GetHighlightsRequest{UserId: userId})
+	if err != nil {
+		c.l.Errorf("failed to get highlights: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	dto := []*saltdata.HighlightDTO{}
+	for _, h := range resp.Highlights {
+		dto = append(dto, saltdata.PRToDTOHighlight(h))
+	}
+	saltdata.ToJSON(dto, w)
+}
+
+func (c *Content) GetStoriesByUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userIdStr := vars["id"]
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		c.l.Errorf("failed to parse user id: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	resp, err := c.cc.GetStoriesIndividual(context.Background(), &prcontent.GetStoriesIndividualRequest{UserId: userId})
+	if err != nil {
+		c.l.Errorf("failed to get user stories: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	dto := []*saltdata.StoryDTO{}
+	for _, s := range resp.Stories {
+		dto = append(dto, saltdata.PRToDTOStory(s))
+	}
+	saltdata.ToJSON(dto, w)
 }
 
 func (s *Content) GetSharedMedia(w http.ResponseWriter, r *http.Request) {
@@ -378,34 +466,45 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
-	jws, err := getUserJWS(r)
-	if err != nil {
-		u.l.Println("[ERROR] JWS not found")
-		http.Error(w, "JWS not found", http.StatusBadRequest)
-		return
+
+	jws, err1 := getUserJWS(r)
+	var t *jwt.Token
+	var err2 error
+	var claims1 *saltdata.AccessClaims
+	var ok bool
+	//if err != nil {
+	//	u.l.Println("[ERROR] JWS not found")
+	//	http.Error(w, "JWS not found", http.StatusBadRequest)
+	//	return
+	//}
+	if jws != "" {
+		token, error2 := jwt.ParseWithClaims(
+			jws,
+			&saltdata.AccessClaims{},
+			func(t *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+			},
+		)
+		t = token
+		err2 = error2
 	}
 
-	token, err := jwt.ParseWithClaims(
-		jws,
-		&saltdata.AccessClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
-		},
-	)
-
-	if err != nil {
-		u.l.Printf("[ERROR] parsing claims: %v", err)
-		http.Error(w, "Error parsing claims", http.StatusBadRequest)
-		return
+	//if err != nil {
+	//	u.l.Printf("[ERROR] parsing claims: %v", err)
+	//	http.Error(w, "Error parsing claims", http.StatusBadRequest)
+	//	return
+	//}
+	if t != nil {
+		claims, ok1 := t.Claims.(*saltdata.AccessClaims)
+		claims1 = claims
+		ok = ok1
 	}
 
-	claims, ok := token.Claims.(*saltdata.AccessClaims)
-
-	if !ok {
-		u.l.Println("[ERROR] unable to parse claims")
-		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
-		return
-	}
+	//if !ok {
+	//	u.l.Println("[ERROR] unable to parse claims")
+	//	http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+	//	return
+	//}
 
 	vars := mux.Vars(r)
 	queryUsername := vars["username"]
@@ -424,9 +523,14 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < len(queryResults.SearchedUser); i++ {
 		su := queryResults.SearchedUser[i]
-		if su.Username == claims.Username {
-			continue
+		if err1 == nil &&
+			err2 == nil &&
+			ok {
+			if su.Username == claims1.Username {
+				continue
+			}
 		}
+
 		if i == MAX_NUMBER_OF_RESULTS {
 			break
 		}
@@ -482,9 +586,9 @@ func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var postsArray []*prcontent.GetPostsResponse
 	for {
-		posts, err := stream.Recv()
+		post, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
@@ -493,22 +597,50 @@ func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error couldn't fetch posts", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(posts, w)
+		postsArray = append(postsArray, post)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(postsArray, w)
 }
 
 func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request) {
 
-	vars := mux.Vars(r)
-	userId := vars["id"]
-	id, err := strconv.ParseUint(userId, 10, 64)
+	jws, err := getUserJWS(r)
 	if err != nil {
-		s.l.Println("converting id")
+		s.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
 		return
 	}
 
-	stream, err := s.cc.GetPostsByUserReaction(context.Background(), &prcontent.GetPostsRequest{UserId: id})
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		s.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		s.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := s.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		s.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	stream, err := s.cc.GetPostsByUserReaction(context.Background(), &prcontent.GetPostsRequest{UserId: user.Id})
 	if err != nil {
 		s.l.Errorf("failed fetching posts %v\n", err)
 		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
@@ -754,4 +886,67 @@ func (u *Users) CheckFollowRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	saltdata.ToJSON(resp.Resposne, w)
+}
+func (s *Content) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("converting id")
+		return
+	}
+
+	stream, err := s.cc.GetComments(context.Background(), &prcontent.GetCommentsRequest{PostId: id})
+	if err != nil {
+		s.l.Errorf("failed fetching comments %v\n", err)
+		http.Error(w, "failed fetching comments", http.StatusInternalServerError)
+		return
+	}
+	var comments []*prcontent.GetCommentsResponse
+	for {
+		comment, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Errorf("failed to fetch comments: %v\n", err)
+			http.Error(w, "Error couldn't fetch comments", http.StatusInternalServerError)
+			return
+		}
+		comments = append(comments, comment)
+	}
+	saltdata.ToJSON(comments, w)
+}
+
+func (s *Content) GetReactionsByPost(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("converting id")
+		return
+	}
+
+	stream, err := s.cc.GetReactions(context.Background(), &prcontent.GetReactionsRequest{PostId: id})
+	if err != nil {
+		s.l.Errorf("failed fetching reactions %v\n", err)
+		http.Error(w, "failed fetching reactions", http.StatusInternalServerError)
+		return
+	}
+	var reactions []*prcontent.GetReactionsResponse
+	for {
+		reaction, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Errorf("failed to fetch reactions: %v\n", err)
+			http.Error(w, "Error couldn't fetch reactions", http.StatusInternalServerError)
+			return
+		}
+		reactions = append(reactions, reaction)
+	}
+	saltdata.ToJSON(reactions, w)
 }
