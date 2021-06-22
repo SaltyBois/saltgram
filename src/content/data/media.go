@@ -292,6 +292,6 @@ func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
 
 func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
 	post := []Post{}
-	err := db.DB.Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
+	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
 	return &post, err
 }

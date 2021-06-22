@@ -207,6 +207,8 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth:       profile.DateOfBirth,
 		WebSite:           profile.WebSite,
 		ProfilePictureURL: profile.ProfilePictureURL,
+		Taggable: 		   profile.Taggable,
+		Messageable: 	   profile.Messageable,
 	}
 
 	saltdata.ToJSON(response, w)
@@ -594,9 +596,9 @@ func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("{"))
+	var posts []*prcontent.GetPostsResponse
 	for {
-		posts, err := stream.Recv()
+		post, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
@@ -605,9 +607,9 @@ func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "Error couldn't fetch posts", http.StatusInternalServerError)
 			return
 		}
-		saltdata.ToJSON(posts, w)
+		posts = append(posts, post)
 	}
-	w.Write([]byte("}"))
+	saltdata.ToJSON(posts, w)
 }
 
 func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) {

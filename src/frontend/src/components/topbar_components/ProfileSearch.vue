@@ -3,7 +3,12 @@
        @click="$router.push('/user/' + usernameProp)">
     <div style="padding: 3%">
       <v-img  class="profile-search-head"
+              v-if="profilePictureAddressProp"
               :src="profilePictureAddressProp"
+              alt="Profile picture"/>
+      <v-img  class="profile-search-head"
+              v-else
+              :src="require('@/assets/profile_placeholder.png')"
               alt="Profile picture"/>
     </div>
     <div style="padding: 3%;overflow: hidden">
@@ -26,6 +31,9 @@ export default {
       type: String,
       required: true
     }
+  },
+  mounted() {
+    console.log(this.profilePictureAddressProp)
   }
 }
 </script>

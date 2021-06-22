@@ -237,7 +237,7 @@ export default {
     }
 
     .register-and-logo {
-        height: 80vh;
+        height: 70vh;
         overflow-y: scroll;
         min-width: 25rem;
         border: 1px solid #eee;

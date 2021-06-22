@@ -60,6 +60,7 @@ message UpdateRequest {
     string webSite = 10;
     bool privateProfile = 11;
     string description = 12;
+    bool messageable = 13;
 }
 
 message UpdateResponse {}
@@ -172,6 +173,8 @@ message ProfileResponse {
     string storiesFolderId = 14;
     uint64 userId = 15;
     string profilePictureURL = 16;
+    bool taggable = 17;
+    bool messageable = 18;
 }
 
 message ChangePublicRequest {
