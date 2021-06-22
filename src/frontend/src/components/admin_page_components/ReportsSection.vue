@@ -6,10 +6,11 @@
     <div style="display: inline-flex; height: 90%; width: 100%">
       <div class="dropdown-list">
         <div class="inner-layout">
-          <div v-for="index in 15" :key="index">
+          <div v-for="index in pendingReports" :key="index"
+            @click="selectedReport(index)">
             <ReportedUser :username-prop="index.username"
-                          :profile-picture-address-prop="index.profilePictureAddress"
-                          @click="selectedReport(index)"/>
+                          :profile-picture-address-prop="index.profilePicture"
+                          />
             <v-divider/>
           </div>
         </div>
@@ -30,14 +31,29 @@ export default {
   components: { ReportedUser, ReportDetails },
   data: function () {
     return {
-
+      pendingReports: [],
     }
   },
   methods: {
-    selectedReport(reportData) {
-      this.$refs.reportDetails.$data.reportData = reportData
-    }
-  }
+    selectedReport(repData) {
+      this.$refs.reportDetails.$data.reportData.username = repData.username;
+      this.$refs.reportDetails.$data.reportData.reportedMedia = repData.sharedMediaId;
+      this.$refs.reportDetails.$data.reportData.profilePictureAddress = repData.profilePicture;
+    },
+    getPendingReports() {
+      this.axios.get("admin/inappropriatecontent")
+        .then(r => {
+          console.log(r);
+          this.pendingReports = r.data;
+        } 
+        ).catch( err => {
+          console.log("Failed to get pending reports.", err);
+        })
+    },
+  },
+  mounted() {
+    this.getPendingReports();
+  },
 }
 </script>
 
