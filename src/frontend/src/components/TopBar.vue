@@ -52,7 +52,12 @@
                 style="text-transform: none"
                 @click="profileDropDownMenuActive=!profileDropDownMenuActive">
           <v-img  class="post-header-profile"
-                  src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+                  v-if="profilePictureURL"
+                  :src="profilePictureURL"
+                  alt="Profile picture"/>
+          <v-img  class="post-header-profile"
+                  v-else
+                  :src="require('@/assets/profile_placeholder.png')"
                   alt="Profile picture"/>
           <b>@{{this.username}}</b>
         </v-btn>
@@ -76,9 +81,10 @@
                 <i class="fa fa-address-book mr-1"/>
                 profile
               </v-btn>
-              <v-btn @click="profileDropDownMenuActive = false;" class="accent mt-3" light>
-                <i class="fa fa-folder-open mr-1"/>
-                saved
+              <v-btn @click="profileDropDownMenuActive = false; $router.push('/reactions')" class="accent mt-3" light>
+                <i class="fa fa-thumbs-o-up like mr-1" aria-hidden="true"/>
+                <i class="fa fa-thumbs-o-up dislike mr-1" aria-hidden="true"/>
+                reactions
               </v-btn>
               <v-btn @click="profileDropDownMenuActive = false; showProfileSettingsDialog = true; $router.push('/user/settings/' + username)" class="accent mt-3">
                 <i class="fa fa-cog mr-1"/>
@@ -135,7 +141,8 @@ export default {
         locations: []
       },
       debouncedSearch: '',
-      isUserLogged: false
+      isUserLogged: false,
+      profilePictureURL: '',
     }
   },
   mounted() {
@@ -171,6 +178,12 @@ export default {
                 .then(r =>{
                   this.username = r.data.username;
                   this.isUserLogged = true;
+                  this.axios.get("users/profile/" + this.username, {headers: this.getAHeader()})
+                      .then(r => {
+                        this.profilePictureURL = r.data.profilePictureURL;
+                      }).catch(err => {
+                    console.log(err)
+                  })
                 })
                 .catch(() => {
                   this.isUserLogged = false;
@@ -184,10 +197,20 @@ export default {
       console.log('Query: ' + this.searchQuery)
       this.axios.get('users/search/' + this.searchQuery, {headers: this.getAHeader()})
       .then( r => {
-        console.log(r.data)
+        // console.log(r.data)
         this.searchedData.profiles = r.data
-        this.$refs.searchPanel.$data.searchedData = this.searchedData
-        this.$refs.searchPanel.$data.processing = false
+        for (let i = 0; i < r.data.length; ++i) {
+          this.axios.get("users/profile/" + r.data[i].username, {headers: this.getAHeader()})
+              .then(r => {
+                this.searchedData.profiles[i].profilePictureURL = r.data.profilePictureURL;
+                console.log(this.searchedData.profiles[i]);
+                this.$refs.searchPanel.$data.searchedData = this.searchedData
+                this.$refs.searchPanel.$data.processing = false
+              }).catch(err => {
+                console.log(err)
+                })
+        }
+
       }).catch(err => {
         console.log(err)
         this.$refs.searchPanel.$data.processing = false
@@ -397,6 +420,8 @@ export default {
   margin: 10px;
   cursor: pointer;
 
+  border: solid black 1px;
+
 
   filter: brightness(1);
 
@@ -460,6 +485,14 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+}
+
+.like, .dislike {
+  transform: scale(1);
+}
+
+.dislike {
+  transform: scale(1) rotate(180deg);
 }
 
 </style>

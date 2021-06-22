@@ -16,7 +16,7 @@
                     justify-center
                     column>
 
-            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers"/>
+            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers" :posts-number="usersPosts.length"/>
 
           </v-layout>
 
@@ -267,7 +267,7 @@ export default {
               this.profile.description = r.data.description;
               this.profile.webSite = r.data.webSite;
               this.profile.profilePictureURL = r.data.profilePictureURL;
-              console.log(r.data.userId)
+              // console.log(r.data.userId)
               this.getUserPosts(r.data.userId);
               this.getUserStories(r.data.userId);
             }).catch(err => {
@@ -280,7 +280,7 @@ export default {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
            .then(r => {
               this.usersPosts = r.data;
-              console.log(this.usersPosts);
+              // console.log(this.usersPosts);
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -291,7 +291,7 @@ export default {
            .then(r => {
               //console.log(JSON.parse(r.data.toString()));
               this.userStories = r.data;
-              console.log("stories:", r.data);
+              // console.log("stories:", r.data);
               if (this.userStories !== null)  {
                 let newStories = []
                 this.userStories.forEach(s => {

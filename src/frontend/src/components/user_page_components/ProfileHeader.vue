@@ -4,7 +4,7 @@
     <v-layout column
               align-center>
       <h4>Posts</h4>
-      <h3><b>123</b></h3>
+      <h3><b>{{ postsNumber }}</b></h3>
     </v-layout>
     <v-layout column
               align-center
@@ -44,6 +44,10 @@ export default {
       type: Number,
       required: true
     },
+    postsNumber: {
+      type: Number,
+      required: true
+    }
   },
   methods: {
     toggleVisibility() {

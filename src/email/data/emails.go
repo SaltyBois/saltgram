@@ -120,7 +120,10 @@ func SendPasswordReset(db *DBConn, email string) error {
 func sendEmail(email, subject, content string) error {
 	emailAuth := smtp.PlainAuth("", EMAIL_SENDER, PASSWORD, HOST_URL)
 	signature := "\n\nSincerely Yours,\nThe Salty Bois"
-	messageBytes := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n%s\n\n%s", email, subject, content, signature))
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	photo := "<img id=\"logo\" style=\"width = 30px; height = 30px\" src=\"https://image.flaticon.com/icons/png/512/114/114928.png\" alt=\"Saltgram logo picture\"/>"
+	content = photo + "<p>" + content + "</p>"
+	messageBytes := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n%s\n%s\n\n%s", email, subject, mime, content, signature))
 	em := []string{email}
 	return smtp.SendMail(ADDRESS, emailAuth, EMAIL_SENDER, em, messageBytes)
 }

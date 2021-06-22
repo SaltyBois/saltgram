@@ -1,7 +1,16 @@
 <template>
   <div>
     <PostView ref="postView" :post="post" :key="reloadKey" @reload="reloadPostView"/>
+    <video  class="post"
+            v-if="post.post.sharedMedia.media[0].mimeType === 1"
+            :controls="false"
+            :playsinline="false"
+            :preload="true"
+            :autoplay="false"
+            :src="post.post.sharedMedia.media[0].url"
+            @click="showPostFun"/>
     <v-img  class="post"
+            v-else
             :src="post.post.sharedMedia.media[0].url"
             @click="showPostFun"
             alt="Post"/>
@@ -18,6 +27,7 @@ export default {
     return {
       reloadKey: 0,
       //post: [],
+
     }
 
   },
@@ -35,6 +45,7 @@ export default {
     },
   },
   mounted() {
+    // console.log(this.post.post.sharedMedia.media[0])
     //console.log(this.post);
   }
 }

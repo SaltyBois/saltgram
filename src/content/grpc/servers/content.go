@@ -224,7 +224,8 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
 				},
-				Url: m.URL,
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
 			})
 		}
 		post := &prcontent.Post{
@@ -264,6 +265,8 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
 				},
+				Url: m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
 			})
 		}
 		post := &prcontent.Post{

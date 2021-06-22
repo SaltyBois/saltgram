@@ -12,9 +12,16 @@
         <v-btn class="primary my-2"
                @click="option = 2"
                v-bind:class="option === 2 ? 'primary' : 'accent'">Switch to professional Account</v-btn>
-        <v-btn class="primary my-2"
+        <v-btn class="my-2"
                @click="option = 3"
-               v-bind:class="option === 3 ? 'primary' : 'success'">Close friends</v-btn>
+               v-bind:color="option === 3 ? 'success' : 'close-friends-btn'">Close friends</v-btn>
+        <v-btn class="my-2"
+               @click="option = 4"
+               v-bind:color="option === 4 ? 'error-btn' : 'error'">Muted users</v-btn>
+        <v-btn class="my-2"
+               @click="option = 5"
+               v-bind:color="option === 5 ? 'error-btn' : 'error'">Blocked users</v-btn>
+
       </div>
       <div class="components-div">
 
@@ -25,6 +32,10 @@
         <ProfessionalAccount v-if="option === 2"/>
 
         <CloseFriends v-if="option === 3"/>
+
+        <MutedUsers v-if="option === 4" />
+
+        <BlockedUsers v-if="option === 5"/>
 
       </div>
     </div>
@@ -37,10 +48,12 @@ import EditProfile from "@/components/user_settings_components/EditProfile";
 import ChangePassword from "@/components/user_settings_components/ChangePassword";
 import ProfessionalAccount from "@/components/user_settings_components/ProfessionalAccount";
 import CloseFriends from "@/components/user_settings_components/CloseFriends";
+import MutedUsers from "@/components/user_settings_components/MutedUsers";
+import BlockedUsers from "@/components/user_settings_components/BlockedUsers";
 
 export default {
   name: "UserSettings",
-  components: {TopBar, EditProfile, ChangePassword, ProfessionalAccount, CloseFriends},
+  components: {TopBar, EditProfile, ChangePassword, ProfessionalAccount, CloseFriends, MutedUsers, BlockedUsers},
   data: function() {
     return {
       option: 0,
@@ -88,6 +101,16 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
 
+}
+
+.close-friends-btn {
+  color: white;
+  background-color: #74cf5a !important;
+}
+
+.error-btn {
+  color: white;
+  background-color: #ff1d1d !important;
 }
 
 </style>
