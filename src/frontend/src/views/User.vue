@@ -7,7 +7,12 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" image-src="Insert image source" @toggle-following="toggleFollow"/>
+          <ProfileImage ref="profileImage" 
+          :is-my-profile-prop="this.isMyProfile" 
+          :username="this.profile.username" 
+          image-src="Insert image source" 
+          @toggle-following="toggleFollow" 
+          />
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -114,6 +119,7 @@ export default {
         isMyProfile: false,
         radioButton: 'posts',
         followingUser: false,
+        pendingRequest: false,
       }
     },
     computed: {
@@ -159,6 +165,22 @@ export default {
               console.log('Pushing Back to Login Page after fetching profile')
               this.$router.push('/');
             })
+
+            if(!this.isMyProfile) {
+              this.axios.get("users/check/follow/" + this.$route.params.username, {headers: this.getAHeader()})
+              .then(r => {
+                this.followingUser = r.data
+                this.$refs.profileImage.$data.following = r.data
+              })
+        
+              if(!this.followingUser) {
+                this.axios.get("users/check/followrequest/" + this.$route.params.username, {headers: this.getAHeader()})
+                .then(r => {
+                  //this.pendingRequest = r.data
+                  this.$refs.profileImage.$data.waitingForResponse = r.data
+                })
+              }
+            }
 
           // this.axios.get("users/get/followers/" + this.$route.params.username, {headers: this.getAHeader()})
           //     .then(r => {

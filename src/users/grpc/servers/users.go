@@ -556,3 +556,51 @@ func (u *Users) GetFollowingDetailed(r *prusers.ProflieFollowRequest, stream pru
 	}
 	return nil
 }
+
+func (u *Users) CheckIfFollowing(ctx context.Context, r *prusers.ProflieFollowRequest) (*prusers.BoolResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logeduser)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	following, err := data.CheckIfFollowing(u.db, userProfile, profile)
+	if err != nil {
+		return &prusers.BoolResponse{}, err
+	}
+	if following {
+		return &prusers.BoolResponse{Resposne: true}, nil
+	}
+	return &prusers.BoolResponse{Resposne: false}, nil
+
+}
+
+func (u *Users) CheckForFollowingRequest(ctx context.Context, r *prusers.ProflieFollowRequest) (*prusers.BoolResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logeduser)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	pending, err := data.CheckForFollowingRequest(u.db, profile, userProfile)
+	if err != nil {
+		return &prusers.BoolResponse{}, err
+	}
+	if pending {
+		return &prusers.BoolResponse{Resposne: true}, nil
+	}
+	return &prusers.BoolResponse{Resposne: false}, nil
+
+}

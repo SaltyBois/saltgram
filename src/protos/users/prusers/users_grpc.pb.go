@@ -40,6 +40,8 @@ type UsersClient interface {
 	SetFollowRequestRespond(ctx context.Context, in *FollowRequestRespond, opts ...grpc.CallOption) (*FollowRequestSet, error)
 	GetFollowersDetailed(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (Users_GetFollowersDetailedClient, error)
 	GetFollowingDetailed(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (Users_GetFollowingDetailedClient, error)
+	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
+	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 }
 
 type usersClient struct {
@@ -363,6 +365,24 @@ func (x *usersGetFollowingDetailedClient) Recv() (*ProfileFollowDetaild, error) 
 	return m, nil
 }
 
+func (c *usersClient) CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckIfFollowing", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckForFollowingRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -389,6 +409,8 @@ type UsersServer interface {
 	SetFollowRequestRespond(context.Context, *FollowRequestRespond) (*FollowRequestSet, error)
 	GetFollowersDetailed(*ProflieFollowRequest, Users_GetFollowersDetailedServer) error
 	GetFollowingDetailed(*ProflieFollowRequest, Users_GetFollowingDetailedServer) error
+	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
+	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -461,6 +483,12 @@ func (UnimplementedUsersServer) GetFollowersDetailed(*ProflieFollowRequest, User
 }
 func (UnimplementedUsersServer) GetFollowingDetailed(*ProflieFollowRequest, Users_GetFollowingDetailedServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetFollowingDetailed not implemented")
+}
+func (UnimplementedUsersServer) CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckIfFollowing not implemented")
+}
+func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckForFollowingRequest not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -886,6 +914,42 @@ func (x *usersGetFollowingDetailedServer) Send(m *ProfileFollowDetaild) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Users_CheckIfFollowing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProflieFollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckIfFollowing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckIfFollowing",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckIfFollowing(ctx, req.(*ProflieFollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_CheckForFollowingRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProflieFollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckForFollowingRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckForFollowingRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckForFollowingRequest(ctx, req.(*ProflieFollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -960,6 +1024,14 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetFollowRequestRespond",
 			Handler:    _Users_SetFollowRequestRespond_Handler,
+		},
+		{
+			MethodName: "CheckIfFollowing",
+			Handler:    _Users_CheckIfFollowing_Handler,
+		},
+		{
+			MethodName: "CheckForFollowingRequest",
+			Handler:    _Users_CheckForFollowingRequest_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

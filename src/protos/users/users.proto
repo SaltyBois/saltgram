@@ -24,6 +24,8 @@ service Users {
     rpc SetFollowRequestRespond(FollowRequestRespond) returns (FollowRequestSet);
     rpc GetFollowersDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
     rpc GetFollowingDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc CheckIfFollowing(ProflieFollowRequest) returns (BoolResponse);
+    rpc CheckForFollowingRequest(ProflieFollowRequest) returns (BoolResponse);
 }
 
 message RoleRequest {
@@ -230,5 +232,9 @@ message ProfileFollowDetaild {
     string username = 1;
     bool following = 2;
     bool pending = 3;
+}
+
+message BoolResponse {
+    bool resposne = 1;
 }
 
