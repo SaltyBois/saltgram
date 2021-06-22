@@ -5,6 +5,7 @@ import (
 	"saltgram/admin/data"
 	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/content/prcontent"
+	"saltgram/protos/users/prusers"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -16,13 +17,15 @@ type Admin struct {
 	l  *logrus.Logger
 	db *data.DBConn
 	cc prcontent.ContentClient
+	uc prusers.UsersClient
 }
 
-func NewAdmin(l *logrus.Logger, db *data.DBConn, cc prcontent.ContentClient) *Admin {
+func NewAdmin(l *logrus.Logger, db *data.DBConn, cc prcontent.ContentClient, uc prusers.UsersClient) *Admin {
 	return &Admin{
 		l:  l,
 		db: db,
 		cc: cc,
+		uc: uc,
 	}
 }
 
@@ -65,10 +68,18 @@ func (a *Admin) AddVerificationReq(ctx context.Context, r *pradmin.AddVerificati
 
 func (a *Admin) ReviewVerificationReq(ctx context.Context, r *pradmin.ReviewVerificatonRequest) (*pradmin.ReviewVerificatonResponse, error) {
 
-	err := data.ReviewVerificationRequest(a.db, r.Status, r.Id)
+	userId, category, err := data.ReviewVerificationRequest(a.db, r.Status, r.Id)
 	if err != nil {
 		a.l.Errorf("failure updating verification request: %v\n", err)
 		return &pradmin.ReviewVerificatonResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	if r.Status == "ACCEPTED" {
+		_, err = a.uc.VerifyProfile(ctx, &prusers.VerifyProfileRequest{UserId: userId, AccountType: category})
+		if err != nil {
+			a.l.Errorf("failed to update profile: %v", err)
+			return &pradmin.ReviewVerificatonResponse{}, status.Error(codes.Internal, "Internal error")
+		}
 	}
 
 	return &pradmin.ReviewVerificatonResponse{}, nil

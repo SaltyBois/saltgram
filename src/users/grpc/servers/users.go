@@ -37,6 +37,15 @@ func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premai
 	}
 }
 
+func (u *Users) VerifyProfile(ctx context.Context, r *prusers.VerifyProfileRequest) (*prusers.VerifyProfileResponse, error) {
+	err := u.db.VerifyProfile(r.UserId, r.AccountType)
+	if err != nil {
+		u.l.Errorf("failed to verify profile: %v", err)
+		return &prusers.VerifyProfileResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prusers.VerifyProfileResponse{}, nil
+}
+
 func (u *Users) UpdateProfilePicture(ctx context.Context, r *prusers.UpdateProfilePictureRequest) (*prusers.UpdateProfilePictureResponse, error) {
 	err := u.db.UpdateProfilePicture(r.Url, r.Username)
 	if err != nil {

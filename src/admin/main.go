@@ -12,6 +12,7 @@ import (
 	"saltgram/internal"
 	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/content/prcontent"
+	"saltgram/protos/users/prusers"
 
 	"google.golang.org/grpc/reflection"
 )
@@ -40,7 +41,14 @@ func main() {
 	defer contentConnection.Close()
 	contentClient := prcontent.NewContentClient(contentConnection)
 
-	gAdminServer := servers.NewAdmin(l.L, db, contentClient)
+	usersConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing users connection: %v\n", err)
+	}
+	defer usersConnection.Close()
+	usersClient := prusers.NewUsersClient(usersConnection)
+
+	gAdminServer := servers.NewAdmin(l.L, db, contentClient, usersClient)
 	grpcServer := s.NewServer()
 	pradmin.RegisterAdminServer(grpcServer, gAdminServer)
 	reflection.Register(grpcServer)

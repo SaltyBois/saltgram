@@ -57,12 +57,12 @@ func (db *DBConn) GetVerficationRequestById(id uint64) (*VerificationRequest, er
 	return &vr, err
 }
 
-func ReviewVerificationRequest(db *DBConn, status string, id uint64) error {
+func ReviewVerificationRequest(db *DBConn, status string, id uint64) (uint64, string, error) {
 	verificationRequest, err := db.GetVerficationRequestById(id)
 	if err != nil {
-		return err
+		return 0, "", err
 	}
 	verificationRequest.Status = status
 	db.UpdateVerificationRequest(verificationRequest)
-	return nil
+	return verificationRequest.UserID, verificationRequest.Category, nil
 }

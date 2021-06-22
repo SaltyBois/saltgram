@@ -30,7 +30,16 @@ service Users {
     rpc GetFollowingDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
     rpc CheckIfFollowing(ProflieFollowRequest) returns (BoolResponse);
     rpc CheckForFollowingRequest(ProflieFollowRequest) returns (BoolResponse);
+
+    rpc VerifyProfile(VerifyProfileRequest) returns (VerifyProfileResponse);
 }
+
+message VerifyProfileRequest {
+    uint64 userId = 1;
+    string accountType = 2;
+}
+
+message VerifyProfileResponse {}
 
 message UpdateProfilePictureRequest {
     string url = 1;
