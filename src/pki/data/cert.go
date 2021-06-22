@@ -37,7 +37,7 @@ type LookupDTO struct {
 	SerialNumber string `json:"serialNumber"`
 }
 
-var trustedDNS = []string{"localhost", "saltgram-auth", "saltgram-api-gateway", "saltgram-contents", "saltgram-email", "saltgram-users", "saltgram-webserver"}
+var trustedDNS = []string{"localhost", "saltgram-auth", "saltgram-api-gateway", "saltgram-contents", "saltgram-email", "saltgram-users", "saltgram-webserver", "saltgram-admin"}
 
 func Init(db *DBConn) (*Certificate, error) {
 	InitKeystore()

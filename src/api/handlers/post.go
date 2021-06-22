@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
@@ -367,7 +368,6 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 // 	}
 
 // 	_, err = c.cc.AddSharedMedia(context.Background(), &prcontent.AddSharedMediaRequest{Media: media})
-
 // 	if err != nil {
 // 		c.l.Errorf("failed to add shared media: %v\n", err)
 // 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -892,4 +892,147 @@ func (u *Users) Follow(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Following %s"))
 
+}
+
+func (a *Admin) AddVerificationRequest(w http.ResponseWriter, r *http.Request) {
+	a.l.Info("Requesting verification")
+	user, err := getUserByJWS(r, a.uc)
+	if err != nil {
+		a.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	r.ParseMultipartForm(10 << 20) // up to 10MB
+	formdata := r.MultipartForm
+	files := formdata.File["document"]
+	if len(files) == 0 {
+		a.l.Errorf("empty file request")
+		http.Error(w, "Invalid document data", http.StatusBadRequest)
+	}
+
+	file, err := files[0].Open()
+	if err != nil {
+		a.l.Errorf("failed to open document file: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	imageBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		a.l.Errorf("failed to read document bytes: %v", err)
+		http.Error(w, "Invalid document data", http.StatusBadRequest)
+		return
+	}
+	category := r.FormValue("category")
+	fullName := r.FormValue("fullName")
+
+	stream, err := a.cc.AddVerificationImage(context.Background())
+	if err != nil {
+		a.l.Errorf("failed to open content stream: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = stream.Send(&prcontent.AddVerificationImageRequest{Data: &prcontent.AddVerificationImageRequest_Info{
+		Info: &prcontent.AddVerificationImageRequestInfo{
+			UserId:   user.Id,
+			Filename: files[0].Filename,
+		},
+	}})
+	if err != nil {
+		a.l.Errorf("failed to send document meta: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = stream.Send(&prcontent.AddVerificationImageRequest{Data: &prcontent.AddVerificationImageRequest_Image{
+		Image: imageBytes,
+	}})
+	if err != nil {
+		a.l.Errorf("failed to send document data: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		a.l.Errorf("failed to receive document url: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = a.ac.AddVerificationReq(context.Background(), &pradmin.AddVerificationRequest{
+		FullName: fullName,
+		UserId:   user.Id,
+		Category: category,
+		Url:      resp.Url,
+	})
+
+	if err != nil {
+		a.l.Errorf("failed to add verification request: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte(resp.Url))
+}
+
+func (a *Admin) SendInappropriateContentReport(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		a.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		a.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		a.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := a.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		a.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.InappropriateContentReportDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		a.l.Errorf("failure adding inappropriate content: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	i, err := strconv.ParseUint(dto.SharedMediaId, 10, 64)
+	if err != nil {
+		a.l.Println("converting id")
+		return
+	}
+
+	_, err = a.ac.SendInappropriateContentReport(context.Background(), &pradmin.InappropriateContentReportRequest{UserId: user.Id, PostId: i})
+
+	if err != nil {
+		a.l.Errorf("failed to add inappropriate: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
 }

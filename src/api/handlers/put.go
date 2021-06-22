@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/users/prusers"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -244,6 +246,33 @@ func (c *Content) PutReaction(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		c.l.Errorf("failed to updating: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (a *Admin) ReviewVerificationRequest(w http.ResponseWriter, r *http.Request) {
+
+	dto := saltdata.ReviewRequestDTO{}
+	err := saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		a.l.Errorf("failure reviewing verification request: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	i, err := strconv.ParseUint(dto.Id, 10, 64)
+
+	if err != nil {
+		a.l.Errorf("failed to convert id string: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.ReviewVerificationReq(context.Background(), &pradmin.ReviewVerificatonRequest{Id: i, Status: dto.Status})
+
+	if err != nil {
+		a.l.Errorf("failed to review verification request: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
