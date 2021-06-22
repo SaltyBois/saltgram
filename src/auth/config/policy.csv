@@ -1,4 +1,4 @@
-p, admin, /*, *
+p, admin, /admin, *
 
 p, anon, /, *
 p, anon, /login, *

@@ -2,7 +2,10 @@ package data
 
 import (
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"os"
 	"saltgram/internal"
+	"saltgram/users/data"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -47,4 +50,28 @@ func (db *DBConn) ConnectToDb() error {
 
 func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&Refresh{})
+}
+
+func (db *DBConn) SeedAdmin() {
+	if db.DB.Where("username = ?", "admin").First(&Refresh{}).RowsAffected > 0 {return}
+
+	refreshClaims := data.RefreshClaims{
+		Username: "admin",
+		StandardClaims: jwt.StandardClaims{
+			// TODO(Jovan): Make programmatic?
+			ExpiresAt: time.Now().UTC().AddDate(0, 6, 0).Unix(),
+			Issuer:    "SaltGram",
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	jws, err := token.SignedString([]byte(os.Getenv("REF_SECRET_KEY")))
+
+	token2 := &Refresh{
+		Username: "admin",
+		Token: jws,
+	}
+	if err != nil {
+		db.l.Fatalf("Hashing admin password failed")
+	}
+	db.DB.Create(token2)
 }
