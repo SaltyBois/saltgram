@@ -62,6 +62,18 @@ type ProfileDTO struct {
 	ProfilePictureURL string `json:"profilePictureURL"`
 }
 
+type FollowRequestDOT struct {
+	RequestProfile string `json:"profile" validate:"required"`
+	IsAccepted     bool   `json:"accepted"`
+}
+
+type ProfileFollowDetailedDTO struct {
+	Username       string `json:"username"`
+	Following      bool   `json:"following"`
+	Pending        bool   `json:"pending"`
+	ProfliePicture string `json:"profilePictureURL"`
+}
+
 type FollowDTO struct {
 	ProfileToFollow string `json:"profile" validate:"required"`
 }
@@ -80,4 +92,9 @@ func (u *UserDTO) Validate() error {
 func (f *FollowDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(f)
+}
+
+func (fr *FollowRequestDOT) Validate() error {
+	validate := validator.New()
+	return validate.Struct(fr)
 }

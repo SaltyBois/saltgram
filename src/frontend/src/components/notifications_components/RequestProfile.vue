@@ -2,15 +2,15 @@
   <div class="layout-div">
     <div class="post-header-left-side">
       <v-img  class="post-header-profile"
-              src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+              src="this.pictureProp"
               @click="$router.push('/user')"
               alt="Profile picture"/>
-      <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
+      <b @click="$router.push('/user')" style="cursor: pointer">{{this.usernameProp}}</b>
       <p style="margin-left: 5px; margin-right: 5px; margin-top: 15px">has sent You a follow request</p>
-      <v-btn class="add-button mx-2">
+      <v-btn class="add-button mx-2" @click="acceptRequest(), $emit('reloadRequests')">
         Accept
       </v-btn>
-      <v-btn class="ignore-button mx-2">
+      <v-btn class="ignore-button mx-2" @click="ignoreRequest()">
         Ignore
       </v-btn>
       <p style="color: #858585; margin-top: 15px">1h ago</p>
@@ -20,8 +20,46 @@
 
 <script>
 export default {
-  name: "RequestProfile"
+  name: "RequestProfile",
+  props: {
+    usernameProp: {
+      type: String,
+      required: true
+    },
+    pictureProp: {
+      type: String,
+      required: true,
+    }
+  },
+  methods: {
+    acceptRequest: function(){
+      let dto = {
+        profile: this.usernameProp,
+        accepted: true,
+      };
+      this.axios.post("users/follow/request/", dto,  {headers: this.getAHeader()})
+      .then(r =>{
+        console.log(r.data);
+        this.$emit('reload-requests')
+      })
+    },
+    ignoreRequest: function() {
+      let dto = {
+        profile: this.usernameProp,
+        accepted: false,
+      };
+      this.axios.post("users/follow/request/", dto,  {headers: this.getAHeader()})
+      .then(r =>{
+        console.log(r.data);
+        this.$emit('reload-requests');
+      })
+
+    }
+  }
 }
+
+
+
 </script>
 
 <style scoped>
