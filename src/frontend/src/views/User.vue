@@ -22,7 +22,7 @@
                     justify-center
                     column>
 
-            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers" :user-prop="this.user"/>
+            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers" :user-prop="this.user.username"/>
 
           </v-layout>
 
@@ -121,6 +121,7 @@ export default {
         radioButton: 'posts',
         followingUser: false,
         pendingRequest: false,
+        user: [],
       }
     },
     computed: {
