@@ -27,7 +27,6 @@ service Content {
     rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
 
     rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
-
 }
 
 message GetPostPreviewURLRequest {

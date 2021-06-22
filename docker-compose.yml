@@ -169,6 +169,8 @@ services:
     environment:
       - SALT_ADMIN_PORT=${SALT_ADMIN_PORT}
       - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_USERS_ADDR=users
       - SALT_CONTENT_ADDR=contents
       - ADMINDB_HOST=admindb
       - ADMINDB_PORT=9096

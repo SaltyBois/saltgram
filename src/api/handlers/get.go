@@ -111,7 +111,7 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 
 	err = saltdata.ToJSON(response, w)
 	if err != nil {
-		u.l.Errorf("serializing user ", err)
+		u.l.Errorf("Serializing user: %v", err)
 		http.Error(w, "Error serializing user", http.StatusInternalServerError)
 		return
 	}
@@ -177,6 +177,12 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 	//}
 
 	//user := claims.Username
+	var isThisME bool
+
+	userByJWS, err := getUserByJWS(r, u.uc)
+	if err != nil {
+		isThisME = false
+	}
 
 	vars := mux.Vars(r)
 	profileUsername, er := vars["username"]
@@ -184,6 +190,10 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		u.l.Println("[ERROR] parsing URL, no username in URL")
 		http.Error(w, "Error parsing URL", http.StatusBadRequest)
 		return
+	}
+
+	if userByJWS != nil {
+		isThisME = userByJWS.Username == profileUsername
 	}
 
 	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: profileUsername, Username: profileUsername})
@@ -209,6 +219,9 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		ProfilePictureURL: profile.ProfilePictureURL,
 		Taggable:          profile.Taggable,
 		Messageable:       profile.Messageable,
+		Verified:          profile.Verified,
+		AccountType:       profile.AccountType,
+		IsThisMe:          isThisME,
 	}
 
 	saltdata.ToJSON(response, w)

@@ -138,7 +138,7 @@ func (u *Users) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth:    dto.DateOfBirth.Unix(),
 		WebSite:        dto.WebSite,
 		PrivateProfile: dto.PrivateProfile,
-		Messageable:	dto.Messageable,
+		Messageable:    dto.Messageable,
 	})
 
 	if err != nil {

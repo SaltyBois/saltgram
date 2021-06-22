@@ -44,6 +44,7 @@ type UsersClient interface {
 	GetFollowingDetailed(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (Users_GetFollowingDetailedClient, error)
 	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
+	VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error)
 }
 
 type usersClient struct {
@@ -403,6 +404,15 @@ func (c *usersClient) CheckForFollowingRequest(ctx context.Context, in *ProflieF
 	return out, nil
 }
 
+func (c *usersClient) VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error) {
+	out := new(VerifyProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/VerifyProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -433,6 +443,7 @@ type UsersServer interface {
 	GetFollowingDetailed(*ProflieFollowRequest, Users_GetFollowingDetailedServer) error
 	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
+	VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -517,6 +528,9 @@ func (UnimplementedUsersServer) CheckIfFollowing(context.Context, *ProflieFollow
 }
 func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckForFollowingRequest not implemented")
+}
+func (UnimplementedUsersServer) VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyProfile not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1014,6 +1028,24 @@ func _Users_CheckForFollowingRequest_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_VerifyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).VerifyProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/VerifyProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).VerifyProfile(ctx, req.(*VerifyProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1104,6 +1136,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckForFollowingRequest",
 			Handler:    _Users_CheckForFollowingRequest_Handler,
+		},
+		{
+			MethodName: "VerifyProfile",
+			Handler:    _Users_VerifyProfile_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"saltgram/data"
 	"time"
 )
@@ -34,12 +35,14 @@ type Profile struct {
 	PostsFolderId     string    `json:"-"`
 	StoriesFolderId   string    `json:"-"`
 	ProfilePictureURL string    `json:"profilePictureURL"`
+	AccountType       string    `json:"accountType"`
+	Verified          bool      `json:"verified"`
 }
 
 type FollowRequest struct {
-	ID            uint64        `json:"-"`
-	ProfileID     uint64        `json:"profileId"`
-	RequestID     uint64        `json:"followerId"`
+	data.Identifiable  
+	ProfileID     uint64        `json:"profileId" gorm:"type:numeric"`
+	RequestID     uint64        `json:"followerId" gorm:"type:numeric"`
 	RequestStatus RequestStatus `json:"stats"`
 }
 
@@ -63,6 +66,16 @@ func (db *DBConn) AddProfile(p *Profile) error {
 	return db.DB.Create(p).Error
 }
 
+func (db *DBConn) VerifyProfile(userId uint64, accountType string) error {
+	p, err := db.GetProfileByUserId(userId)
+	if err != nil {
+		return err
+	}
+	p.Verified = true
+	p.AccountType = accountType
+	return db.UpdateProfile(p)
+}
+
 func (db *DBConn) UpdateProfilePicture(url, username string) error {
 	profile, err := db.GetProfileByUsername(username)
 	if err != nil {
@@ -74,6 +87,21 @@ func (db *DBConn) UpdateProfilePicture(url, username string) error {
 
 func (db *DBConn) UpdateProfile(p *Profile) error {
 	return db.DB.Save(&p).Error
+}
+
+var ErrProfileNotFound = fmt.Errorf("profile not found")
+
+func (db *DBConn) GetProfileByUserId(userId uint64) (*Profile, error) {
+	profile := Profile{}
+	res := db.DB.Where("user_id = ?", userId).First(&profile)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, ErrProfileNotFound
+	}
+
+	return &profile, nil
 }
 
 func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {

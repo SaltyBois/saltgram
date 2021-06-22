@@ -32,11 +32,10 @@ jsconfig.json
 tsconfig.json
 
 *.env
-secrets/*.json
 *.log
 
 # Log and Keystore
-src/log
+src/log/logs
 src/keystore
 
 # Secrets

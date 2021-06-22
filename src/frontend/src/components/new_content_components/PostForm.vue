@@ -5,8 +5,22 @@
         <h2>Add posts</h2>
         <div class="thumbnails">
           <div class="thumbnail"
-          v-for="img in imageUrls" :key="img">
-            <v-img :src="img" height="128px" max-width="128px"/>
+          v-for="img in imageUrls" :key="img.url">
+
+            <video  class="post"
+                    v-if="img.filename.includes('.mp4') || img.filename.includes('.mkv')"
+                    :controls="false"
+                    :playsinline="false"
+                    :muted="true"
+                    :preload="true"
+                    :autoplay="true"
+                    width="128px"
+                    height="128px"
+                    :src="img.url"/>
+            <v-img v-else
+                   :src="img.url"
+                   height="128px"
+                   max-width="128px"/>
             <v-btn
             fab
             absolute
@@ -135,11 +149,17 @@ export default {
     },
 
     refreshPreview: function(files) {
-      this.imageUrls = [];
+      // this.imageUrls = [];
       files = files.slice(0, 10);
+      this.images.push(files)
       this.images = this.images.slice(0, 10);
-      files.forEach(f => {
-        this.imageUrls.push(URL.createObjectURL(f));
+      this.images.forEach(f => {
+        let img = {
+          url: URL.createObjectURL(f),
+          filename: f.name
+        }
+        console.log(img)
+        this.imageUrls.push(img);
       });
     },
   }

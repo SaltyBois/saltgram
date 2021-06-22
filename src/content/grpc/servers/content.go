@@ -318,7 +318,7 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
 				},
-				Url: m.URL,
+				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
 			})
 		}

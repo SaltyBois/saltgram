@@ -3,6 +3,7 @@
             style="height: 60%; margin: 20px; max-height: 500px;">
     <h3><b>{{this.name}}</b></h3>
     <a style="color: #2b80e0" @click="redirectWebSite">{{this.webSite}}</a>
+    <h3 v-if="accountType" style="color: #9d9d9d">{{accountType}}</h3>
     <h4>
       {{this.description}}
     </h4>
@@ -22,6 +23,10 @@ export default {
       required: true
     },
     webSite: {
+      type: String,
+      required: true
+    },
+    accountType: {
       type: String,
       required: true
     },
