@@ -4,9 +4,10 @@ import "saltgram/data"
 
 type InappropriateContentReport struct {
 	data.Identifiable
-	SharedMediaID uint64 `json:"sharedMediaId" gorm:"type:numeric"`
-	UserID        uint64 `json:"userId" gorm:"type:numeric"`
-	Status        string `json:"status"`
+	PostID uint64 `json:"sharedMediaId" gorm:"type:numeric"`
+	UserID uint64 `json:"userId" gorm:"type:numeric"`
+	Status string `json:"status"`
+	URL    string `json:"url"`
 }
 
 func (db *DBConn) AddInappropriateContentReport(inappropriateContentReport *InappropriateContentReport) error {

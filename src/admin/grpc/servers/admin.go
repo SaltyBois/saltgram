@@ -4,6 +4,7 @@ import (
 	"context"
 	"saltgram/admin/data"
 	"saltgram/protos/admin/pradmin"
+	"saltgram/protos/content/prcontent"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -14,12 +15,14 @@ type Admin struct {
 	pradmin.UnimplementedAdminServer
 	l  *logrus.Logger
 	db *data.DBConn
+	cc prcontent.ContentClient
 }
 
-func NewAdmin(l *logrus.Logger, db *data.DBConn) *Admin {
+func NewAdmin(l *logrus.Logger, db *data.DBConn, cc prcontent.ContentClient) *Admin {
 	return &Admin{
 		l:  l,
 		db: db,
+		cc: cc,
 	}
 }
 
@@ -73,12 +76,20 @@ func (a *Admin) ReviewVerificationReq(ctx context.Context, r *pradmin.ReviewVeri
 
 func (a *Admin) SendInappropriateContentReport(ctx context.Context, r *pradmin.InappropriateContentReportRequest) (*pradmin.InappropriateContentReportResponse, error) {
 
-	inappropriateContentReport := data.InappropriateContentReport{
-		UserID:        r.UserId,
-		Status:        data.PENDING,
-		SharedMediaID: r.SharedMediaId,
+	resp, err := a.cc.GetPostPreviewURL(ctx, &prcontent.GetPostPreviewURLRequest{PostId: r.PostId})
+	if err != nil {
+		a.l.Errorf("failed to get shared media url: %v", err)
+		return &pradmin.InappropriateContentReportResponse{}, err
 	}
-	err := a.db.AddInappropriateContentReport(&inappropriateContentReport)
+
+	inappropriateContentReport := data.InappropriateContentReport{
+		UserID: r.UserId,
+		Status: data.PENDING,
+		PostID: r.PostId,
+		URL:    resp.Url,
+	}
+
+	err = a.db.AddInappropriateContentReport(&inappropriateContentReport)
 	if err != nil {
 		a.l.Errorf("failure sending inappropriate content report: %v\n", err)
 		return &pradmin.InappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
@@ -96,9 +107,10 @@ func (a *Admin) GetPendingInappropriateContentReport(ctx context.Context, r *pra
 	reps := []*pradmin.InappropriateContentReport{}
 	for _, vr := range *reports {
 		reps = append(reps, &pradmin.InappropriateContentReport{
-			Id:            vr.ID,
-			UserId:        vr.UserID,
-			SharedMediaId: vr.SharedMediaID,
+			Id:     vr.ID,
+			UserId: vr.UserID,
+			PostId: vr.PostID,
+			Url:    vr.URL,
 		})
 	}
 	return &pradmin.GetInappropriateContentReportResponse{InappropriateContentReport: reps}, nil

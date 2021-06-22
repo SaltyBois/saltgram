@@ -11,6 +11,7 @@ type GetInappropriateContentReportDTO struct {
 	UserId         uint64 `json:"userId"`
 	Username       string `json:"username"`
 	ProfilePicture string `json:"profilePicture"`
+	URL            string `json:"url"`
 }
 
 type ReviewRequestDTO struct {

@@ -204,7 +204,7 @@ func (db *DBConn) AddStory(s *Story) error {
 
 func (db *DBConn) GetSharedMedia(id uint64) (*SharedMedia, error) {
 	sm := &SharedMedia{}
-	res := db.DB.First(sm, id)
+	res := db.DB.Preload("Media").First(sm, id)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -244,7 +244,7 @@ var ErrPostNotFound = fmt.Errorf("post not found")
 
 func (db *DBConn) GetPost(id uint64) (*Post, error) {
 	post := Post{}
-	res := db.DB.Preload("SharedMedia").First(&post, id)
+	res := db.DB.Preload("SharedMedia.Media").First(&post, id)
 	if res.Error != nil {
 		return nil, res.Error
 	}

@@ -116,11 +116,13 @@ func main() {
 	}
 	defer adminConnection.Close()
 	adminClient := pradmin.NewAdminClient(adminConnection)
-	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient)
+	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient, contentClient)
 	adminRouter := s.S.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
+	// Better suited for user router?
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.AddVerificationRequest).Methods(http.MethodPost)
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.ReviewVerificationRequest).Methods(http.MethodPut)
+	// Better suited for user router?
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.GetPendingReports).Methods(http.MethodGet)
 

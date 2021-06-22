@@ -37,7 +37,7 @@ export default {
   methods: {
     selectedReport(repData) {
       this.$refs.reportDetails.$data.reportData.username = repData.username;
-      this.$refs.reportDetails.$data.reportData.reportedMedia = repData.sharedMediaId;
+      this.$refs.reportDetails.$data.reportData.reportedMedia = repData.url;
       this.$refs.reportDetails.$data.reportData.profilePictureAddress = repData.profilePicture;
     },
     getPendingReports() {

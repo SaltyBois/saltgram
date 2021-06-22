@@ -752,7 +752,8 @@ func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
 			UserId:         vr.UserId,
 			Username:       user.Username,
 			ProfilePicture: profile.ProfilePictureURL,
-			SharedMediaId:  strconv.FormatUint(vr.SharedMediaId, 10),
+			SharedMediaId:  strconv.FormatUint(vr.PostId, 10),
+			URL:            vr.Url,
 		})
 	}
 
