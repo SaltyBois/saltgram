@@ -40,9 +40,9 @@ type Profile struct {
 }
 
 type FollowRequest struct {
-	ID            uint64        `json:"-"`
-	ProfileID     uint64        `json:"profileId"`
-	RequestID     uint64        `json:"followerId"`
+	data.Identifiable  
+	ProfileID     uint64        `json:"profileId" gorm:"type:numeric"`
+	RequestID     uint64        `json:"followerId" gorm:"type:numeric"`
 	RequestStatus RequestStatus `json:"stats"`
 }
 
