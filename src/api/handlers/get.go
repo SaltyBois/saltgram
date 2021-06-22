@@ -719,9 +719,10 @@ func (u *Users) GetFollowersDetailed(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		dto := saltdata.ProfileFollowDetailedDTO{
-			Username:  profile.Username,
-			Following: profile.Following,
-			Pending:   profile.Pending,
+			Username:       profile.Username,
+			Following:      profile.Following,
+			Pending:        profile.Pending,
+			ProfliePicture: profile.ProfliePicture,
 		}
 		profiles = append(profiles, dto)
 	}
@@ -785,9 +786,10 @@ func (u *Users) GetFollowingDetailed(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		dto := saltdata.ProfileFollowDetailedDTO{
-			Username:  profile.Username,
-			Following: profile.Following,
-			Pending:   profile.Pending,
+			Username:       profile.Username,
+			Following:      profile.Following,
+			Pending:        profile.Pending,
+			ProfliePicture: profile.ProfliePicture,
 		}
 		profiles = append(profiles, dto)
 	}

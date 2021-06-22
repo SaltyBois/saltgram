@@ -2,7 +2,7 @@
   <div class="profile">
     <div style="width: 70px">
       <v-img  class="head"
-              src="https://i.pinimg.com/564x/4e/c4/f2/4ec4f2d69c9bc6b152abcb420252c3a8.jpg"
+              src="pictureProp"
               @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
     </div>
@@ -56,6 +56,10 @@ export default {
       type: Boolean,
       required: true
     },
+    pictureProp: {
+      type: String,
+      required: true
+    }
   },
   methods: {
     follow: function() {

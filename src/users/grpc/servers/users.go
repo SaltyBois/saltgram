@@ -389,8 +389,9 @@ func (u *Users) GetFollowRequests(r *prusers.Profile, stream prusers.Users_GetFo
 	}
 	for _, profile_request := range profiles {
 		err = stream.Send(&prusers.FollowingRequest{
-			Username: profile_request.Username,
-			UserId:   profile_request.UserID,
+			Username:       profile_request.Username,
+			UserId:         profile_request.UserID,
+			ProfilePicture: profile_request.ProfilePictureURL,
 		})
 		if err != nil {
 			return err
@@ -521,9 +522,10 @@ func (u *Users) GetFollowersDetailed(r *prusers.ProflieFollowRequest, stream pru
 		}
 		if following {
 			err = stream.Send(&prusers.ProfileFollowDetaild{
-				Username:  profile.Username,
-				Following: following,
-				Pending:   false,
+				Username:       profile.Username,
+				Following:      following,
+				Pending:        false,
+				ProfliePicture: profile.ProfilePictureURL,
 			})
 			if err != nil {
 				return err
@@ -535,9 +537,10 @@ func (u *Users) GetFollowersDetailed(r *prusers.ProflieFollowRequest, stream pru
 			return err
 		}
 		err = stream.Send(&prusers.ProfileFollowDetaild{
-			Username:  profile.Username,
-			Following: following,
-			Pending:   pending,
+			Username:       profile.Username,
+			Following:      following,
+			Pending:        pending,
+			ProfliePicture: profile.ProfilePictureURL,
 		})
 		if err != nil {
 			return err
@@ -571,9 +574,10 @@ func (u *Users) GetFollowingDetailed(r *prusers.ProflieFollowRequest, stream pru
 		}
 		if following {
 			err = stream.Send(&prusers.ProfileFollowDetaild{
-				Username:  profile.Username,
-				Following: following,
-				Pending:   false,
+				Username:       profile.Username,
+				Following:      following,
+				Pending:        false,
+				ProfliePicture: profile.ProfilePictureURL,
 			})
 			if err != nil {
 				return err
@@ -585,9 +589,10 @@ func (u *Users) GetFollowingDetailed(r *prusers.ProflieFollowRequest, stream pru
 			return err
 		}
 		err = stream.Send(&prusers.ProfileFollowDetaild{
-			Username:  profile.Username,
-			Following: following,
-			Pending:   pending,
+			Username:       profile.Username,
+			Following:      following,
+			Pending:        pending,
+			ProfliePicture: profile.ProfilePictureURL,
 		})
 		if err != nil {
 			return err

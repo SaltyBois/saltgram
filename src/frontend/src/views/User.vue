@@ -169,7 +169,6 @@ export default {
         radioButton: 'posts',
         followingUser: false,
         pendingRequest: false,
-        user: [],
         usersPosts: [],
         userStories: [],
       }

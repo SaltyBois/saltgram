@@ -223,6 +223,7 @@ message Profile {
 message FollowingRequest{
     string username = 1;
     uint64 userId = 2;
+    string profilePicture = 3;
 }
 
 message FollowRequestRespond {
@@ -242,6 +243,7 @@ message ProfileFollowDetaild {
     string username = 1;
     bool following = 2;
     bool pending = 3;
+    string profliePicture = 4;
 }
 
 message BoolResponse {

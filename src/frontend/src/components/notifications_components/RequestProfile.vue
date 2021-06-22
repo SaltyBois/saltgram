@@ -2,7 +2,7 @@
   <div class="layout-div">
     <div class="post-header-left-side">
       <v-img  class="post-header-profile"
-              src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+              src="this.pictureProp"
               @click="$router.push('/user')"
               alt="Profile picture"/>
       <b @click="$router.push('/user')" style="cursor: pointer">{{this.usernameProp}}</b>
@@ -25,6 +25,10 @@ export default {
     usernameProp: {
       type: String,
       required: true
+    },
+    pictureProp: {
+      type: String,
+      required: true,
     }
   },
   methods: {

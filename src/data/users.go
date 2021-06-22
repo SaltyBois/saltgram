@@ -66,9 +66,10 @@ type FollowRequestDOT struct {
 }
 
 type ProfileFollowDetailedDTO struct {
-	Username  string `json:"username"`
-	Following bool   `json:"following"`
-	Pending   bool   `json:"pending"`
+	Username       string `json:"username"`
+	Following      bool   `json:"following"`
+	Pending        bool   `json:"pending"`
+	ProfliePicture string `json:"profilePictureURL"`
 }
 
 type FollowDTO struct {

@@ -16,6 +16,7 @@
           :username-prop="item.username" 
           :following-prop="item.following" 
           :pending-prop="item.pending" 
+          :picture-prop="item.profilePictureURL"
           :user-prop="userProp"/>
         </v-layout>
         <v-divider class="mt-5 mb-5"/>
