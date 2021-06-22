@@ -10,6 +10,7 @@ import (
 	"saltgram/internal"
 	"saltgram/log"
 	"saltgram/pki"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
@@ -115,6 +116,22 @@ func main() {
 	contentRouter.HandleFunc("/reaction/{id}", contentHandler.GetReactionsByPost).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/story/{id}", contentHandler.GetStoriesByUser).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/reaction", contentHandler.PutReaction).Methods(http.MethodPut)
+
+	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing admin connection: %v\n", err)
+	}
+	defer adminConnection.Close()
+	adminClient := pradmin.NewAdminClient(adminConnection)
+	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient, contentClient)
+	adminRouter := s.S.PathPrefix("/admin").Subrouter()
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
+	// Better suited for user router?
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.AddVerificationRequest).Methods(http.MethodPost)
+	adminRouter.HandleFunc("/verificationrequest", adminHandler.ReviewVerificationRequest).Methods(http.MethodPut)
+	// Better suited for user router?
+	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
+	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.GetPendingReports).Methods(http.MethodGet)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{

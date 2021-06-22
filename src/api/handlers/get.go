@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
@@ -206,8 +207,8 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth:       profile.DateOfBirth,
 		WebSite:           profile.WebSite,
 		ProfilePictureURL: profile.ProfilePictureURL,
-		Taggable: 		   profile.Taggable,
-		Messageable: 	   profile.Messageable,
+		Taggable:          profile.Taggable,
+		Messageable:       profile.Messageable,
 	}
 
 	saltdata.ToJSON(response, w)
@@ -891,6 +892,50 @@ func (u *Users) CheckFollowRequest(w http.ResponseWriter, r *http.Request) {
 
 	saltdata.ToJSON(resp.Resposne, w)
 }
+func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) {
+
+	verificationRequests, err := a.ac.GetPendingVerifications(context.Background(), &pradmin.GetVerificationRequest{})
+	if err != nil {
+		a.l.Errorf("failed fetching pending verifications %v\n", err)
+		http.Error(w, "Pending verifications error", http.StatusInternalServerError)
+		return
+	}
+
+	requests := []saltdata.VerificationRequestDTO{}
+
+	for i := 0; i < len(verificationRequests.VerificationRequest); i++ {
+		vr := verificationRequests.VerificationRequest[i]
+
+		user, err := a.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: vr.UserId})
+
+		if err != nil {
+			a.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			a.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		requests = append(requests, saltdata.VerificationRequestDTO{
+
+			Id:             strconv.FormatUint(vr.Id, 10),
+			FullName:       vr.FullName,
+			Category:       vr.Category,
+			Url:            vr.Url,
+			UserId:         vr.UserId,
+			Username:       user.Username,
+			ProfilePicture: profile.ProfilePictureURL,
+		})
+	}
+
+	saltdata.ToJSON(&requests, w)
+}
+
 func (s *Content) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
@@ -953,4 +998,46 @@ func (s *Content) GetReactionsByPost(w http.ResponseWriter, r *http.Request) {
 		reactions = append(reactions, reaction)
 	}
 	saltdata.ToJSON(reactions, w)
+}
+
+func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
+
+	contentReports, err := a.ac.GetPendingInappropriateContentReport(context.Background(), &pradmin.GetInappropriateContentReportRequest{})
+	if err != nil {
+		a.l.Errorf("failed fetching pending reports %v\n", err)
+		http.Error(w, "Pending reports error", http.StatusInternalServerError)
+		return
+	}
+
+	reports := []saltdata.GetInappropriateContentReportDTO{}
+
+	for i := 0; i < len(contentReports.InappropriateContentReport); i++ {
+		vr := contentReports.InappropriateContentReport[i]
+
+		user, err := a.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: vr.UserId})
+
+		if err != nil {
+			a.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			a.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		reports = append(reports, saltdata.GetInappropriateContentReportDTO{
+			Id:             strconv.FormatUint(vr.Id, 10),
+			UserId:         vr.UserId,
+			Username:       user.Username,
+			ProfilePicture: profile.ProfilePictureURL,
+			SharedMediaId:  strconv.FormatUint(vr.PostId, 10),
+			URL:            vr.Url,
+		})
+	}
+
+	saltdata.ToJSON(&reports, w)
 }

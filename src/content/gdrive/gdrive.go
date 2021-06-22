@@ -22,11 +22,18 @@ type GDrive struct {
 	ctx context.Context
 }
 
+const (
+	publicFolderName        = "public"
+	profilesFolderName      = "profiles"
+	verificationsFolderName = "verifications"
+)
+
 var (
-	serviceCreds  = internal.GetEnvOrDefault("SALT_GDRIVE_CREDS", "../../secrets/saltgram-service-key.json")
-	publicId      string
-	profilesId    string
-	publicBaseUrl = "https://drive.google.com/uc?export=view&id="
+	serviceCreds    = internal.GetEnvOrDefault("SALT_GDRIVE_CREDS", "../../secrets/saltgram-service-key.json")
+	publicId        string
+	profilesId      string
+	verificationsId string
+	publicBaseUrl   = "https://drive.google.com/uc?export=view&id="
 )
 
 func NewGDrive(l *logrus.Logger) *GDrive {
@@ -38,12 +45,12 @@ func NewGDrive(l *logrus.Logger) *GDrive {
 }
 
 func (g *GDrive) initFolders() {
-	folders, err := g.QueryFiles("name='public'")
+	folders, err := g.QueryFiles("name='" + publicFolderName + "'")
 	if err != nil {
 		g.l.Fatalf("failed to query public folder: %v", err)
 	}
 	if len(folders) == 0 {
-		public, err := g.CreateFolder("public", []string{"root"}, true)
+		public, err := g.CreateFolder(publicFolderName, []string{"root"}, true)
 		if err != nil {
 			g.l.Fatalf("failed to create public folder: %v", err)
 		}
@@ -51,18 +58,31 @@ func (g *GDrive) initFolders() {
 	} else {
 		publicId = folders[0].Id
 	}
-	folders, err = g.QueryFiles("name='profiles' and '" + publicId + "' in parents")
+	folders, err = g.QueryFiles("name='" + profilesFolderName + "' and '" + publicId + "' in parents")
 	if err != nil {
 		g.l.Fatalf("failed to query profiles folder: %v", err)
 	}
 	if len(folders) == 0 {
-		profile, err := g.CreateFolder("profiles", []string{publicId}, true)
+		profile, err := g.CreateFolder(profilesFolderName, []string{publicId}, true)
 		if err != nil {
-			g.l.Fatalf("failedto create profiles folder: %v", err)
+			g.l.Fatalf("failed to create profiles folder: %v", err)
 		}
 		profilesId = profile.Id
 	} else {
 		profilesId = folders[0].Id
+	}
+	folders, err = g.QueryFiles("name='" + verificationsFolderName + "' and '" + publicId + "' in parents")
+	if err != nil {
+		g.l.Fatalf("faield to query verifications folder: %v", err)
+	}
+	if len(folders) == 0 {
+		verifications, err := g.CreateFolder(verificationsFolderName, []string{publicId}, true)
+		if err != nil {
+			g.l.Fatalf("failed to create verifications folder")
+		}
+		verificationsId = verifications.Id
+	} else {
+		verificationsId = folders[0].Id
 	}
 }
 
@@ -91,6 +111,15 @@ func (g *GDrive) getServiceClient() {
 		g.l.Fatalf("failed to get gdrive service: %v\n", err)
 	}
 	g.s = srv
+}
+
+func (g *GDrive) UploadVerificationImage(userId, filename string, data io.Reader) (string, error) {
+	file, _, err := g.CreateFile(filename, []string{verificationsId}, data, true)
+	if err != nil {
+		g.l.Errorf("failed to uplaod verification image: %v", err)
+		return "", err
+	}
+	return publicBaseUrl + file.Id, nil
 }
 
 func (g *GDrive) CreateUserFolder(userId string) (string, string, string, error) {

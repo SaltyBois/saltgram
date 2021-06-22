@@ -11,9 +11,14 @@ service Content {
     rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
     rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
     rpc GetHighlights(GetHighlightsRequest) returns (GetHighlightsResponse);
+    rpc GetPostPreviewURL(GetPostPreviewURLRequest) returns (GetPostPreviewURLResponse);
+    
 
     rpc CreateStory(CreateStoryRequest) returns(CreateStoryResponse);
     rpc CreatePost(CreatePostRequest) returns(CreatePostResponse);
+    rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
+
+    rpc AddVerificationImage(stream AddVerificationImageRequest) returns (AddVerificationImageResponse);
     rpc AddPost(stream AddPostRequest) returns(AddPostResponse);
     rpc AddStory(stream AddStoryRequest) returns(AddStoryResponse);
     rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
@@ -23,7 +28,28 @@ service Content {
 
     rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
 
-    rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
+}
+
+message GetPostPreviewURLRequest {
+    uint64 postId = 1;
+}
+
+message GetPostPreviewURLResponse {
+    string url = 1;
+}
+
+message AddVerificationImageRequest {
+    oneof data {
+        AddVerificationImageRequestInfo info = 1;
+        bytes image = 2;
+    }
+}
+message AddVerificationImageRequestInfo {
+    uint64 userId = 1;
+    string filename = 2;
+}
+message AddVerificationImageResponse {
+    string url = 1;
 }
 
 message GetHighlightsRequest {

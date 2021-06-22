@@ -19,6 +19,7 @@
                  @click="option = 1"
                  v-bind:class="option === 1 ? 'primary' : 'accent'">Profesional Account Aplications</v-btn>
         </div>
+        <v-divider/>
         <div style="height: 10%;" class="sub-menu-div">
           <v-btn class="error my-2"
                  @click="logout()">Logout</v-btn>
@@ -27,6 +28,9 @@
       </div>
       <div class="components-div">
 
+        <ReportsSection v-if="option === 0"/>
+
+        <ProfessionalAccountSection v-if="option === 1" />
 
       </div>
     </div>
@@ -34,9 +38,12 @@
 </template>
 
 <script>
+import ReportsSection from "@/components/admin_page_components/ReportsSection";
+import ProfessionalAccountSection from "@/components/admin_page_components/ProfessionalAccountSection";
+
 export default {
   name: "AdminPage",
-  components: {},
+  components: { ReportsSection, ProfessionalAccountSection },
   data: function () {
     return {
       option: 0,
@@ -90,8 +97,6 @@ export default {
   height: 100%;
   width: 67%;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
 #logo-image {
