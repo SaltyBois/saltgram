@@ -7,7 +7,13 @@
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
-          <ProfileImage ref="profileImage" :following-prop="this.followingUser" :is-my-profile-prop="this.isMyProfile" :username="this.profile.username" v-bind:image-src="profile.profilePictureURL" @toggle-following="toggleFollow"/>
+          <ProfileImage ref="profileImage"
+                        :following-prop="this.followingUser"
+                        :is-my-profile-prop="this.isMyProfile"
+                        :username="this.profile.username"
+                        :verified="profile.verified"
+                        v-bind:image-src="profile.profilePictureURL"
+                        @toggle-following="toggleFollow"/>
         </v-layout>
         <v-layout column
                   style="width: 70%"
@@ -16,11 +22,16 @@
                     justify-center
                     column>
 
-            <ProfileHeader :following-prop="this.profile.following" :followers-prop="this.profile.followers"/>
+            <ProfileHeader :following-prop="this.profile.following"
+                           :followers-prop="this.profile.followers"
+                           :posts-number="usersPosts.length"/>
 
           </v-layout>
 
-          <NameAndDescription :name="this.profile.fullName" :description="this.profile.description" :web-site="this.profile.webSite"/>
+          <NameAndDescription :name="this.profile.fullName"
+                              :description="this.profile.description"
+                              :web-site="this.profile.webSite"
+                              :account-type="this.profile.accountType"/>
 
         </v-layout>
 
@@ -40,7 +51,7 @@
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
         <StoryHighlight v-for="highlight in highlights" :key="highlight.name" :stories="highlight.stories" :name="highlight.name"/>
-        <div id="new-highlight" @click="openHighlightDialog">
+        <div style="cursor: pointer" v-if="isMyProfile" id="new-highlight" @click="openHighlightDialog">
           +
         </div>
         <v-dialog
@@ -158,10 +169,13 @@ export default {
           username: '',
           webSite: '',
           profilePictureURL: '',
+          verified: false,
+          accountType: ''
         },
         isMyProfile: false,
         radioButton: 'posts',
         followingUser: false,
+        pendingRequest: false,
         usersPosts: [],
         userStories: [],
       }
@@ -237,6 +251,10 @@ export default {
             // this.refreshToken(this.getAHeader())
             //     .then(rr => {
             //         this.$store.state.jws = rr.data;
+            //         this.axios.get('/users', {headers: this.getAHeader()})
+            //         .then(r => {
+            //           this.isMyProfile = r.data.isThisMe;
+            //         })
                     this.axios.get("users/" + this.$route.params.username)
                         .then(r =>{ 
                           this.user = r.data
@@ -250,8 +268,8 @@ export default {
         },
 
         getUser: function() {
-            this.isMyProfile = this.user.username === this.$route.params.username;
-            this.$refs.profileImage.$data.isMyProfile = this.isMyProfile
+            // this.isMyProfile = this.user.username === this.$route.params.username;
+
             this.followingUser = false;
             this.privateUser = true;
 
@@ -267,20 +285,37 @@ export default {
               this.profile.description = r.data.description;
               this.profile.webSite = r.data.webSite;
               this.profile.profilePictureURL = r.data.profilePictureURL;
-              console.log(r.data.userId)
+              this.profile.verified = r.data.verified;
+              this.profile.accountType = r.data.accountType;
+              this.isMyProfile = r.data.isThisMe;
+              this.$refs.profileImage.$data.isMyProfile = this.isMyProfile
+              // console.log(r.data.userId)
               this.getUserPosts(r.data.userId);
               this.getUserStories(r.data.userId);
             }).catch(err => {
               console.log(err)
             })
-
-
+            if(!this.isMyProfile) {
+              this.axios.get("users/check/follow/" + this.$route.params.username, {headers: this.getAHeader()})
+              .then(r => {
+                this.followingUser = r.data
+                this.$refs.profileImage.$data.following = r.data
+              })
+        
+              if(!this.followingUser) {
+                this.axios.get("users/check/followrequest/" + this.$route.params.username, {headers: this.getAHeader()})
+                .then(r => {
+                  //this.pendingRequest = r.data
+                  this.$refs.profileImage.$data.waitingForResponse = r.data
+                })
+              }
+            }
         },
         getUserPosts(id) {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
            .then(r => {
               this.usersPosts = r.data;
-              console.log(this.usersPosts);
+              // console.log(this.usersPosts);
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -291,7 +326,7 @@ export default {
            .then(r => {
               //console.log(JSON.parse(r.data.toString()));
               this.userStories = r.data;
-              console.log("stories:", r.data);
+              // console.log("stories:", r.data);
               if (this.userStories !== null)  {
                 let newStories = []
                 this.userStories.forEach(s => {
@@ -310,9 +345,13 @@ export default {
               this.$router.push('/');
             })
         },
+
         toggleFollow(follow) {
           this.followingUser = follow
         },
+        getFollowingNumb() {
+          this.getUserInfo();
+        }
     },
     mounted() {
          this.getUserInfo(); // TODO UNCOMMENT THIS

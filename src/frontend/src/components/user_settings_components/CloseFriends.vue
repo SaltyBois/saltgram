@@ -10,7 +10,6 @@
                   class="scroll-div">
           <CloseFriendsProfile v-for="index in 14" :key="index"/>
         </v-layout>
-<!--        <v-divider class="mt-5 mb-5"/>-->
       </v-layout>
       <v-layout justify-center
                 align-center
@@ -21,12 +20,10 @@
                   class="scroll-div">
           <FollowingProfile v-for="index in 14" :key="index"/>
         </v-layout>
-<!--        <v-divider class="mt-5 mb-5"/>-->
       </v-layout>
     </div>
     <v-btn class="primary mx-10 mb-3">Confirm changes</v-btn>
   </div>
-
 </template>
 
 <script>

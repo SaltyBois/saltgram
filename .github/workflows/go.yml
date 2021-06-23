@@ -12,6 +12,7 @@ jobs:
       SALT_USERS_PORT: 8083
       SALT_EMAIL_PORT: 8086
       SALT_CONTENT_PORT: 8085
+      SALT_ADMIN_PORT: 8087
       RECAPTCHA_SITE_KEY: ${{secrets.RECAPTCHA_SITE_KEY}}
       RECAPTCHA_PROJECT: projects/saltgram
       JWT_SECRET_KEY: ${{secrets.JWT_SECRET_KEY}}

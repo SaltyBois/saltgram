@@ -121,7 +121,8 @@ export default {
             .then(r => {
               this.$store.state.jws = r.data;
               // console.log("Saved jwt ", this.$store.state.jws);
-              this.$router.push("/user/" + username);
+              if (username === 'admin') this.$router.push("/admin")
+              else this.$router.push("/user/" + username);
               // this.getQRImg();
             })
             .catch(r => {

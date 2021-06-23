@@ -25,19 +25,24 @@
               </div>
               <div v-if="isUserLoggedIn" class="post-header-right-side">
                 <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
-                <PostInfo username="Username1" ref="postInfo"/>
+                <PostInfo username="Username1" ref="postInfo" v-if="post" :shared-media-id="post.post.id"/>
               </div>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <v-layout class="post-content" align-center justify-center style="display: block; object-fit: contain">
                 <v-carousel class="post-content-media" :continuous="false">
-                  <v-carousel-item v-for="(item, index) in contentPlaceHolder.length" :key="index">
-                    <v-img contain
-                           :src="contentPlaceHolder[index]"/>
-                   <!-- <video controls
-                           loop
-                           v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
-                           :src="contentPlaceHolder[index]"/>-->
+                  <v-carousel-item v-for="(item, index) in contentPlaceHolder" :key="index">
+                    <video v-if="item.mimeType === 1"
+                           width="100%"
+                           height="100%"
+                           autoplay
+                           playsinline
+                           :controls="true"
+                           :preload="true"
+                           :src="item.url"/>
+                    <v-img v-else
+                           contain
+                           :src="item.url"/>
                   </v-carousel-item>
                 </v-carousel>
               </v-layout>
@@ -124,27 +129,19 @@ export default {
     toggleParrent() {
       this.show = !this.show
     },
-    decrease() {
-      if (this.iteratorContent > 0) this.iteratorContent -= 1;
-      console.log(this.iteratorContent)
-    },
-    increase() {
-      if (this.iteratorContent + 1 < this.contentPlaceHolder.length) this.iteratorContent += 1;
-      console.log(this.iteratorContent)
-    },
     loadingPost() {
       for(let i = 0; i < this.post.post.sharedMedia.media.length; i++){
-        this.contentPlaceHolder.push(this.post.post.sharedMedia.media[i].url);
+        this.contentPlaceHolder.push(this.post.post.sharedMedia.media[i]);
       }
-      console.log(this.contentPlaceHolder);
+      // console.log(this.contentPlaceHolder);
       this.description = this.post.post.sharedMedia.media[0].description;
     },
     loadingComments() {
            this.axios.get("content/comment/" + this.post.post.id)
            .then(r => {
-              console.log(r);
+              // console.log(r);
               this.comments = r.data;
-              console.log(this.comments);
+              // console.log(this.comments);
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -153,8 +150,8 @@ export default {
     sendComment() {
       let com = {content: this.commentContent, postId: this.post.post.id};
        this.axios.post("content/comment", com, {headers: this.getAHeader()})
-           .then(r => {
-              console.log(r);
+           .then(() => {
+              // console.log(r);
               this.commentContent = '';
               this.$emit('reload');
             }).catch(err => {
@@ -166,8 +163,8 @@ export default {
       let reaction = {reactionType: 'LIKE', postId: this.post.post.id};
       if(this.userReactionStatus === ''){
         this.axios.post("content/reaction", reaction, {headers: this.getAHeader()})
-            .then(r => {
-                console.log(r);
+            .then(() => {
+                // console.log(r);
                 this.userReactionStatus = 'LIKE';
               this.$emit('reload');
               }).catch(err => {
@@ -177,8 +174,8 @@ export default {
       } else if (this.userReactionStatus === 'DISLIKE') {
         let putReaction = {reactionType: 'LIKE', id: this.reactionId}
         this.axios.put("content/reaction", putReaction, {headers: this.getAHeader()})
-           .then(r => {
-              console.log(r);
+           .then(() => {
+              // console.log(r);
               this.userReactionStatus = 'LIKE';
               this.$emit('reload');
             }).catch(err => {
@@ -191,8 +188,8 @@ export default {
       let reaction = {reactionType: 'DISLIKE', postId: this.post.post.id};
       if(this.userReactionStatus === ''){
        this.axios.post("content/reaction", reaction, {headers: this.getAHeader()})
-           .then(r => {
-              console.log(r);
+           .then(() => {
+              // console.log(r);
               this.userReactionStatus = 'DISLIKE';
               this.$emit('reload');
             }).catch(err => {
@@ -202,8 +199,8 @@ export default {
       } else if (this.userReactionStatus === 'LIKE'){
         let putReaction = {reactionType: 'DISLIKE', id: this.reactionId}
         this.axios.put("content/reaction", putReaction, {headers: this.getAHeader()})
-           .then(r => {
-              console.log(r);
+           .then(() => {
+              // console.log(r);
               this.userReactionStatus = 'DISLIKE';
               this.$emit('reload');
             }).catch(err => {
@@ -215,12 +212,12 @@ export default {
     loadingReactions() {
            this.axios.get("content/reaction/" + this.post.post.id)
            .then(r => {
-              console.log(r);
+              // console.log(r);
               this.reactions = r.data;
               if(this.reactions === null){
                 this.reactions = [];
               }
-              console.log(this.reactions);
+              // console.log(this.reactions);
               for(let i = 0; i < this.reactions.length; i++){
                 if(this.reactions[i].reactionType === 'LIKE'){
                   this.likes += 1;
@@ -239,11 +236,11 @@ export default {
     checkIfReacted() {
       this.axios.get("users", {headers: this.getAHeader()})
            .then(r => {
-              console.log(r);
+              // console.log(r);
               this.user = r.data;
-              console.log(this.user.id);
+              // console.log(this.user.id);
               for(let i = 0; i < this.reactions.length; i++){
-                console.log(this.reactions[i].userId)
+                // console.log(this.reactions[i].userId)
                 if(this.reactions[i].userId == this.user.id){
                   this.userReactionStatus = this.reactions[i].reactionType;
                   this.reactionId = this.reactions[i].id; 

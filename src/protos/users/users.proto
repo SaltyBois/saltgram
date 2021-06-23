@@ -24,7 +24,22 @@ service Users {
     rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
     rpc GetByUserId(GetByIdRequest) returns (GetByIdResponse);
     rpc GetSearchedUsers(SearchRequest) returns (SearchResponse);
+    rpc GetFollowRequests(Profile) returns(stream FollowingRequest);
+    rpc SetFollowRequestRespond(FollowRequestRespond) returns (FollowRequestSet);
+    rpc GetFollowersDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc GetFollowingDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc CheckIfFollowing(ProflieFollowRequest) returns (BoolResponse);
+    rpc CheckForFollowingRequest(ProflieFollowRequest) returns (BoolResponse);
+
+    rpc VerifyProfile(VerifyProfileRequest) returns (VerifyProfileResponse);
 }
+
+message VerifyProfileRequest {
+    uint64 userId = 1;
+    string accountType = 2;
+}
+
+message VerifyProfileResponse {}
 
 message UpdateProfilePictureRequest {
     string url = 1;
@@ -60,6 +75,7 @@ message UpdateRequest {
     string webSite = 10;
     bool privateProfile = 11;
     string description = 12;
+    bool messageable = 13;
 }
 
 message UpdateResponse {}
@@ -172,6 +188,10 @@ message ProfileResponse {
     string storiesFolderId = 14;
     uint64 userId = 15;
     string profilePictureURL = 16;
+    bool taggable = 17;
+    bool messageable = 18;
+    bool verified = 19;
+    string accountType = 20;
 }
 
 message ChangePublicRequest {
@@ -193,7 +213,9 @@ message FollowRequest {
     string toFollow = 2;
 }
 
-message FollowRespose {}
+message FollowRespose {
+    string message = 1;
+}
 
 message FollowerRequest {
     string username = 1;
@@ -220,5 +242,39 @@ message SearchedUser {
 
 message SearchResponse {
     repeated SearchedUser searchedUser = 1;
+}
+
+message Profile {
+    string username = 1;
+}
+
+message FollowingRequest{
+    string username = 1;
+    uint64 userId = 2;
+    string profilePicture = 3;
+}
+
+message FollowRequestRespond {
+    string username = 1;
+    string request_username = 2;
+    bool accepted = 3;
+}
+
+message FollowRequestSet {}
+
+message ProflieFollowRequest {
+    string logeduser = 1;
+    string username = 2;
+}
+
+message ProfileFollowDetaild {
+    string username = 1;
+    bool following = 2;
+    bool pending = 3;
+    string profliePicture = 4;
+}
+
+message BoolResponse {
+    bool resposne = 1;
 }
 

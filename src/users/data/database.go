@@ -49,3 +49,21 @@ func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&Profile{})
 	db.DB.AutoMigrate(&FollowRequest{})
 }
+
+func (db *DBConn) SeedAdmin() {
+	if db.DB.Where("username = ?", "admin").First(&User{}).RowsAffected > 0 {
+		return
+	}
+
+	user := &User{
+		Username:       "admin",
+		HashedPassword: "Saltadmin123!?",
+		Role:           "admin",
+		Activated:      true,
+	}
+	err := user.GenerateSaltAndHashedPassword()
+	if err != nil {
+		db.l.Fatalf("Hashing admin password failed")
+	}
+	db.DB.Create(user)
+}

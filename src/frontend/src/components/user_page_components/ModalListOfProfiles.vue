@@ -12,7 +12,12 @@
         <h3>{{title}}</h3>
         <v-layout column
                   class="scroll-div">
-          <ProfileInList v-for="index in 14" :key="index"/>
+          <ProfileInList v-for="(item, index) in this.profiles" :key="index" 
+          :username-prop="item.username" 
+          :following-prop="item.following" 
+          :pending-prop="item.pending" 
+          :picture-prop="item.profilePictureURL"
+          :user-prop="userProp"/>
         </v-layout>
         <v-divider class="mt-5 mb-5"/>
         <v-btn @click="show=!show;" class="accent">
@@ -33,11 +38,16 @@ export default {
     title: {
       required: true,
       type: String
+    },
+    userProp: {
+      type: String,
+      required: true
     }
   },
   data: function () {
     return {
-      show: false
+      show: false,
+      profiles: [],
     }
   },
   methods: {

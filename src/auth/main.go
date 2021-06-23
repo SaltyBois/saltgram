@@ -33,6 +33,7 @@ func main() {
 	db := data.NewDBConn(l.L)
 	db.ConnectToDb()
 	db.MigradeData()
+	db.SeedAdmin()
 	authEnforcer, err := casbin.NewEnforcer("./config/model.conf", "./config/policy.csv")
 	if err != nil {
 		l.L.Errorf("failure creating auth enforcer: %v\n", err)

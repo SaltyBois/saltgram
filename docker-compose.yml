@@ -38,6 +38,7 @@ services:
       - SALT_EMAIL_ADDR=email
       - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
       - SALT_CONTENT_ADDR=contents
+      - SALT_ADMIN_PORT=${SALT_ADMIN_PORT}
       - SALT_WEB_PORT=${SALT_WEB_PORT}
       - PKIDB_HOST=pkidb
       - PKIDB_PORT=9094
@@ -150,6 +151,31 @@ services:
     secrets:
       - gsrvcred
 
+  admindb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=saltadmindb
+      - POSTGRES_USER=saltadmin
+      - POSTGRES_PASSWORD=saltadmin
+    ports:
+      - "9096:9096"
+    command: -p 9096
+
+  admin:
+    build: src/admin
+    image: admin
+    ports:
+      - "${SALT_ADMIN_PORT}:${SALT_ADMIN_PORT}"
+    environment:
+      - SALT_ADMIN_PORT=${SALT_ADMIN_PORT}
+      - SALT_CONTENT_PORT=${SALT_CONTENT_PORT}
+      - SALT_USERS_PORT=${SALT_USERS_PORT}
+      - SALT_USERS_ADDR=users
+      - SALT_CONTENT_ADDR=contents
+      - ADMINDB_HOST=admindb
+      - ADMINDB_PORT=9096
+      - PKIDB_HOST=pkidb
+      - PKIDB_PORT=9094
 
 secrets:
   gcred:

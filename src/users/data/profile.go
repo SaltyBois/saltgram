@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"saltgram/data"
 	"time"
 )
@@ -8,9 +9,9 @@ import (
 type RequestStatus string
 
 const (
-	PENDING RequestStatus = "PENDING"
-	ACCEPTED
-	DENIED
+	PENDING  RequestStatus = "PENDING"
+	ACCEPTED RequestStatus = "ACCEPTED"
+	DENIED   RequestStatus = "DENIED"
 )
 
 type Profile struct {
@@ -20,6 +21,7 @@ type Profile struct {
 	Username          string     `json:"username" gorm:"unique"`
 	Public            bool       `json:"isPublic"`
 	Taggable          bool       `json:"isTaggable"`
+	Messagable        bool       `json:"messageable"`
 	Description       string     `json:"description"`
 	Following         []*Profile `gorm:"many2many:profile_following;"`
 	Profiles          []FollowRequest
@@ -33,12 +35,14 @@ type Profile struct {
 	PostsFolderId     string    `json:"-"`
 	StoriesFolderId   string    `json:"-"`
 	ProfilePictureURL string    `json:"profilePictureURL"`
+	AccountType       string    `json:"accountType"`
+	Verified          bool      `json:"verified"`
 }
 
 type FollowRequest struct {
-	ID            uint64        `json:"-"`
-	ProfileID     uint64        `json:"profileId"`
-	RequestID     uint64        `json:"followerId"`
+	data.Identifiable  
+	ProfileID     uint64        `json:"profileId" gorm:"type:numeric"`
+	RequestID     uint64        `json:"followerId" gorm:"type:numeric"`
 	RequestStatus RequestStatus `json:"stats"`
 }
 
@@ -62,6 +66,16 @@ func (db *DBConn) AddProfile(p *Profile) error {
 	return db.DB.Create(p).Error
 }
 
+func (db *DBConn) VerifyProfile(userId uint64, accountType string) error {
+	p, err := db.GetProfileByUserId(userId)
+	if err != nil {
+		return err
+	}
+	p.Verified = true
+	p.AccountType = accountType
+	return db.UpdateProfile(p)
+}
+
 func (db *DBConn) UpdateProfilePicture(url, username string) error {
 	profile, err := db.GetProfileByUsername(username)
 	if err != nil {
@@ -73,6 +87,21 @@ func (db *DBConn) UpdateProfilePicture(url, username string) error {
 
 func (db *DBConn) UpdateProfile(p *Profile) error {
 	return db.DB.Save(&p).Error
+}
+
+var ErrProfileNotFound = fmt.Errorf("profile not found")
+
+func (db *DBConn) GetProfileByUserId(userId uint64) (*Profile, error) {
+	profile := Profile{}
+	res := db.DB.Where("user_id = ?", userId).First(&profile)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, ErrProfileNotFound
+	}
+
+	return &profile, nil
 }
 
 func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
@@ -116,9 +145,11 @@ func GetFollowingCount(db *DBConn, profile *Profile) (int64, error) {
 }
 
 func SetFollow(db *DBConn, profile *Profile, profileToFollow *Profile) error {
-	//db.DB.Model(&profile).Association("Following").Append(&profileToFollow)
-	profile.Following = append(profile.Following, profileToFollow)
-	return db.DB.Save(&profile).Error
+	return db.DB.Exec("INSERT INTO profile_following (profile_id, following_id) VALUES (?, ?)", profile.ID, profileToFollow.ID).Error
+}
+
+func Unfollow(db *DBConn, profile *Profile, profileToUnfollow *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_following WHERE profile_id = ? AND following_id = ?", profile.ID, profileToUnfollow.ID).Error
 }
 
 func CreateFollowRequest(db *DBConn, profile *Profile, request *Profile) error {
@@ -164,4 +195,44 @@ func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
 		return nil, err
 	}
 	return following, nil
+}
+
+func GetFollowRequests(db *DBConn, profile *Profile) ([]Profile, error) {
+	var profiles []Profile
+	var ids []uint64
+	err := db.DB.Table("follow_requests").Select("request_id").Where("profile_id = ? AND request_status = ?", profile.ID, PENDING).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
+func FollowRequestRespond(db *DBConn, profile *Profile, profile_request *Profile, accepted bool) error {
+	fr := FollowRequest{}
+	err := db.DB.Where("profile_id = ? AND request_id = ? AND request_status = ?", profile.ID, profile_request.ID, PENDING).First(&fr).Error
+	if err != nil {
+		return err
+	}
+	if accepted {
+		fr.RequestStatus = ACCEPTED
+	} else {
+		fr.RequestStatus = DENIED
+	}
+	return db.DB.Save(&fr).Error
+}
+
+func CheckForFollowingRequest(db *DBConn, profile *Profile, profile_request *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Model(&FollowRequest{}).Where("profile_id = ? AND request_id = ? AND request_status = ?", profile.ID, profile_request.ID, PENDING).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, err
 }

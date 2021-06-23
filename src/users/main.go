@@ -33,6 +33,7 @@ func main() {
 	db := data.NewDBConn(l.L)
 	db.ConnectToDb()
 	db.MigradeData()
+	db.SeedAdmin()
 
 	aconn, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_AUTH_ADDR", "localhost"), os.Getenv("SALT_AUTH_PORT")))
 	if err != nil {

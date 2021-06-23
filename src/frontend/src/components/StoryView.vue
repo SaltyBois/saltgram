@@ -21,7 +21,10 @@
               <v-carousel-item>
               <v-img v-if="story.mimeType == 'image'" contain
                      :src="story.url"/>
-              <video v-else autoplay
+              <video v-else
+                     autoplay
+                     width="100%"
+                     height="100%"
                      playsinline
                      :src="story.url"/>
               </v-carousel-item>
@@ -82,7 +85,7 @@ export default {
     this.countDownTimer()
   },
   mounted() {
-        console.log(this.stories);
+        // console.log(this.stories);
 
   //  this.loadingStory();
   }

@@ -28,8 +28,11 @@ type ContentClient interface {
 	GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error)
 	GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error)
+	GetPostPreviewURL(ctx context.Context, in *GetPostPreviewURLRequest, opts ...grpc.CallOption) (*GetPostPreviewURLResponse, error)
 	CreateStory(ctx context.Context, in *CreateStoryRequest, opts ...grpc.CallOption) (*CreateStoryResponse, error)
 	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...grpc.CallOption) (*CreatePostResponse, error)
+	CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error)
+	AddVerificationImage(ctx context.Context, opts ...grpc.CallOption) (Content_AddVerificationImageClient, error)
 	AddPost(ctx context.Context, opts ...grpc.CallOption) (Content_AddPostClient, error)
 	AddStory(ctx context.Context, opts ...grpc.CallOption) (Content_AddStoryClient, error)
 	AddComment(ctx context.Context, in *AddCommentRequest, opts ...grpc.CallOption) (*AddCommentResponse, error)
@@ -37,7 +40,6 @@ type ContentClient interface {
 	AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error)
 	AddHighlight(ctx context.Context, in *AddHighlightRequest, opts ...grpc.CallOption) (*AddHighlightResponse, error)
 	PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error)
-	CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error)
 }
 
 type contentClient struct {
@@ -212,6 +214,15 @@ func (c *contentClient) GetHighlights(ctx context.Context, in *GetHighlightsRequ
 	return out, nil
 }
 
+func (c *contentClient) GetPostPreviewURL(ctx context.Context, in *GetPostPreviewURLRequest, opts ...grpc.CallOption) (*GetPostPreviewURLResponse, error) {
+	out := new(GetPostPreviewURLResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetPostPreviewURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) CreateStory(ctx context.Context, in *CreateStoryRequest, opts ...grpc.CallOption) (*CreateStoryResponse, error) {
 	out := new(CreateStoryResponse)
 	err := c.cc.Invoke(ctx, "/Content/CreateStory", in, out, opts...)
@@ -230,8 +241,51 @@ func (c *contentClient) CreatePost(ctx context.Context, in *CreatePostRequest, o
 	return out, nil
 }
 
+func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error) {
+	out := new(CreateUserFolderResponse)
+	err := c.cc.Invoke(ctx, "/Content/CreateUserFolder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) AddVerificationImage(ctx context.Context, opts ...grpc.CallOption) (Content_AddVerificationImageClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/AddVerificationImage", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &contentAddVerificationImageClient{stream}
+	return x, nil
+}
+
+type Content_AddVerificationImageClient interface {
+	Send(*AddVerificationImageRequest) error
+	CloseAndRecv() (*AddVerificationImageResponse, error)
+	grpc.ClientStream
+}
+
+type contentAddVerificationImageClient struct {
+	grpc.ClientStream
+}
+
+func (x *contentAddVerificationImageClient) Send(m *AddVerificationImageRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *contentAddVerificationImageClient) CloseAndRecv() (*AddVerificationImageResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(AddVerificationImageResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *contentClient) AddPost(ctx context.Context, opts ...grpc.CallOption) (Content_AddPostClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/AddPost", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddPost", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +319,7 @@ func (x *contentAddPostClient) CloseAndRecv() (*AddPostResponse, error) {
 }
 
 func (c *contentClient) AddStory(ctx context.Context, opts ...grpc.CallOption) (Content_AddStoryClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddStory", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddStory", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +371,7 @@ func (c *contentClient) AddReaction(ctx context.Context, in *AddReactionRequest,
 }
 
 func (c *contentClient) AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddProfilePicture", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[7], "/Content/AddProfilePicture", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -368,15 +422,6 @@ func (c *contentClient) PutReaction(ctx context.Context, in *PutReactionRequest,
 	return out, nil
 }
 
-func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFolderRequest, opts ...grpc.CallOption) (*CreateUserFolderResponse, error) {
-	out := new(CreateUserFolderResponse)
-	err := c.cc.Invoke(ctx, "/Content/CreateUserFolder", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ContentServer is the server API for Content service.
 // All implementations must embed UnimplementedContentServer
 // for forward compatibility
@@ -391,8 +436,11 @@ type ContentServer interface {
 	GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error
 	GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error
 	GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error)
+	GetPostPreviewURL(context.Context, *GetPostPreviewURLRequest) (*GetPostPreviewURLResponse, error)
 	CreateStory(context.Context, *CreateStoryRequest) (*CreateStoryResponse, error)
 	CreatePost(context.Context, *CreatePostRequest) (*CreatePostResponse, error)
+	CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error)
+	AddVerificationImage(Content_AddVerificationImageServer) error
 	AddPost(Content_AddPostServer) error
 	AddStory(Content_AddStoryServer) error
 	AddComment(context.Context, *AddCommentRequest) (*AddCommentResponse, error)
@@ -400,7 +448,6 @@ type ContentServer interface {
 	AddProfilePicture(Content_AddProfilePictureServer) error
 	AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error)
 	PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error)
-	CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -432,11 +479,20 @@ func (UnimplementedContentServer) GetPostsByUserReaction(*GetPostsRequest, Conte
 func (UnimplementedContentServer) GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHighlights not implemented")
 }
+func (UnimplementedContentServer) GetPostPreviewURL(context.Context, *GetPostPreviewURLRequest) (*GetPostPreviewURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPostPreviewURL not implemented")
+}
 func (UnimplementedContentServer) CreateStory(context.Context, *CreateStoryRequest) (*CreateStoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStory not implemented")
 }
 func (UnimplementedContentServer) CreatePost(context.Context, *CreatePostRequest) (*CreatePostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
+}
+func (UnimplementedContentServer) CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUserFolder not implemented")
+}
+func (UnimplementedContentServer) AddVerificationImage(Content_AddVerificationImageServer) error {
+	return status.Errorf(codes.Unimplemented, "method AddVerificationImage not implemented")
 }
 func (UnimplementedContentServer) AddPost(Content_AddPostServer) error {
 	return status.Errorf(codes.Unimplemented, "method AddPost not implemented")
@@ -458,9 +514,6 @@ func (UnimplementedContentServer) AddHighlight(context.Context, *AddHighlightReq
 }
 func (UnimplementedContentServer) PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutReaction not implemented")
-}
-func (UnimplementedContentServer) CreateUserFolder(context.Context, *CreateUserFolderRequest) (*CreateUserFolderResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateUserFolder not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -631,6 +684,24 @@ func _Content_GetHighlights_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_GetPostPreviewURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostPreviewURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetPostPreviewURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetPostPreviewURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetPostPreviewURL(ctx, req.(*GetPostPreviewURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Content_CreateStory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateStoryRequest)
 	if err := dec(in); err != nil {
@@ -665,6 +736,50 @@ func _Content_CreatePost_Handler(srv interface{}, ctx context.Context, dec func(
 		return srv.(ContentServer).CreatePost(ctx, req.(*CreatePostRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_CreateUserFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserFolderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).CreateUserFolder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/CreateUserFolder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).CreateUserFolder(ctx, req.(*CreateUserFolderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_AddVerificationImage_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ContentServer).AddVerificationImage(&contentAddVerificationImageServer{stream})
+}
+
+type Content_AddVerificationImageServer interface {
+	SendAndClose(*AddVerificationImageResponse) error
+	Recv() (*AddVerificationImageRequest, error)
+	grpc.ServerStream
+}
+
+type contentAddVerificationImageServer struct {
+	grpc.ServerStream
+}
+
+func (x *contentAddVerificationImageServer) SendAndClose(m *AddVerificationImageResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *contentAddVerificationImageServer) Recv() (*AddVerificationImageRequest, error) {
+	m := new(AddVerificationImageRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _Content_AddPost_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -817,24 +932,6 @@ func _Content_PutReaction_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Content_CreateUserFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateUserFolderRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ContentServer).CreateUserFolder(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Content/CreateUserFolder",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContentServer).CreateUserFolder(ctx, req.(*CreateUserFolderRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Content_ServiceDesc is the grpc.ServiceDesc for Content service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -859,12 +956,20 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Content_GetHighlights_Handler,
 		},
 		{
+			MethodName: "GetPostPreviewURL",
+			Handler:    _Content_GetPostPreviewURL_Handler,
+		},
+		{
 			MethodName: "CreateStory",
 			Handler:    _Content_CreateStory_Handler,
 		},
 		{
 			MethodName: "CreatePost",
 			Handler:    _Content_CreatePost_Handler,
+		},
+		{
+			MethodName: "CreateUserFolder",
+			Handler:    _Content_CreateUserFolder_Handler,
 		},
 		{
 			MethodName: "AddComment",
@@ -881,10 +986,6 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PutReaction",
 			Handler:    _Content_PutReaction_Handler,
-		},
-		{
-			MethodName: "CreateUserFolder",
-			Handler:    _Content_CreateUserFolder_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -907,6 +1008,11 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetPostsByUserReaction",
 			Handler:       _Content_GetPostsByUserReaction_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "AddVerificationImage",
+			Handler:       _Content_AddVerificationImage_Handler,
+			ClientStreams: true,
 		},
 		{
 			StreamName:    "AddPost",

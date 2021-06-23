@@ -1,13 +1,13 @@
 <template>
   <div id="home-main">
     <TopBar style="position: fixed; z-index: 2"/>
-    <div id="main-container">
-      <div>
+    <div id="main-container" >
+      <div v-bind:style="login ? 'margin-top: 0px;' : 'margin-top: 100px;'">
         <img id="logo" src="https://image.flaticon.com/icons/png/512/114/114928.png" alt="Saltgram logo picture"/>
       </div>
       <div id="login-register">
           <sg-login v-if="login" />
-          <sg-register v-else />
+          <sg-register v-else style="margin-top: 20%" />
           <div id="switch-login">
             <p id="switch-up">
                 <span v-if="login">Don't have an account?</span>
@@ -53,7 +53,6 @@ export default {
   }
 
   #main-container {
-    margin-top: 50px;
     display: flex;
     flex-shrink: 0;
     flex-grow: 0;
@@ -66,8 +65,8 @@ export default {
     display: grid;
     place-items: center;
     flex-basis: 30%;
-    width: 30rem;
-    height: 30rem;
+    width: 20rem;
+    height: 20rem;
   }
 
   #login-register {
