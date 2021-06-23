@@ -18,14 +18,20 @@
             <div class="post-header">
               <div class="post-header-left-side">
                 <v-img  class="post-header-profile"
-                        src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+                        v-if="userProp.profilePictureURL"
+                        :src="userProp.profilePictureURL"
                         @click="$router.push('/user')"
                         alt="Profile picture"/>
-                <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
+                <v-img  class="post-header-profile"
+                        v-else
+                        :src="require('@/assets/profile_placeholder.png')"
+                        @click="$router.push('/user')"
+                        alt="Profile picture"/>
+                <b @click="$router.push('/user')" style="cursor: pointer">{{ userProp.username }}</b>
               </div>
               <div v-if="isUserLoggedIn" class="post-header-right-side">
                 <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
-                <PostInfo username="Username1" ref="postInfo" v-if="post" :shared-media-id="post.post.id"/>
+                <PostInfo ref="postInfo" v-if="post" :shared-media-id="post.post.id" :username="userProp.username"/>
               </div>
             </div>
             <div style="display: flex; justify-content: space-between;">
@@ -50,7 +56,7 @@
                 <div class="post-description">
                   <div style=" padding: 5px;">
                     <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-                      <b>USERNAME</b>
+                      <b>{{ userProp.username }}</b>
                       {{this.description}}
                     </p>
                   </div>
@@ -123,7 +129,8 @@ export default {
         required: false,
         type: String
       },
-      post: { type: Object, required: true}
+      post: { type: Object, required: true},
+      userProp: { type: Object, required: true}
   },
   methods: {
     toggleParrent() {
@@ -255,6 +262,7 @@ export default {
     },
   },
   mounted() {
+    // console.log(this.post)
     this.iteratorContent = 0
     this.loadingPost();
     this.loadingComments();
@@ -441,7 +449,8 @@ export default {
   width: 30px;
   height: 30px;
   object-fit: cover;
-  border-radius: 20%;
+  border-radius: 10px;
+  border: black solid 1px;
   margin: 10px;
   cursor: pointer;
 

@@ -1,6 +1,10 @@
 <template>
   <div>
-    <PostView ref="postView" :post="post" :key="reloadKey" @reload="reloadPostView"/>
+    <PostView ref="postView"
+              :post="post"
+              :key="reloadKey"
+              :user-prop="user"
+              @reload="reloadPostView"/>
     <video  class="post"
             v-if="post.post.sharedMedia.media[0].mimeType === 1"
             :controls="false"
@@ -27,12 +31,12 @@ export default {
     return {
       reloadKey: 0,
       //post: [],
-
     }
 
   },
   props: {
-    post: { type: Object, required: true}
+    post: { type: Object, required: true},
+    user: { type: Object, required: true},
   },
   methods: {
     showPostFun() {

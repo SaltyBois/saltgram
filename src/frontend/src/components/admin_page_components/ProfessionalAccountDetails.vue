@@ -2,17 +2,23 @@
   <div style="margin: 5px; border: 1px solid black; border-radius: 10px; padding: 3px; height: 97%; overflow-y: auto; overflow-x: hidden">
     <div style="height: 97%">
       <v-img  class="chat-head"
-              :src="applicationData.profilePictureAddress"
+              v-if="applicationData.profilePicture"
+              :src="applicationData.profilePicture"
+              @click="$router.push('/user/' + applicationData.username)"
+              alt="Profile picture"/>
+      <v-img  class="chat-head"
+              v-else
+              :src="require('@/assets/profile_placeholder.png')"
               @click="$router.push('/user/' + applicationData.username)"
               alt="Profile picture"/>
       <h3 class="my-1">Username: {{applicationData.username}}</h3>
       <h4 class="my-1">Name and LastName: {{applicationData.fullname}}</h4>
-      <h4 class="my-1">Professional Account Type: {{applicationData.accountType}}</h4>
-      <ImageMessage v-if="showContent" :image-src="this.applicationData.documentMedia" @toggle-image-message="showContent = false"/>
+      <h4 class="my-1">Professional Account Type: {{applicationData.category}}</h4>
+      <ImageMessage v-if="showContent" :image-src="this.applicationData.url" @toggle-image-message="showContent = false"/>
       <v-img  class="content-item my-2"
               style="border: 1px solid black; border-radius: 10px"
-              v-if="this.applicationData.documentMedia"
-              :src="this.applicationData.documentMedia"
+              v-if="this.applicationData.url"
+              :src="this.applicationData.url"
               alt="Profile picture"
               @click="showContent = true"/>
       <div style="display: inline-flex; text-align: -webkit-center; width: 100%;">
@@ -28,23 +34,26 @@ import ImageMessage from "@/components/inbox_components/ImageMessage";
 export default {
   name: "ProfessionalAccountDetails",
   components: { ImageMessage },
+  props: {
+    applicationData: { type: Object, required: true },
+  },
   data: function () {
     return {
-      applicationData: {
-        username: '{{USERNAME}}',
-        profilePictureAddress: 'https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg',
-        documentMedia: 'https://www.ozonpress.net/wp-content/uploads/2016/09/licna-karata.jpg',
-        fullname: 'Imen Prezimenovic',
-        accountType: 'Business',
-        userId: '',
-        requestId: '',
-      },
+      // applicationData: {
+      //   username: '{{USERNAME}}',
+      //   profilePictureAddress: 'https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg',
+      //   documentMedia: 'https://www.ozonpress.net/wp-content/uploads/2016/09/licna-karata.jpg',
+      //   fullname: 'Imen Prezimenovic',
+      //   accountType: 'Business',
+      //   userId: '',
+      //   requestId: '',
+      // },
       showContent: false,
     }
   },
   methods: {
     acceptApplication() {
-      let acceptrequest = {id: this.applicationData.requestId, status: 'ACCEPTED'}
+      let acceptrequest = {id: this.applicationData.id, status: 'ACCEPTED'}
       this.axios.put("admin/verificationrequest", acceptrequest)
         .then(r => {
           console.log(r);
@@ -55,7 +64,7 @@ export default {
         })
     },
     rejectApplication() {
-      let rejectrequest = {id: this.applicationData.requestId, status: 'REJECTED'}
+      let rejectrequest = {id: this.applicationData.id, status: 'REJECTED'}
       this.axios.put("admin/verificationrequest", rejectrequest)
         .then(r => {
           console.log(r);

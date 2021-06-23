@@ -1,7 +1,7 @@
 <template>
   <div>
     <transition name="fade" appear>
-      <div class="modal-overlay" v-if="show" @click="show=!show; toggleParent"></div>
+      <div class="modal-overlay" v-if="show" @click="show=!show;"></div>
     </transition>
     <transition name="slide" appear >
       <v-layout class="modal"

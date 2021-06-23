@@ -1,9 +1,18 @@
 <template>
   <div class="story-highlight-layout">
-    <v-img v-if="stories" class="story-highlight"
-            @click="$refs.storyView.$data.visible = true"
+    <video  class="story-highlight"
+            v-if="stories && stories[0].mimeType === 'video'"
+            :controls="false"
+            :playsinline="false"
+            :preload="true"
+            :autoplay="false"
             :src="stories[0].url"
-            alt="Profile picture"/>
+            @click="$refs.storyView.$data.visible = true"/>
+    <v-img v-else-if="stories && stories[0].mimeType === 'image'"
+           class="story-highlight"
+           @click="$refs.storyView.$data.visible = true"
+           :src="stories[0].url"
+           alt="Profile picture"/>
     <v-img v-else class="story-highlight" src="require('@/assets/profile_placeholder.png')" />
     <h5>{{name}}</h5>
     <StoryView :stories="stories" ref="storyView"/>

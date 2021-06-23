@@ -2,25 +2,31 @@
   <div style="margin: 5px; border: 1px solid black; border-radius: 10px; padding: 3px; height: 97%; overflow-y: auto; overflow-x: hidden">
     <div style="height: 97%">
       <v-img  class="chat-head"
-              :src="reportData.profilePictureAddress"
+              v-if="reportData.profilePicture"
+              :src="reportData.profilePicture"
               @click="$router.push('/user/' + reportData.username)"
               alt="Profile picture"/>
-      <h3>Username: {{reportData.username}}</h3>
-      <ImageMessage v-if="showContent && this.reportData.typeMedia === 'image'" :image-src="this.reportData.reportedMedia" @toggle-image-message="showContent = false"/>
+      <v-img  class="chat-head"
+              v-else
+              :src="require('@/assets/profile_placeholder.png')"
+              @click="$router.push('/user/' + reportData.username)"
+              alt="Profile picture"/>
+      <h3>{{reportData.username}}</h3>
+      <ImageMessage v-if="showContent && this.reportData.typeMedia === 'image'" :image-src="this.reportData.url" @toggle-image-message="showContent = false"/>
       <v-img  class="content-item my-2"
               style="border: 1px solid black; border-radius: 10px"
-              v-if="this.reportData.reportedMedia && this.reportData.typeMedia === 'image'"
-              :src="this.reportData.reportedMedia"
+              v-if="this.reportData.url && this.reportData.typeMedia === 'image'"
+              :src="this.reportData.url"
               alt="Profile picture"
               @click="showContent = true"/>
-      <video class="content-item"
-             v-if="this.reportData.reportedMedia && this.reportData.typeMedia === 'video'"
+      <video class="content-item my-2"
+             v-if="this.reportData.url && this.reportData.typeMedia === 'video'"
              :kind="'video'"
              :autoplay="true"
              :controls="true"
              :loop="true"
              :style="{width: '300px'}"
-             :src="[this.reportData.reportedMedia]"/>
+             :src="[this.reportData.url]"/>
       <v-textarea no-resize height="150px" outlined style="width: 90%" readonly v-model="reportData.description"/>
       <div style="display: inline-flex; text-align: -webkit-center; width: 100%;">
         <v-btn class="sanction-button mx-2" width="30%" style="font-size: 12px; letter-spacing: 0" @click="removeContent">Remove content</v-btn>
@@ -38,15 +44,18 @@ import ImageMessage from "@/components/inbox_components/ImageMessage";
 export default {
   name: "ReportDetails",
   components: { ImageMessage, },
+  props: {
+    reportData: { type: Object, required: true }
+  },
   data: function () {
     return {
-      reportData: {
-        username: '{{USERNAME}}',
-        profilePictureAddress: 'https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg',
-        reportedMedia: 'https://static.onecms.io/wp-content/uploads/sites/20/2018/05/21042210_264995290674140_8840525631411191808_n.jpg',
-        typeMedia: 'image',
-        description: 'Report description'
-      },
+      // reportData: {
+      //   username: '',
+      //   profilePictureAddress: '',
+      //   reportedMedia: '',
+      //   typeMedia: 'image',
+      //   description: ''
+      // },
       showContent: false,
     }
   },
@@ -60,6 +69,9 @@ export default {
     rejectReport() {
 
     },
+  },
+  mounted() {
+    console.log(this.reportData)
   }
 }
 </script>
