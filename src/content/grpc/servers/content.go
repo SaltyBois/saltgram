@@ -613,7 +613,7 @@ func (c *Content) GetReactions(r *prcontent.GetReactionsRequest, stream prconten
 	return nil
 }
 
-func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.Content_GetCommentsServer) error {
+/*func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.Content_GetCommentsServer) error {
 	comments, err := c.db.GetCommentByPostId(r.PostId)
 	if err != nil {
 		c.l.Errorf("failure getting comments: %v\n", err)
@@ -634,6 +634,24 @@ func (c *Content) GetComments(r *prcontent.GetCommentsRequest, stream prcontent.
 		}
 	}
 	return nil
+}*/
+
+func (c *Content) GetComments(ctx context.Context, r *prcontent.GetCommentsRequest) (*prcontent.GetCommentsResponse, error) {
+	comments, err := c.db.GetCommentByPostId(r.PostId)
+	if err != nil {
+		c.l.Errorf("failure getting comments: %v\n", err)
+		return &prcontent.GetCommentsResponse{}, err
+	}
+
+	coms := []*prcontent.Comment{}
+	for _, cm := range *comments {
+		coms = append(coms, &prcontent.Comment{
+			Content: cm.Content,
+			UserId:  cm.UserID,
+			PostId:  cm.PostID,
+		})
+	}
+	return &prcontent.GetCommentsResponse{Comment: coms}, nil
 }
 
 // func (c *Content) GetStories(r *prcontent.GetStoryRequest, stream prcontent.Content_GetStoriesServer) error {

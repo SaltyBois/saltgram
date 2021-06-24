@@ -54,6 +54,14 @@ type CommentDTO struct {
 	PostId  string
 }
 
+type GetCommentDTO struct {
+	Content        string `json:"content"`
+	UserId         string `json:"userId"`
+	PostId         string `json:"postId"`
+	Username       string `json:"username"`
+	ProfilePicture string `json:"profilePicture"`
+}
+
 type ReactionType string
 
 const (
