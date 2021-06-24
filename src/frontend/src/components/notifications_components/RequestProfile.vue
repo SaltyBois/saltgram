@@ -2,7 +2,7 @@
   <div class="layout-div">
     <div class="post-header-left-side">
       <v-img  class="post-header-profile"
-              src="this.pictureProp"
+              :src="this.pictureProp"
               @click="$router.push('/user')"
               alt="Profile picture"/>
       <b @click="$router.push('/user')" style="cursor: pointer">{{this.usernameProp}}</b>
@@ -30,6 +30,9 @@ export default {
       type: String,
       required: true,
     }
+  },
+  mounted() {
+    console.log(this.pictureProp)
   },
   methods: {
     acceptRequest: function(){
@@ -94,9 +97,12 @@ export default {
   width: 30px;
   height: 30px;
   object-fit: cover;
-  border-radius: 20%;
   margin: 10px;
   cursor: pointer;
+
+  border-radius: 10px;
+  border: solid black 1px;
+
 
 
   filter: brightness(1);

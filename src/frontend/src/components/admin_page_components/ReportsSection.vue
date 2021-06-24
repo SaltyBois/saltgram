@@ -6,17 +6,18 @@
     <div style="display: inline-flex; height: 90%; width: 100%">
       <div class="dropdown-list">
         <div class="inner-layout">
-          <div v-for="index in pendingReports" :key="index"
-            @click="selectedReport(index)">
-            <ReportedUser :username-prop="index.username"
-                          :profile-picture-address-prop="index.profilePicture"
+          <div v-for="(item, index) in pendingReports"
+               :key="index"
+            @click="selectedReport(item)">
+            <ReportedUser :username-prop="item.username"
+                          :profile-picture-address-prop="item.profilePicture"
                           />
             <v-divider/>
           </div>
         </div>
       </div>
       <div class="report-details">
-        <ReportDetails ref="reportDetails"/>
+        <ReportDetails :report-data="repData" v-if="repData" ref="reportDetails"/>
       </div>
     </div>
   </div>
@@ -32,18 +33,22 @@ export default {
   data: function () {
     return {
       pendingReports: [],
+      repData: false
     }
   },
   methods: {
     selectedReport(repData) {
-      this.$refs.reportDetails.$data.reportData.username = repData.username;
-      this.$refs.reportDetails.$data.reportData.reportedMedia = repData.url;
-      this.$refs.reportDetails.$data.reportData.profilePictureAddress = repData.profilePicture;
+      // console.log(repData)
+      this.repData = repData;
+      this.repData.typeMedia = 'image'; // TODO --- THIS INFORMATION ISN'T SENT FROM BACK
+      // this.$refs.reportDetails.$data.reportData.username = repData.username;
+      // this.$refs.reportDetails.$data.reportData.reportedMedia = repData.url;
+      // this.$refs.reportDetails.$data.reportData.profilePictureAddress = repData.profilePicture;
     },
     getPendingReports() {
       this.axios.get("admin/inappropriatecontent")
         .then(r => {
-          console.log(r);
+          // console.log(r);
           this.pendingReports = r.data;
         } 
         ).catch( err => {

@@ -6,17 +6,18 @@
     <div style="display: inline-flex; height: 90%; width: 100%">
       <div class="dropdown-list">
         <div class="inner-layout">
-          <div v-for="index in pendingVerificationRequests" :key="index"
-            @click="selectedApplication(index)">
-            <ProfessionalAccountApplication :username-prop="index.username"
-                          :profile-picture-address-prop="index.profilePicture"
+          <div v-for="(item, index) in pendingVerificationRequests" :key="index"
+            @click="selectedApplication(item)">
+            <ProfessionalAccountApplication :username-prop="item.username"
+                          :profile-picture-address-prop="item.profilePicture"
                           />
             <v-divider/>
           </div>
         </div>
       </div>
       <div class="application-view">
-        <ProfessionalAccountDetails ref="professionalAccountDetails"/>
+        <ProfessionalAccountDetails v-if="appdata"
+                                    :application-data="appdata"/>
       </div>
     </div>
   </div>
@@ -32,6 +33,7 @@ export default {
   data: function () {
     return {
       pendingVerificationRequests: [],
+      appdata: false,
     }
   },
   methods: {
@@ -43,15 +45,14 @@ export default {
         accountType: 'Business'
       },*/
     selectedApplication(appData) {
-      this.$refs.professionalAccountDetails.$data.applicationData.username = appData.username;
-      console.log(this.$refs.professionalAccountDetails.$data.applicationData.username);
-      console.log(appData);
-      this.$refs.professionalAccountDetails.$data.applicationData.profilePictureAddress = appData.profilePicture;
-      this.$refs.professionalAccountDetails.$data.applicationData.documentMedia = appData.url;
-      this.$refs.professionalAccountDetails.$data.applicationData.fullname = appData.fullname;
-      this.$refs.professionalAccountDetails.$data.applicationData.accountType = appData.category;
-      this.$refs.professionalAccountDetails.$data.applicationData.userId = appData.userId;
-      this.$refs.professionalAccountDetails.$data.applicationData.requestId = appData.id;
+      this.appdata = appData;
+      // console.log(appData);
+      // this.$refs.professionalAccountDetails.$data.applicationData.profilePictureAddress = appData.profilePicture;
+      // this.$refs.professionalAccountDetails.$data.applicationData.documentMedia = appData.url;
+      // this.$refs.professionalAccountDetails.$data.applicationData.fullname = appData.fullname;
+      // this.$refs.professionalAccountDetails.$data.applicationData.accountType = appData.category;
+      // this.$refs.professionalAccountDetails.$data.applicationData.userId = appData.userId;
+      // this.$refs.professionalAccountDetails.$data.applicationData.requestId = appData.id;
     },
     getPendingVerificationRequests() {
       this.axios.get("admin/verificationrequest")

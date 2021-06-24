@@ -43,7 +43,7 @@
 
       <div class="notifications-body-div" v-else-if="NotificationCategory === 1">
 
-        <RequestProfile v-for="item in this.followingRequests" :key="item" :username-prop="item.username" :picture-prop="item.profilePictureURL" v-on:reload-requests="getFollowRequests()"/>
+        <RequestProfile v-for="(item, index) in this.followingRequests" :key="index" :username-prop="item.username" :picture-prop="item.profilePicture" v-on:reload-requests="getFollowRequests()"/>
 
       </div>
     </div>

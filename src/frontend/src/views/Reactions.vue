@@ -7,7 +7,7 @@
       </div>
       <v-layout class="user-media"
                 column>
-        <PostOnUserPage v-for="(item, index) in content" :key="index" :post="item"/>
+        <PostOnUserPage v-for="(item, index) in content" :key="index" :post="item" :user="user"/>
       </v-layout>
     </div>
   </div>
@@ -22,7 +22,8 @@ export default {
   components: { TopBar, PostOnUserPage },
   data() {
     return {
-      content: []
+      content: [],
+      user: {},
     }
   },
   mounted() {
@@ -39,12 +40,31 @@ export default {
                 'Authorization': 'Bearer ' + this.$store.state.jws,
               },
             };
+
             this.axios.get('content/reaction/user', config)
                 .then(r => {
                   this.content = r.data
-                  console.log(this.content)
+                  // console.log(this.content)
                 })
                 .catch(r => console.log(r));
+
+            this.axios.get('users', {headers: this.getAHeader()})
+            .then(r => {
+              // console.log(r.data)
+
+              this.axios.get('users/profile/' + r.data.username, {headers: this.getAHeader()})
+              .then(rr => {
+                // console.log(rr.data)
+                this.user = rr.data
+              })
+              .catch(err2 => {
+                console.log(err2)
+              })
+            })
+            .catch(err => {
+              console.log(err)
+            })
+
           }).catch(() => this.$router.push('/'));
     }
   }

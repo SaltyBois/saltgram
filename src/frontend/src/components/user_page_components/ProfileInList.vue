@@ -2,7 +2,7 @@
   <div class="profile">
     <div style="width: 70px">
       <v-img  class="head"
-              src="pictureProp"
+              :src="pictureProp"
               @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
     </div>
@@ -86,6 +86,10 @@ export default {
           console.log(r)
         })
     }
+  },
+  mounted() {
+    console.log(this.userProp)
+    console.log(this.usernameProp)
   }
 }
 </script>

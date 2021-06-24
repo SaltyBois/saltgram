@@ -9,16 +9,16 @@
     <v-layout column
               align-center
               class="following-follower-div"
-              @click="toggleVisibilityFollwing(); title='Following'">
-      <h4>Following</h4>
-      <h3><b>{{this.followingProp}}</b></h3>
+              @click="toggleVisibilityFollowers(); title='Followers'">
+      <h4>Followers</h4>
+      <h3><b>{{this.followersProp}}</b></h3>
     </v-layout>
     <v-layout column
               align-center
               class="following-follower-div"
-              @click="toggleVisibilityFollwers(); title='Followers'">
-      <h4>Followers</h4>
-      <h3><b>{{this.followersProp}}</b></h3>
+              @click="toggleVisibilityFollowing(); title='Following'">
+      <h4>Following</h4>
+      <h3><b>{{this.followingProp}}</b></h3>
     </v-layout>
     <ModalListOfProfiles ref="modalList" :title="title" :user-prop="userProp"/>
   </v-layout>
@@ -54,7 +54,7 @@ export default {
     }
   },
   methods: {
-    toggleVisibilityFollwing: function() {
+    toggleVisibilityFollowing: function() {
       this.$refs.modalList.$data.show = !this.$refs.modalList.$data.show
       this.axios.get("users/following/detailed/" + this.$route.params.username, {headers: this.getAHeader()})
       .then(r => {
@@ -62,7 +62,7 @@ export default {
         this.$refs.modalList.$data.profiles = r.data
       })
     },
-    toggleVisibilityFollwers: function(){
+    toggleVisibilityFollowers: function(){
       this.$refs.modalList.$data.show = !this.$refs.modalList.$data.show
       this.axios.get("users/followers/detailed/" + this.$route.params.username, {headers: this.getAHeader()})
       .then(r => {

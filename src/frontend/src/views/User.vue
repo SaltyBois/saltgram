@@ -24,6 +24,7 @@
 
             <ProfileHeader :following-prop="this.profile.following"
                            :followers-prop="this.profile.followers"
+                           :user-prop="this.loggedUser.username"
                            :posts-number="usersPosts.length"/>
 
           </v-layout>
@@ -46,7 +47,7 @@
 
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
-              v-if="isContentVisible"
+              v-if="isContentVisible && highlights.length !== 0"
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
@@ -106,7 +107,8 @@
                 v-if="radioButton === 'posts' && isContentVisible"
                 column>
                 <div v-for="(object, index) in usersPosts" :key="index">
-                  <PostOnUserPage :post="object"/>
+                  <PostOnUserPage :post="object"
+                                  :user="{username: profile.username, profilePictureURL: profile.profilePictureURL}"/>
                 </div>
       </v-layout>
     </transition>
@@ -162,8 +164,8 @@ export default {
           privateUser: true,
           description: '',
           fullName: '',
-          followers: '',
-          following: '',
+          followers: 0,
+          following: 0,
           followersList:[],
           followingList: [],
           username: '',
@@ -178,10 +180,11 @@ export default {
         pendingRequest: false,
         usersPosts: [],
         userStories: [],
+        loggedUser: { username: '' },
       }
     },
     computed: {
-      isContentVisible() {
+      isContentVisible: function() {
           return !(!this.isMyProfile && this.profile.privateUser && !this.followingUser);
 
       }
@@ -351,10 +354,21 @@ export default {
         },
         getFollowingNumb() {
           this.getUserInfo();
+        },
+
+        getLoggedUserInfo() {
+          this.axios.get('users', {headers: this.getAHeader()})
+              .then(r => {
+                this.loggedUser = r.data
+              })
+              .catch(err => {
+                console.log(err)
+              })
         }
     },
     mounted() {
-         this.getUserInfo(); // TODO UNCOMMENT THIS
+       this.getUserInfo(); // TODO UNCOMMENT THIS
+       this.getLoggedUserInfo();
     },
 }
 </script>

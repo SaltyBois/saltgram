@@ -86,9 +86,6 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u.l.Println("[INFO] username: %v\n", claims.Username)
-	u.l.Println("[INFO] password: %v\n", claims.Password)
-
 	user, err := u.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
 	if err != nil {
 		u.l.Errorf("failed to fetch user: %v\n", err)

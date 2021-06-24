@@ -77,7 +77,7 @@ export default {
     },
   },
   mounted() {
-    console.log(this.sharedMediaId);
+    // console.log(this.sharedMediaId);
   }
 }
 </script>
