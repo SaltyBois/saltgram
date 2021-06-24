@@ -949,7 +949,7 @@ func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) 
 	saltdata.ToJSON(&requests, w)
 }
 
-func (s *Content) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
+/*func (s *Content) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	userId := vars["id"]
@@ -979,6 +979,55 @@ func (s *Content) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 		comments = append(comments, comment)
 	}
 	saltdata.ToJSON(comments, w)
+}*/
+
+func (s *Content) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	userId := vars["id"]
+	id, err := strconv.ParseUint(userId, 10, 64)
+	if err != nil {
+		s.l.Println("converting id")
+		return
+	}
+
+	comments, err := s.cc.GetComments(context.Background(), &prcontent.GetCommentsRequest{PostId: id})
+	if err != nil {
+		s.l.Errorf("failed fetching comments %v\n", err)
+		http.Error(w, "failed fetching comments", http.StatusInternalServerError)
+		return
+	}
+	retVal := []saltdata.GetCommentDTO{}
+
+	for i := 0; i < len(comments.Comment); i++ {
+		vr := comments.Comment[i]
+
+		user, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: vr.UserId})
+
+		if err != nil {
+			s.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			s.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		retVal = append(retVal, saltdata.GetCommentDTO{
+			UserId:         strconv.FormatUint(vr.UserId, 10),
+			Username:       user.Username,
+			ProfilePicture: profile.ProfilePictureURL,
+			Content:        vr.Content,
+			PostId:         strconv.FormatUint(vr.PostId, 10),
+		})
+	}
+
+	saltdata.ToJSON(&retVal, w)
+
 }
 
 func (s *Content) GetReactionsByPost(w http.ResponseWriter, r *http.Request) {

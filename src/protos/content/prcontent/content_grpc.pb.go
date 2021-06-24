@@ -23,7 +23,8 @@ type ContentClient interface {
 	GetPostsByUser(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserClient, error)
 	GetStoriesIndividual(ctx context.Context, in *GetStoriesIndividualRequest, opts ...grpc.CallOption) (*GetStoriesIndividualResponse, error)
 	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (*GetProfilePictureResponse, error)
-	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error)
+	//rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
+	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (*GetCommentsResponse, error)
 	GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error)
 	GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error)
@@ -131,40 +132,17 @@ func (c *contentClient) GetProfilePicture(ctx context.Context, in *GetProfilePic
 	return out, nil
 }
 
-func (c *contentClient) GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (Content_GetCommentsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[2], "/Content/GetComments", opts...)
+func (c *contentClient) GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (*GetCommentsResponse, error) {
+	out := new(GetCommentsResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetComments", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &contentGetCommentsClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Content_GetCommentsClient interface {
-	Recv() (*GetCommentsResponse, error)
-	grpc.ClientStream
-}
-
-type contentGetCommentsClient struct {
-	grpc.ClientStream
-}
-
-func (x *contentGetCommentsClient) Recv() (*GetCommentsResponse, error) {
-	m := new(GetCommentsResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *contentClient) GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[3], "/Content/GetReactions", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[2], "/Content/GetReactions", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +174,7 @@ func (x *contentGetReactionsClient) Recv() (*GetReactionsResponse, error) {
 }
 
 func (c *contentClient) GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/GetPostsByUserReaction", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[3], "/Content/GetPostsByUserReaction", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +251,7 @@ func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFold
 }
 
 func (c *contentClient) AddVerificationImage(ctx context.Context, opts ...grpc.CallOption) (Content_AddVerificationImageClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddVerificationImage", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/AddVerificationImage", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +285,7 @@ func (x *contentAddVerificationImageClient) CloseAndRecv() (*AddVerificationImag
 }
 
 func (c *contentClient) AddPost(ctx context.Context, opts ...grpc.CallOption) (Content_AddPostClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddPost", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddPost", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +319,7 @@ func (x *contentAddPostClient) CloseAndRecv() (*AddPostResponse, error) {
 }
 
 func (c *contentClient) AddStory(ctx context.Context, opts ...grpc.CallOption) (Content_AddStoryClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[7], "/Content/AddStory", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddStory", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +371,7 @@ func (c *contentClient) AddReaction(ctx context.Context, in *AddReactionRequest,
 }
 
 func (c *contentClient) AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[8], "/Content/AddProfilePicture", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[7], "/Content/AddProfilePicture", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +431,8 @@ type ContentServer interface {
 	GetPostsByUser(*GetPostsRequest, Content_GetPostsByUserServer) error
 	GetStoriesIndividual(context.Context, *GetStoriesIndividualRequest) (*GetStoriesIndividualResponse, error)
 	GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error)
-	GetComments(*GetCommentsRequest, Content_GetCommentsServer) error
+	//rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
+	GetComments(context.Context, *GetCommentsRequest) (*GetCommentsResponse, error)
 	GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error
 	GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error
 	GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error)
@@ -488,8 +467,8 @@ func (UnimplementedContentServer) GetStoriesIndividual(context.Context, *GetStor
 func (UnimplementedContentServer) GetProfilePicture(context.Context, *GetProfilePictureRequest) (*GetProfilePictureResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfilePicture not implemented")
 }
-func (UnimplementedContentServer) GetComments(*GetCommentsRequest, Content_GetCommentsServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetComments not implemented")
+func (UnimplementedContentServer) GetComments(context.Context, *GetCommentsRequest) (*GetCommentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetComments not implemented")
 }
 func (UnimplementedContentServer) GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetReactions not implemented")
@@ -627,25 +606,22 @@ func _Content_GetProfilePicture_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Content_GetComments_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetCommentsRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _Content_GetComments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCommentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(ContentServer).GetComments(m, &contentGetCommentsServer{stream})
-}
-
-type Content_GetCommentsServer interface {
-	Send(*GetCommentsResponse) error
-	grpc.ServerStream
-}
-
-type contentGetCommentsServer struct {
-	grpc.ServerStream
-}
-
-func (x *contentGetCommentsServer) Send(m *GetCommentsResponse) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(ContentServer).GetComments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetComments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetComments(ctx, req.(*GetCommentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Content_GetReactions_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -972,6 +948,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Content_GetProfilePicture_Handler,
 		},
 		{
+			MethodName: "GetComments",
+			Handler:    _Content_GetComments_Handler,
+		},
+		{
 			MethodName: "GetHighlights",
 			Handler:    _Content_GetHighlights_Handler,
 		},
@@ -1017,11 +997,6 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetPostsByUser",
 			Handler:       _Content_GetPostsByUser_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetComments",
-			Handler:       _Content_GetComments_Handler,
 			ServerStreams: true,
 		},
 		{
