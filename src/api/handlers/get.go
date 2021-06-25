@@ -1100,3 +1100,95 @@ func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
 
 	saltdata.ToJSON(&reports, w)
 }
+
+func (u *Users) GetMutedProfiles(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := u.uc.GetMutedProfiles(context.Background(), &prusers.Profile{Username: username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching muted profiles")
+		http.Error(w, "Error fetching muted profiles", http.StatusInternalServerError)
+		return
+	}
+	var profiles []*prusers.ProfileMBCF
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching followers")
+			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+			return
+		}
+
+		profiles = append(profiles, profile)
+	}
+	saltdata.ToJSON(profiles, w)
+}
+
+func (u *Users) GetBlockedProfiles(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := u.uc.GetBlockedProfiles(context.Background(), &prusers.Profile{Username: username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching muted profiles")
+		http.Error(w, "Error fetching muted profiles", http.StatusInternalServerError)
+		return
+	}
+	var profiles []*prusers.ProfileMBCF
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching followers")
+			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+			return
+		}
+		profiles = append(profiles, profile)
+	}
+	saltdata.ToJSON(profiles, w)
+}
+
+func (u *Users) GetCloseFriends(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := u.uc.GetCloseFriends(context.Background(), &prusers.Profile{Username: username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching muted profiles")
+		http.Error(w, "Error fetching muted profiles", http.StatusInternalServerError)
+		return
+	}
+	var profiles []*prusers.ProfileMBCF
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching followers")
+			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+			return
+		}
+
+		profiles = append(profiles, profile)
+	}
+	saltdata.ToJSON(profiles, w)
+}

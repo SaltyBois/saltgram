@@ -242,6 +242,16 @@ func (db *DBConn) UnmuteProfile(profile *Profile, unmute *Profile) error {
 	return db.DB.Exec("DELETE FROM profile_muted WHERE profile_id = ? AND muted_id = ?", profile.ID, unmute.ID).Error
 }
 
+//Todo(Marko) Check this
+func (db *DBConn) GetMutedProfiles(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	err := db.DB.Model(profile).Association("Muted").Find(profiles)
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
 func (db *DBConn) BlockProfile(profile *Profile, block *Profile) error {
 	return db.DB.Exec("INSERT INTO profile_blocked (profile_id, blocked_id) VALUES (?, ?)", profile.ID, block.ID).Error
 }
@@ -250,10 +260,30 @@ func (db *DBConn) UnblockProfile(profile *Profile, unblock *Profile) error {
 	return db.DB.Exec("DELETE FROM profile_blocked WHERE profile_id = ? AND blocked_id = ?", profile.ID, unblock.ID).Error
 }
 
+//TODO(Marko) Check this
+func (db *DBConn) GetBlockedProfiles(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	err := db.DB.Model(profile).Association("Blocked").Find(profiles)
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
 func (db *DBConn) AddCloseFriend(profile *Profile, block *Profile) error {
 	return db.DB.Exec("INSERT INTO profile_closefriends (profile_id, close_friend_id) VALUES (?, ?)", profile.ID, block.ID).Error
 }
 
 func (db *DBConn) RemoveCloseFriend(profile *Profile, unblock *Profile) error {
 	return db.DB.Exec("DELETE FROM profile_closefriends WHERE profile_id = ? AND close_friend_id = ?", profile.ID, unblock.ID).Error
+}
+
+//TODO(Marko) Chekc this
+func (db *DBConn) GetCloseFriends(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	err := db.DB.Model(profile).Association("CloseFriends").Find(profiles)
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
 }

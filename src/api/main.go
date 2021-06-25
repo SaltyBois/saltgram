@@ -79,10 +79,13 @@ func main() {
 	usersRouter.HandleFunc("/check/followrequest/{username}", usersHandler.CheckFollowRequest).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/mute", usersHandler.MuteProfile).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/unmute", usersHandler.UnmuteProfile).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/muted", usersHandler.GetMutedProfiles).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/block", usersHandler.BlockProfile).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/unblock", usersHandler.UnblockProfile).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/blocked", usersHandler.GetBlockedProfiles).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/add/closefrined", usersHandler.AddCloseFriend).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/remove/closefrined", usersHandler.RemoveCloseFriend).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/get/closefriend", usersHandler.GetCloseFriends).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
