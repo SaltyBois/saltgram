@@ -132,6 +132,9 @@ func main() {
 	// Better suited for user router?
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.GetPendingReports).Methods(http.MethodGet)
+	adminRouter.HandleFunc("/rejectinappropriatecontent", adminHandler.RejectInappropriateContentReport).Methods(http.MethodPut)
+	adminRouter.HandleFunc("/removeinappropriatecontent", adminHandler.RemoveInappropriateContent).Methods(http.MethodPut)
+	adminRouter.HandleFunc("/removeprofile", adminHandler.RemoveProfile).Methods(http.MethodPut)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{

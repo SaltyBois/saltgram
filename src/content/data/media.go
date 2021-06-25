@@ -295,3 +295,9 @@ func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
 	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
 	return &post, err
 }
+
+func (db *DBConn) DeleteSharedMedia(id uint64) error {
+	db.DB.Where("post_id = ?", id).Delete(&Reaction{})
+	db.DB.Where("post_id = ?", id).Delete(&Comment{})
+	return db.DB.Delete(&Post{}, id).Error
+}

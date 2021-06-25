@@ -6,6 +6,7 @@ import (
 	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -118,11 +119,45 @@ func (a *Admin) GetPendingInappropriateContentReport(ctx context.Context, r *pra
 	reps := []*pradmin.InappropriateContentReport{}
 	for _, vr := range *reports {
 		reps = append(reps, &pradmin.InappropriateContentReport{
-			Id:     vr.ID,
+			Id:     strconv.FormatUint(vr.ID, 10),
 			UserId: vr.UserID,
-			PostId: vr.PostID,
+			PostId: strconv.FormatUint(vr.PostID, 10),
 			Url:    vr.URL,
 		})
 	}
 	return &pradmin.GetInappropriateContentReportResponse{InappropriateContentReport: reps}, nil
+}
+
+func (a *Admin) RejectInappropriateContentReport(ctx context.Context, r *pradmin.RejectInappropriateContentReportRequest) (*pradmin.RejectInappropriateContentReportResponse, error) {
+
+	i, err := strconv.ParseUint(r.Id, 10, 64)
+	if err != nil {
+		a.l.Errorf("failure parsing id: %v\n", err)
+		return &pradmin.RejectInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	err = data.RejectInappropriateContentReport(a.db, i)
+	if err != nil {
+		a.l.Errorf("failure rejecting inappropriate content report: %v\n", err)
+		return &pradmin.RejectInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &pradmin.RejectInappropriateContentReportResponse{}, nil
+}
+
+func (a *Admin) AcceptInappropriateContentReport(ctx context.Context, r *pradmin.AcceptInappropriateContentReportRequest) (*pradmin.AcceptInappropriateContentReportResponse, error) {
+
+	i, err := strconv.ParseUint(r.Id, 10, 64)
+	if err != nil {
+		a.l.Errorf("failure parsing id: %v\n", err)
+		return &pradmin.AcceptInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	err = data.AcceptInappropriateContentReport(a.db, i)
+	if err != nil {
+		a.l.Errorf("failure accepting inappropriate content report: %v\n", err)
+		return &pradmin.AcceptInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &pradmin.AcceptInappropriateContentReportResponse{}, nil
 }

@@ -1089,11 +1089,11 @@ func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
 		}
 
 		reports = append(reports, saltdata.GetInappropriateContentReportDTO{
-			Id:             strconv.FormatUint(vr.Id, 10),
+			Id:             vr.Id,
 			UserId:         vr.UserId,
 			Username:       user.Username,
 			ProfilePicture: profile.ProfilePictureURL,
-			SharedMediaId:  strconv.FormatUint(vr.PostId, 10),
+			SharedMediaId:  vr.PostId,
 			URL:            vr.Url,
 		})
 	}

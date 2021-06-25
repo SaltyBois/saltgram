@@ -29,9 +29,9 @@
              :src="[this.reportData.url]"/>
       <v-textarea no-resize height="150px" outlined style="width: 90%" readonly v-model="reportData.description"/>
       <div style="display: inline-flex; text-align: -webkit-center; width: 100%;">
-        <v-btn class="sanction-button mx-2" width="30%" style="font-size: 12px; letter-spacing: 0" @click="removeContent">Remove content</v-btn>
-        <v-btn class="sanction-button" width="30%" style="font-size: 12px; letter-spacing: 0" @click="removeUser">Remove user</v-btn>
-        <v-btn class="reject-button mx-2" width="30%" style="font-size: 12px; letter-spacing: 0" @click="rejectReport">Reject report</v-btn>
+        <v-btn class="sanction-button mx-2" width="30%" style="font-size: 12px; letter-spacing: 0" @click="removeContent()">Remove content</v-btn>
+        <v-btn class="sanction-button" width="30%" style="font-size: 12px; letter-spacing: 0" @click="removeUser()">Remove user</v-btn>
+        <v-btn class="reject-button mx-2" width="30%" style="font-size: 12px; letter-spacing: 0" @click="rejectReport()">Reject report</v-btn>
       </div>
     </div>
 
@@ -61,13 +61,37 @@ export default {
   },
   methods: {
     removeContent() {
-
+      let remove = {id: this.reportData.id, sharedMediaId: this.reportData.sharedMediaId}
+      this.axios.put("admin/removeinappropriatecontent", remove)
+        .then(r => {
+          console.log(r);
+          this.$router.go(0);
+        } 
+        ).catch( err => {
+          console.log("Failed to remove content", err);
+        })
     },
     removeUser() {
-
+      let remove = {id: this.reportData.id, sharedMediaId: this.reportData.sharedMediaId}
+      this.axios.put("admin/removeprofile", remove)
+        .then(r => {
+          console.log(r);
+          this.$router.go(0);
+        } 
+        ).catch( err => {
+          console.log("Failed to remove profile", err);
+        })
     },
     rejectReport() {
-
+      let reject = {id: this.reportData.id}
+      this.axios.put("admin/rejectinappropriatecontent", reject)
+        .then(r => {
+          console.log(r);
+          this.$router.go(0);
+        } 
+        ).catch( err => {
+          console.log("Failed to reject report.", err);
+        })
     },
   },
   mounted() {
