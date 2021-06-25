@@ -37,10 +37,11 @@ type Profile struct {
 	ProfilePictureURL string    `json:"profilePictureURL"`
 	AccountType       string    `json:"accountType"`
 	Verified          bool      `json:"verified"`
+	Active            bool      `json:"-"`
 }
 
 type FollowRequest struct {
-	data.Identifiable  
+	data.Identifiable
 	ProfileID     uint64        `json:"profileId" gorm:"type:numeric"`
 	RequestID     uint64        `json:"followerId" gorm:"type:numeric"`
 	RequestStatus RequestStatus `json:"stats"`
@@ -93,7 +94,7 @@ var ErrProfileNotFound = fmt.Errorf("profile not found")
 
 func (db *DBConn) GetProfileByUserId(userId uint64) (*Profile, error) {
 	profile := Profile{}
-	res := db.DB.Where("user_id = ?", userId).First(&profile)
+	res := db.DB.Where("user_id = ? AND active = ?", userId, true).First(&profile)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -106,7 +107,7 @@ func (db *DBConn) GetProfileByUserId(userId uint64) (*Profile, error) {
 
 func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
 	profile := Profile{}
-	err := db.DB.Where("username = ?", username).First(&profile).Error
+	err := db.DB.Where("username = ? AND active = ?", username, true).First(&profile).Error
 	return &profile, err
 }
 
@@ -190,7 +191,8 @@ func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
 	if len(ids) == 0 {
 		return following, nil
 	}
-	err = db.DB.Find(&following, ids).Error
+	//TODO(Marko) Check later
+	err = db.DB.Where("active = ?", true).Find(&following, ids).Error
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +209,8 @@ func GetFollowRequests(db *DBConn, profile *Profile) ([]Profile, error) {
 	if len(ids) == 0 {
 		return profiles, nil
 	}
-	err = db.DB.Find(&profiles, ids).Error
+	//TODO(Marko) Check where later
+	err = db.DB.Where("active = ?", true).Find(&profiles, ids).Error
 	if err != nil {
 		return nil, err
 	}
@@ -235,4 +238,11 @@ func CheckForFollowingRequest(db *DBConn, profile *Profile, profile_request *Pro
 		return false, err
 	}
 	return count > 0, err
+}
+
+func (db *DBConn) GetAllProfilesByUsernameSubstring(username string) ([]Profile, error) {
+	var profiles []Profile
+	query := "%" + username + "%"
+	err := db.DB.Where("username LIKE ?", query).Limit(21).Find(&profiles).Error
+	return profiles, err
 }

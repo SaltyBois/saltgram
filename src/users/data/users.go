@@ -210,6 +210,7 @@ func (db *DBConn) GetUserById(id uint64) (*User, error) {
 	return &user, err
 }
 
+//TODO(Marko) Should move this to profile
 func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]User, error) {
 	var users []User
 	query := "%" + username + "%"

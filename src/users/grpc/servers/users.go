@@ -172,6 +172,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		Messagable:      true,
 		Verified:        false,
 		AccountType:     "",
+		Active:          true,
 	}
 
 	err = u.db.AddProfile(&profile)
@@ -479,7 +480,8 @@ func (u *Users) GetByUserId(ctx context.Context, r *prusers.GetByIdRequest) (*pr
 }
 
 func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) (*prusers.SearchResponse, error) {
-	users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
+	//users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
+	profiles, err := u.db.GetAllProfilesByUsernameSubstring(r.Query)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
 		return &prusers.SearchResponse{}, err
@@ -487,11 +489,14 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 
 	searchedUsers := []*prusers.SearchedUser{}
 
-	for i := 0; i < len(users); i++ {
-		su := users[i]
+	//for i := 0; i < len(users); i++ {
+	for i := 0; i < len(profiles); i++ {
+		//su := users[i]
+		su := profiles[i]
 		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
-			Username:              su.Username,
-			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
+			Username: su.Username,
+			//ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
+			ProfilePictureAddress: su.ProfilePictureURL})
 	}
 
 	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil
