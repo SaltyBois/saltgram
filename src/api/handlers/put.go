@@ -351,7 +351,7 @@ func (a *Admin) RemoveProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/*resp, err := a.cc.GetPostUserId(context.Background(), &prcontent.GetPostUserIdRequest{PostId: dto.SharedMediaId})
+	resp, err := a.cc.GetPostUserId(context.Background(), &prcontent.GetPostUserIdRequest{PostId: dto.SharedMediaId})
 
 	if err != nil {
 		a.l.Errorf("failed to get user id by post: %v\n", err)
@@ -367,11 +367,17 @@ func (a *Admin) RemoveProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profile, err := a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+	/*profile, err := a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
 	if err != nil {
 		a.l.Errorf("failed fetching profile %v\n", err)
 		http.Error(w, "Profile getting error", http.StatusInternalServerError)
 		return
 	}*/
 
+	_, err = a.uc.DeleteProfile(context.Background(), &prusers.Profile{Username: user.Username})
+	if err != nil {
+		a.l.Errorf("failed deleting profile %v\n", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

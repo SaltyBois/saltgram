@@ -45,6 +45,7 @@ type UsersClient interface {
 	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error)
+	DeleteProfile(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*DeleteProfileResponse, error)
 }
 
 type usersClient struct {
@@ -413,6 +414,15 @@ func (c *usersClient) VerifyProfile(ctx context.Context, in *VerifyProfileReques
 	return out, nil
 }
 
+func (c *usersClient) DeleteProfile(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*DeleteProfileResponse, error) {
+	out := new(DeleteProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/DeleteProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -444,6 +454,7 @@ type UsersServer interface {
 	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error)
+	DeleteProfile(context.Context, *Profile) (*DeleteProfileResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -531,6 +542,9 @@ func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *Profl
 }
 func (UnimplementedUsersServer) VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyProfile not implemented")
+}
+func (UnimplementedUsersServer) DeleteProfile(context.Context, *Profile) (*DeleteProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteProfile not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1046,6 +1060,24 @@ func _Users_VerifyProfile_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_DeleteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Profile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).DeleteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/DeleteProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).DeleteProfile(ctx, req.(*Profile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1140,6 +1172,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VerifyProfile",
 			Handler:    _Users_VerifyProfile_Handler,
+		},
+		{
+			MethodName: "DeleteProfile",
+			Handler:    _Users_DeleteProfile_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

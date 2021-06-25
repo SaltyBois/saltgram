@@ -690,3 +690,19 @@ func (u *Users) CheckForFollowingRequest(ctx context.Context, r *prusers.Proflie
 	return &prusers.BoolResponse{Resposne: false}, nil
 
 }
+
+func (u *Users) DeleteProfile(ctx context.Context, r *prusers.Profile) (*prusers.DeleteProfileResponse, error) {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.DeleteProfileResponse{}, err
+	}
+	profile.Active = false
+	err = u.db.UpdateProfile(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting profile: %v\n", err)
+		return &prusers.DeleteProfileResponse{}, err
+	}
+	return &prusers.DeleteProfileResponse{}, nil
+
+}
