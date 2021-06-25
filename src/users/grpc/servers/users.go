@@ -319,7 +319,7 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 	return &prusers.FollowRespose{Message: "Following"}, nil
 }
 
-var ErrorNotFollowing = fmt.Errorf("Not following")
+var ErrorNotFollowing = fmt.Errorf("not following")
 
 func (u *Users) UnFollow(ctx context.Context, r *prusers.FollowRequest) (*prusers.FollowRespose, error) {
 	profile, err := u.db.GetProfileByUsername(r.Username)
@@ -686,7 +686,7 @@ func (u *Users) CheckForFollowingRequest(ctx context.Context, r *prusers.Proflie
 
 }
 
-func (u *Users) MuteProfile(ctx context.Context, r *prusers.MuteProfileRequsest) (*prusers.MuteProfileResponse, error) {
+func (u *Users) MuteProfile(ctx context.Context, r *prusers.MuteProfileRequest) (*prusers.MuteProfileResponse, error) {
 	userProfile, err := u.db.GetProfileByUsername(r.Logged)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)
@@ -708,7 +708,7 @@ func (u *Users) MuteProfile(ctx context.Context, r *prusers.MuteProfileRequsest)
 
 }
 
-func (u *Users) UnmuteProfile(ctx context.Context, r *prusers.UnmuteProfileRequsest) (*prusers.UnmuteProfileResponse, error) {
+func (u *Users) UnmuteProfile(ctx context.Context, r *prusers.UnmuteProfileRequest) (*prusers.UnmuteProfileResponse, error) {
 	userProfile, err := u.db.GetProfileByUsername(r.Logged)
 	if err != nil {
 		u.l.Printf("[ERROR] geting profile: %v\n", err)

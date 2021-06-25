@@ -33,8 +33,8 @@ service Users {
 
     rpc VerifyProfile(VerifyProfileRequest) returns (VerifyProfileResponse);
 
-    rpc MuteProfile(MuteProfileRequsest) returns (MuteProfileResponse);
-    rpc UnmuteProfile(UnmuteProfileRequsest) returns (UnmuteProfileResponse);
+    rpc MuteProfile(MuteProfileRequest) returns (MuteProfileResponse);
+    rpc UnmuteProfile(UnmuteProfileRequest) returns (UnmuteProfileResponse);
     rpc BlockProfile(BlockProfileRequest) returns (BlockProfileResposne);
     rpc UnblockProfile(UnblockProfileRequest) returns (UnblockProfileResposne);
     rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
@@ -285,13 +285,13 @@ message BoolResponse {
     bool resposne = 1;
 }
 
-message MuteProfileRequsest{
+message MuteProfileRequest{
     string logged = 1;
     string profile = 2;
 }
 message MuteProfileResponse {}
 
-message UnmuteProfileRequsest{
+message UnmuteProfileRequest{
     string logged = 1;
     string profile = 2;
 }

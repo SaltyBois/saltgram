@@ -45,8 +45,8 @@ type UsersClient interface {
 	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error)
-	MuteProfile(ctx context.Context, in *MuteProfileRequsest, opts ...grpc.CallOption) (*MuteProfileResponse, error)
-	UnmuteProfile(ctx context.Context, in *UnmuteProfileRequsest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error)
+	MuteProfile(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*MuteProfileResponse, error)
+	UnmuteProfile(ctx context.Context, in *UnmuteProfileRequest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error)
 	BlockProfile(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BlockProfileResposne, error)
 	UnblockProfile(ctx context.Context, in *UnblockProfileRequest, opts ...grpc.CallOption) (*UnblockProfileResposne, error)
 	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
@@ -419,7 +419,7 @@ func (c *usersClient) VerifyProfile(ctx context.Context, in *VerifyProfileReques
 	return out, nil
 }
 
-func (c *usersClient) MuteProfile(ctx context.Context, in *MuteProfileRequsest, opts ...grpc.CallOption) (*MuteProfileResponse, error) {
+func (c *usersClient) MuteProfile(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*MuteProfileResponse, error) {
 	out := new(MuteProfileResponse)
 	err := c.cc.Invoke(ctx, "/Users/MuteProfile", in, out, opts...)
 	if err != nil {
@@ -428,7 +428,7 @@ func (c *usersClient) MuteProfile(ctx context.Context, in *MuteProfileRequsest, 
 	return out, nil
 }
 
-func (c *usersClient) UnmuteProfile(ctx context.Context, in *UnmuteProfileRequsest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error) {
+func (c *usersClient) UnmuteProfile(ctx context.Context, in *UnmuteProfileRequest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error) {
 	out := new(UnmuteProfileResponse)
 	err := c.cc.Invoke(ctx, "/Users/UnmuteProfile", in, out, opts...)
 	if err != nil {
@@ -504,8 +504,8 @@ type UsersServer interface {
 	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error)
-	MuteProfile(context.Context, *MuteProfileRequsest) (*MuteProfileResponse, error)
-	UnmuteProfile(context.Context, *UnmuteProfileRequsest) (*UnmuteProfileResponse, error)
+	MuteProfile(context.Context, *MuteProfileRequest) (*MuteProfileResponse, error)
+	UnmuteProfile(context.Context, *UnmuteProfileRequest) (*UnmuteProfileResponse, error)
 	BlockProfile(context.Context, *BlockProfileRequest) (*BlockProfileResposne, error)
 	UnblockProfile(context.Context, *UnblockProfileRequest) (*UnblockProfileResposne, error)
 	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
@@ -598,10 +598,10 @@ func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *Profl
 func (UnimplementedUsersServer) VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyProfile not implemented")
 }
-func (UnimplementedUsersServer) MuteProfile(context.Context, *MuteProfileRequsest) (*MuteProfileResponse, error) {
+func (UnimplementedUsersServer) MuteProfile(context.Context, *MuteProfileRequest) (*MuteProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MuteProfile not implemented")
 }
-func (UnimplementedUsersServer) UnmuteProfile(context.Context, *UnmuteProfileRequsest) (*UnmuteProfileResponse, error) {
+func (UnimplementedUsersServer) UnmuteProfile(context.Context, *UnmuteProfileRequest) (*UnmuteProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnmuteProfile not implemented")
 }
 func (UnimplementedUsersServer) BlockProfile(context.Context, *BlockProfileRequest) (*BlockProfileResposne, error) {
@@ -1131,7 +1131,7 @@ func _Users_VerifyProfile_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 func _Users_MuteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MuteProfileRequsest)
+	in := new(MuteProfileRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1143,13 +1143,13 @@ func _Users_MuteProfile_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/Users/MuteProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).MuteProfile(ctx, req.(*MuteProfileRequsest))
+		return srv.(UsersServer).MuteProfile(ctx, req.(*MuteProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Users_UnmuteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UnmuteProfileRequsest)
+	in := new(UnmuteProfileRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1161,7 +1161,7 @@ func _Users_UnmuteProfile_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/Users/UnmuteProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).UnmuteProfile(ctx, req.(*UnmuteProfileRequsest))
+		return srv.(UsersServer).UnmuteProfile(ctx, req.(*UnmuteProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
