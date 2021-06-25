@@ -45,6 +45,12 @@ type UsersClient interface {
 	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error)
+	MuteProfile(ctx context.Context, in *MuteProfileRequsest, opts ...grpc.CallOption) (*MuteProfileResponse, error)
+	UnmuteProfile(ctx context.Context, in *UnmuteProfileRequsest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error)
+	BlockProfile(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BlockProfileResposne, error)
+	UnblockProfile(ctx context.Context, in *UnblockProfileRequest, opts ...grpc.CallOption) (*UnblockProfileResposne, error)
+	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
+	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 }
 
 type usersClient struct {
@@ -413,6 +419,60 @@ func (c *usersClient) VerifyProfile(ctx context.Context, in *VerifyProfileReques
 	return out, nil
 }
 
+func (c *usersClient) MuteProfile(ctx context.Context, in *MuteProfileRequsest, opts ...grpc.CallOption) (*MuteProfileResponse, error) {
+	out := new(MuteProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/MuteProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UnmuteProfile(ctx context.Context, in *UnmuteProfileRequsest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error) {
+	out := new(UnmuteProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/UnmuteProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) BlockProfile(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BlockProfileResposne, error) {
+	out := new(BlockProfileResposne)
+	err := c.cc.Invoke(ctx, "/Users/BlockProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UnblockProfile(ctx context.Context, in *UnblockProfileRequest, opts ...grpc.CallOption) (*UnblockProfileResposne, error) {
+	out := new(UnblockProfileResposne)
+	err := c.cc.Invoke(ctx, "/Users/UnblockProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error) {
+	out := new(CloseFriendResposne)
+	err := c.cc.Invoke(ctx, "/Users/AddCloseFriend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error) {
+	out := new(CloseFriendResposne)
+	err := c.cc.Invoke(ctx, "/Users/RemoveCloseFriend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -444,6 +504,12 @@ type UsersServer interface {
 	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error)
+	MuteProfile(context.Context, *MuteProfileRequsest) (*MuteProfileResponse, error)
+	UnmuteProfile(context.Context, *UnmuteProfileRequsest) (*UnmuteProfileResponse, error)
+	BlockProfile(context.Context, *BlockProfileRequest) (*BlockProfileResposne, error)
+	UnblockProfile(context.Context, *UnblockProfileRequest) (*UnblockProfileResposne, error)
+	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
+	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -531,6 +597,24 @@ func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *Profl
 }
 func (UnimplementedUsersServer) VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyProfile not implemented")
+}
+func (UnimplementedUsersServer) MuteProfile(context.Context, *MuteProfileRequsest) (*MuteProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MuteProfile not implemented")
+}
+func (UnimplementedUsersServer) UnmuteProfile(context.Context, *UnmuteProfileRequsest) (*UnmuteProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnmuteProfile not implemented")
+}
+func (UnimplementedUsersServer) BlockProfile(context.Context, *BlockProfileRequest) (*BlockProfileResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlockProfile not implemented")
+}
+func (UnimplementedUsersServer) UnblockProfile(context.Context, *UnblockProfileRequest) (*UnblockProfileResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnblockProfile not implemented")
+}
+func (UnimplementedUsersServer) AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddCloseFriend not implemented")
+}
+func (UnimplementedUsersServer) RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveCloseFriend not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1046,6 +1130,114 @@ func _Users_VerifyProfile_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_MuteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MuteProfileRequsest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).MuteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/MuteProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).MuteProfile(ctx, req.(*MuteProfileRequsest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UnmuteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnmuteProfileRequsest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UnmuteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UnmuteProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UnmuteProfile(ctx, req.(*UnmuteProfileRequsest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_BlockProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).BlockProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/BlockProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).BlockProfile(ctx, req.(*BlockProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UnblockProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnblockProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UnblockProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UnblockProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UnblockProfile(ctx, req.(*UnblockProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_AddCloseFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseFriendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).AddCloseFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/AddCloseFriend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).AddCloseFriend(ctx, req.(*CloseFriendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_RemoveCloseFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseFriendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).RemoveCloseFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/RemoveCloseFriend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).RemoveCloseFriend(ctx, req.(*CloseFriendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1140,6 +1332,30 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VerifyProfile",
 			Handler:    _Users_VerifyProfile_Handler,
+		},
+		{
+			MethodName: "MuteProfile",
+			Handler:    _Users_MuteProfile_Handler,
+		},
+		{
+			MethodName: "UnmuteProfile",
+			Handler:    _Users_UnmuteProfile_Handler,
+		},
+		{
+			MethodName: "BlockProfile",
+			Handler:    _Users_BlockProfile_Handler,
+		},
+		{
+			MethodName: "UnblockProfile",
+			Handler:    _Users_UnblockProfile_Handler,
+		},
+		{
+			MethodName: "AddCloseFriend",
+			Handler:    _Users_AddCloseFriend_Handler,
+		},
+		{
+			MethodName: "RemoveCloseFriend",
+			Handler:    _Users_RemoveCloseFriend_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

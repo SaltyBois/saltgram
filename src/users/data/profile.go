@@ -26,30 +26,27 @@ type Profile struct {
 	Following         []*Profile `gorm:"many2many:profile_following;"`
 	Profiles          []FollowRequest
 	Requests          []FollowRequest
-	PhoneNumber       string    `json:"phoneNumber"`
-	Gender            string    `json:"gender"`
-	DateOfBirth       time.Time `json:"dateOfBirth"`
-	WebSite           string    `json:"webSite"`
-	PrivateProfile    bool      `json:"privateProfile"` // Why
-	ProfileFolderId   string    `json:"-"`
-	PostsFolderId     string    `json:"-"`
-	StoriesFolderId   string    `json:"-"`
-	ProfilePictureURL string    `json:"profilePictureURL"`
-	AccountType       string    `json:"accountType"`
-	Verified          bool      `json:"verified"`
+	Muted             []*Profile `gorm:"many2many:profile_muted;"`
+	Blocked           []*Profile `gorm:"many2many:profile_blocked;"`
+	CloseFriends      []*Profile `gorm:"many2many:profile_closefriends;"`
+	PhoneNumber       string     `json:"phoneNumber"`
+	Gender            string     `json:"gender"`
+	DateOfBirth       time.Time  `json:"dateOfBirth"`
+	WebSite           string     `json:"webSite"`
+	PrivateProfile    bool       `json:"privateProfile"` // Why
+	ProfileFolderId   string     `json:"-"`
+	PostsFolderId     string     `json:"-"`
+	StoriesFolderId   string     `json:"-"`
+	ProfilePictureURL string     `json:"profilePictureURL"`
+	AccountType       string     `json:"accountType"`
+	Verified          bool       `json:"verified"`
 }
 
 type FollowRequest struct {
-	data.Identifiable  
+	data.Identifiable
 	ProfileID     uint64        `json:"profileId" gorm:"type:numeric"`
 	RequestID     uint64        `json:"followerId" gorm:"type:numeric"`
 	RequestStatus RequestStatus `json:"stats"`
-}
-
-//TODO(Marko add profliPicture?)
-type ProfileFollowerDTO struct {
-	Username string
-	FullName string
 }
 
 func (db *DBConn) GetProfiles() []*Profile {
@@ -235,4 +232,28 @@ func CheckForFollowingRequest(db *DBConn, profile *Profile, profile_request *Pro
 		return false, err
 	}
 	return count > 0, err
+}
+
+func (db *DBConn) MuteProfile(profile *Profile, mute *Profile) error {
+	return db.DB.Exec("INSERT INTO profile_muted (profile_id, muted_id) VALUES (?, ?)", profile.ID, mute.ID).Error
+}
+
+func (db *DBConn) UnmuteProfile(profile *Profile, unmute *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_muted WHERE profile_id = ? AND muted_id = ?", profile.ID, unmute.ID).Error
+}
+
+func (db *DBConn) BlockProfile(profile *Profile, block *Profile) error {
+	return db.DB.Exec("INSERT INTO profile_blocked (profile_id, blocked_id) VALUES (?, ?)", profile.ID, block.ID).Error
+}
+
+func (db *DBConn) UnblockProfile(profile *Profile, unblock *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_blocked WHERE profile_id = ? AND blocked_id = ?", profile.ID, unblock.ID).Error
+}
+
+func (db *DBConn) AddCloseFriend(profile *Profile, block *Profile) error {
+	return db.DB.Exec("INSERT INTO profile_closefriends (profile_id, close_friend_id) VALUES (?, ?)", profile.ID, block.ID).Error
+}
+
+func (db *DBConn) RemoveCloseFriend(profile *Profile, unblock *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_closefriends WHERE profile_id = ? AND close_friend_id = ?", profile.ID, unblock.ID).Error
 }

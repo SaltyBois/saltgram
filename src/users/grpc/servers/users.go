@@ -685,3 +685,128 @@ func (u *Users) CheckForFollowingRequest(ctx context.Context, r *prusers.Proflie
 	return &prusers.BoolResponse{Resposne: false}, nil
 
 }
+
+func (u *Users) MuteProfile(ctx context.Context, r *prusers.MuteProfileRequsest) (*prusers.MuteProfileResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.MuteProfileResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.MuteProfileResponse{}, err
+	}
+
+	err = u.db.MuteProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] muting profile: %v\n", err)
+		return &prusers.MuteProfileResponse{}, err
+	}
+	return &prusers.MuteProfileResponse{}, nil
+
+}
+
+func (u *Users) UnmuteProfile(ctx context.Context, r *prusers.UnmuteProfileRequsest) (*prusers.UnmuteProfileResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnmuteProfileResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnmuteProfileResponse{}, err
+	}
+
+	err = u.db.UnmuteProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] unmuting profile: %v\n", err)
+		return &prusers.UnmuteProfileResponse{}, err
+	}
+	return &prusers.UnmuteProfileResponse{}, nil
+}
+
+func (u *Users) BlockProfile(ctx context.Context, r *prusers.BlockProfileRequest) (*prusers.BlockProfileResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BlockProfileResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BlockProfileResposne{}, err
+	}
+
+	err = u.db.BlockProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		return &prusers.BlockProfileResposne{}, err
+	}
+	return &prusers.BlockProfileResposne{}, nil
+}
+
+func (u *Users) UnblockProfile(ctx context.Context, r *prusers.UnblockProfileRequest) (*prusers.UnblockProfileResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnblockProfileResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnblockProfileResposne{}, err
+	}
+
+	err = u.db.BlockProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		return &prusers.UnblockProfileResposne{}, err
+	}
+	return &prusers.UnblockProfileResposne{}, nil
+}
+
+func (u *Users) AddCloseFriend(ctx context.Context, r *prusers.CloseFriendRequest) (*prusers.CloseFriendResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	err = u.db.AddCloseFriend(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	return &prusers.CloseFriendResposne{}, nil
+}
+
+func (u *Users) RemoveCloseFriend(ctx context.Context, r *prusers.CloseFriendRequest) (*prusers.CloseFriendResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	err = u.db.RemoveCloseFriend(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	return &prusers.CloseFriendResposne{}, nil
+}
