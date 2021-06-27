@@ -764,3 +764,49 @@ func (c *Content) PutReaction(ctx context.Context, r *prcontent.PutReactionReque
 
 	return &prcontent.PutReactionResponse{}, nil
 }
+
+func (c *Content) SearchContent(r *prcontent.SearchContentRequest, stream prcontent.Content_SearchContentServer) error {
+	posts, err := c.db.GetPostsByTag(r.Value)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return err
+	}
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: p.UserID,
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+		err = stream.Send(&prcontent.SearchContentResponse{
+			Post: post,
+		})
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return err
+		}
+	}
+	return nil
+}

@@ -107,10 +107,10 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := saltdata.UserDTO{
-		Id:       strconv.FormatUint(user.Id, 10),
-		Email:    user.Email,
-		FullName: user.FullName,
-		Username: user.Username,
+		Id:                strconv.FormatUint(user.Id, 10),
+		Email:             user.Email,
+		FullName:          user.FullName,
+		Username:          user.Username,
 		ProfilePictureURL: profile.ProfilePictureURL,
 	}
 
@@ -820,7 +820,7 @@ func (u *Users) GetFollowingDetailed(w http.ResponseWriter, r *http.Request) {
 			Following:      profile.Following,
 			Pending:        profile.Pending,
 			ProfliePicture: profile.ProfliePicture,
-			Id: 			strconv.FormatUint(user.Id, 10),
+			Id:             strconv.FormatUint(user.Id, 10),
 		}
 		profiles = append(profiles, dto)
 	}
@@ -1117,4 +1117,31 @@ func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
 	}
 
 	saltdata.ToJSON(&reports, w)
+}
+
+func (s *Content) GetPostsByTag(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	value := vars["value"]
+
+	stream, err := s.cc.SearchContent(context.Background(), &prcontent.SearchContentRequest{Value: value})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+	var postsArray []*prcontent.SearchContentResponse
+	for {
+		post, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			s.l.Errorf("failed to fetch posts: %v\n", err)
+			http.Error(w, "Error couldn't fetch posts", http.StatusInternalServerError)
+			return
+		}
+		postsArray = append(postsArray, post)
+	}
+	saltdata.ToJSON(postsArray, w)
 }

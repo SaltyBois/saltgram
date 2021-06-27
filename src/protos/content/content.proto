@@ -29,6 +29,8 @@ service Content {
     rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
 
     rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
+
+    rpc SearchContent(SearchContentRequest) returns (stream SearchContentResponse);
 }
 
 message GetPostPreviewURLRequest {
@@ -279,3 +281,11 @@ message PutReactionRequest {
 }
 
 message PutReactionResponse {}
+
+message SearchContentRequest {
+    string value = 1;
+}
+
+message SearchContentResponse {
+    Post post = 1;
+}
