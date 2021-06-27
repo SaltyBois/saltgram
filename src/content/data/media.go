@@ -145,6 +145,11 @@ func (db *DBConn) AddMediaToSharedMedia(sharedMediaId uint64, media *Media) erro
 	if err != nil {
 		return err
 	}
+	media.SharedMediaID = sm.ID
+	err = db.AddMedia(media)
+	if err != nil {
+		return err
+	}
 	return db.DB.Model(sm).Association("Media").Append(media)
 }
 
@@ -154,6 +159,10 @@ func (db *DBConn) AddMediaToPost(postId uint64, media *Media) error {
 		return err
 	}
 	return db.AddMediaToSharedMedia(post.SharedMediaID, media)
+}
+
+func (db *DBConn) AddMedia(media *Media) error {
+	return db.DB.Create(media).Error
 }
 
 func (db *DBConn) AddMediaToStory(storyId uint64, media *Media) error {
