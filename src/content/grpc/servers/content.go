@@ -267,10 +267,15 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	for _, p := range *posts {
 		media := []*prcontent.Media{}
 		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
 				AddedOn:     m.AddedOn,
+				Tags:        tags,
 				Location: &prcontent.Location{
 					Country: m.Location.Country,
 					State:   m.Location.State,
@@ -431,10 +436,31 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 
 	tags := []data.Tag{}
 	for _, tag := range r.GetInfo().Media.Tags {
-		tags = append(tags, data.Tag{
+
+		t := data.Tag{
 			Value: tag.Value,
-		})
+		}
+		ta, err := c.db.GetIfExists(t.Value)
+		if err != nil {
+			if err == data.ErrTagNotExists {
+				ta, err = c.db.AddTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		tags = append(tags, *ta)
 	}
+	/////
+	for _, t := range tags {
+		c.l.Info("Getting tag id: ", t.ID)
+	}
+	/////
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
@@ -497,11 +523,31 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 
 	tags := []data.Tag{}
 	for _, tag := range r.GetInfo().Media.Tags {
-		tags = append(tags, data.Tag{
-			Value: tag.Value,
-		})
-	}
 
+		t := data.Tag{
+			Value: tag.Value,
+		}
+		ta, err := c.db.GetIfExists(t.Value)
+		if err != nil {
+			if err == data.ErrTagNotExists {
+				ta, err = c.db.AddTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		tags = append(tags, *ta)
+	}
+	/////
+	for _, t := range tags {
+		c.l.Info("Getting tag id: ", t.ID)
+	}
+	/////
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
@@ -517,6 +563,12 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 		},
 		AddedOn: r.GetInfo().Media.AddedOn,
 	}
+
+	/////
+	for _, t := range media.Tags {
+		c.l.Info("Getting tag from media      id: ", t.ID)
+	}
+	/////
 
 	imageData := bytes.Buffer{}
 	for {
@@ -545,6 +597,7 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 
 	media.URL = url
 	media.MimeType = mimeType
+
 	err = c.db.AddMediaToPost(r.GetInfo().PostId, media)
 	if err != nil {
 		c.l.Errorf("failed to add media to shared media: %v", err)

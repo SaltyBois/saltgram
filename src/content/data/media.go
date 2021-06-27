@@ -22,7 +22,7 @@ type Media struct {
 	data.Identifiable
 	SharedMediaID uint64    `json:"sharedMediaId" gorm:"type:numeric"`
 	Filename      string    `json:"filename" validate:"required"`
-	Tags          []Tag     `gorm:"many2many:media_tags" json:"tags" validate:"required"`
+	Tags          []Tag     `gorm:"many2many:media_tags;" json:"tags" validate:"required"`
 	Description   string    `json:"description" validate:"required"`
 	AddedOn       string    `json:"addedOn"`
 	Location      Location  `gorm:"embedded"`
@@ -145,6 +145,11 @@ func (db *DBConn) AddMediaToSharedMedia(sharedMediaId uint64, media *Media) erro
 	if err != nil {
 		return err
 	}
+	media.SharedMediaID = sm.ID
+	err = db.AddMedia(media)
+	if err != nil {
+		return err
+	}
 	return db.DB.Model(sm).Association("Media").Append(media)
 }
 
@@ -154,6 +159,10 @@ func (db *DBConn) AddMediaToPost(postId uint64, media *Media) error {
 		return err
 	}
 	return db.AddMediaToSharedMedia(post.SharedMediaID, media)
+}
+
+func (db *DBConn) AddMedia(media *Media) error {
+	return db.DB.Create(media).Error
 }
 
 func (db *DBConn) AddMediaToStory(storyId uint64, media *Media) error {
@@ -294,4 +303,31 @@ func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
 	post := []Post{}
 	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
 	return &post, err
+}
+
+func (db *DBConn) AddTag(t *Tag) (*Tag, error) {
+	tag := t
+	err := db.DB.Create(tag).Error
+	fmt.Println(tag.ID)
+	return tag, err
+}
+
+func (db *DBConn) GetTagById(id uint64) (Tag, error) {
+	tag := Tag{}
+	err := db.DB.Where("id = ?", id).First(&tag).Error
+	return tag, err
+}
+
+var ErrTagNotExists = fmt.Errorf("tag not found")
+
+func (db *DBConn) GetIfExists(value string) (*Tag, error) {
+	tag := Tag{}
+	res := db.DB.Where("value = ?", value).First(&tag)
+	if res.RowsAffected == 0 {
+		return nil, ErrTagNotExists
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return &tag, res.Error
 }
