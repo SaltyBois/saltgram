@@ -497,11 +497,31 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 
 	tags := []data.Tag{}
 	for _, tag := range r.GetInfo().Media.Tags {
-		tags = append(tags, data.Tag{
-			Value: tag.Value,
-		})
-	}
 
+		t := data.Tag{
+			Value: tag.Value,
+		}
+		ta, err := c.db.GetIfExists(t.Value)
+		if err != nil {
+			if err == data.ErrTagNotExists {
+				ta, err = c.db.AddTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		tags = append(tags, *ta)
+	}
+	/////
+	for _, t := range tags {
+		c.l.Info("Getting tag id: ", t.ID)
+	}
+	/////
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
@@ -517,6 +537,12 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 		},
 		AddedOn: r.GetInfo().Media.AddedOn,
 	}
+
+	/////
+	for _, t := range media.Tags {
+		c.l.Info("Getting tag from media      id: ", t.ID)
+	}
+	/////
 
 	imageData := bytes.Buffer{}
 	for {

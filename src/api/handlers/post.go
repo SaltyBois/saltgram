@@ -621,6 +621,11 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(Jovan): Tag value as ID or predefined tags
 	tags := []*prcontent.Tag{}
+	for _, t := range r.PostForm["tags"] {
+		tags = append(tags, &prcontent.Tag{
+			Value: t,
+		})
+	}
 	// TODO(Jovan): Pass location as object
 	// location := r.PostForm["location"]
 	description := ""
