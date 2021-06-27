@@ -293,6 +293,7 @@ export default {
               this.isMyProfile = r.data.isThisMe;
               this.$refs.profileImage.$data.isMyProfile = this.isMyProfile
               // console.log(r.data.userId)
+              // console.log('this.profile.followers: ', this.profile.fol)
               this.getUserPosts(r.data.userId);
               this.getUserStories(r.data.userId);
             }).catch(err => {
@@ -317,7 +318,21 @@ export default {
         getUserPosts(id) {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
            .then(r => {
-              this.usersPosts = r.data;
+               this.usersPosts = r.data;
+               this.usersPosts.sort(function (a,b) {
+                 let index1 = a.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+                 let index2 = b.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+                 let d1 = new Date(a.post.sharedMedia.media[0].addedOn.substring(0, index1).replace('CEST', '(CEST)'))
+                 let d2 = new Date(b.post.sharedMedia.media[0].addedOn.substring(0, index2).replace('CEST', '(CEST)'))
+                 if (d1 < d2) {
+                   return 1;
+                 }
+                 if (d1 > d2) {
+                   return -1;
+                 }
+                 // dates must be equal
+                 return 0;
+               });
               // console.log(this.usersPosts);
             }).catch(err => {
               console.log(err)
@@ -329,14 +344,17 @@ export default {
            .then(r => {
               //console.log(JSON.parse(r.data.toString()));
               this.userStories = r.data;
-              // console.log("stories:", r.data);
+              console.log("stories:", r.data);
+             const oneDay = 60 * 60 * 24 * 1000;
               if (this.userStories !== null)  {
                 let newStories = []
                 this.userStories.forEach(s => {
                   s.stories.forEach(ss => {
                     let newSS = ss;
                     newSS.closeFriends = s.closeFriends;
-                    newStories.push(newSS);
+                    let index = newSS.addedOn.indexOf('CEST') + 4
+                    let storyDate = new Date(newSS.addedOn.substring(0, index).replace('CEST', '(CEST)'))
+                    if ((Date.now() - storyDate) < oneDay) newStories.push(newSS);
                   });
                 });
                this.$refs.profileImage.$data.userStories = newStories;//this.userStories;

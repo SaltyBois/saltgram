@@ -1,15 +1,49 @@
 <template>
   <div class="story-layout">
+    <StoryView ref="storyView" :stories="realStories"/>
     <v-img  class="story"
-            src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+            @click="toggle"
+            v-if="user.profilePictureURL"
+            :src="user.profilePictureURL"
             alt="Profile picture"/>
-    <b>Someones Story</b>
+    <v-img  class="story"
+            @click="toggle"
+            v-else
+            :src="require('@/assets/profile_placeholder.png')"
+            alt="Profile picture"/>
+    <b>{{ user.username }}</b>
   </div>
 </template>
 
 <script>
+import StoryView from "@/components/StoryView";
+
 export default {
-name: "Story"
+  name: "Story",
+  components: { StoryView },
+  methods: {
+    toggle() {
+      this.$refs.storyView.toggleView();
+    }
+  },
+  data: function () {
+    return {
+      realStories: []
+    }
+  },
+  props: {
+    user: { type: Object, required: true},
+    stories: { type: Array, required: true}
+  },
+  mounted() {
+    console.log(this.stories)
+    this.stories.forEach(el => {
+      el.closeFriends = this.stories.closeFriends
+      this.realStories.push(el.stories[0])
+    })
+    console.log(this.realStories)
+    // console.log(this.stories)
+  }
 }
 </script>
 

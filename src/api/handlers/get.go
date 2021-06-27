@@ -99,11 +99,19 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching profile")
+		http.Error(w, "Profile not found", http.StatusNotFound)
+		return
+	}
+
 	response := saltdata.UserDTO{
 		Id:       strconv.FormatUint(user.Id, 10),
 		Email:    user.Email,
 		FullName: user.FullName,
 		Username: user.Username,
+		ProfilePictureURL: profile.ProfilePictureURL,
 	}
 
 	err = saltdata.ToJSON(response, w)
@@ -787,6 +795,7 @@ func (u *Users) GetFollowingDetailed(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Followers fetching error", http.StatusInternalServerError)
 		return
 	}
+
 	var profiles []saltdata.ProfileFollowDetailedDTO
 	for {
 		profile, err := stream.Recv()
@@ -798,11 +807,20 @@ func (u *Users) GetFollowingDetailed(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
 			return
 		}
+
+		user, err := u.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: profile.Username})
+		if err != nil {
+			u.l.Errorf("failed to fetch user: %v\n", err)
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+
 		dto := saltdata.ProfileFollowDetailedDTO{
 			Username:       profile.Username,
 			Following:      profile.Following,
 			Pending:        profile.Pending,
 			ProfliePicture: profile.ProfliePicture,
+			Id: 			strconv.FormatUint(user.Id, 10),
 		}
 		profiles = append(profiles, dto)
 	}
