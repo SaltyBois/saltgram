@@ -2,7 +2,16 @@
   <div class="story-layout">
     <div @click="$router.push('/newContent'); ">
       <v-img  class="no-story"
-              src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
+              v-if="user.profilePictureURL"
+              :src="user.profilePictureURL"
+              alt="Profile picture">
+        <b class="story-plus-circle">
+          <h3 class="story-plus">+</h3>
+        </b>
+      </v-img>
+      <v-img  class="no-story"
+              v-else
+              :src="require('@/assets/profile_placeholder.png')"
               alt="Profile picture">
         <b class="story-plus-circle">
           <h3 class="story-plus">+</h3>
@@ -18,6 +27,9 @@ export default {
   name: "MyNoStory",
   methods: {
 
+  },
+  props: {
+    user: {type: Object, required: true}
   }
 }
 </script>

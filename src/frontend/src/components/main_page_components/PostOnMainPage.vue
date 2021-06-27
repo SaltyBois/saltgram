@@ -1,54 +1,58 @@
 <template>
   <div class="post-card">
-    <PostView ref="postView" media-path="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab" />
+    <PostView ref="postView"
+              :user-prop="user"
+              :post="postElement"
+              media-path="https://www.arabianbusiness.com/public/styles/square/public/images/2021/03/28/meme.jpg?itok=DeJVUtab" />
     <div class="post-header">
       <div class="post-header-left-side">
         <v-img  class="post-header-profile"
-                src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
-                @click="$router.push('/user')"
+                v-if="user.profilePictureURL"
+                :src="user.profilePictureURL"
+                @click="$router.push('/user/' + user.username)"
                 alt="Profile picture"/>
-        <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
+        <v-img  class="post-header-profile"
+                v-else
+                :src="require('@/assets/profile_placeholder.png')"
+                alt="Profile picture"
+                @click="$router.push('/user/' + user.username)"/>
+        <b @click="$router.push('/user/' + user.username)" style="cursor: pointer">{{ user.username }}</b>
       </div>
       <div class="post-header-right-side">
         <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
-        <PostInfo username="Username1" ref="postInfo"/>
+        <PostInfo :username="user.username" ref="postInfo"/>
       </div>
     </div>
-
-
     <div class="post-content">
-
       <v-carousel class="post-content-media" :continuous="false" >
-        <v-carousel-item v-for="(item, index) in contentPlaceHolder.length" :key="index">
+        <v-carousel-item v-for="(item, index) in postElement.post.sharedMedia.media" :key="index">
           <v-img contain
-                 v-if="contentPlaceHolder[index].endsWith('.jpg') || contentPlaceHolder[index].endsWith('.png') || contentPlaceHolder[index].endsWith('.jpeg')"
-                 :src="contentPlaceHolder[index]"/>
+                 width="100%"
+                 height="80%"
+                 v-if="item.filename.endsWith('.jpg') || item.filename.endsWith('.png') || item.filename.endsWith('.jpeg')"
+                 :src="item.url"/>
           <video controls
+                 width="100%"
+                 height="70%"
                  loop
-                 v-else-if="contentPlaceHolder[index].endsWith('.mp4')"
-                 :src="contentPlaceHolder[index]"/>
+                 v-else-if="item.filename.endsWith('.mp4')"
+                 :src="item.url"/>
         </v-carousel-item>
       </v-carousel>
-<!--      <v-img  v-for="(item, index) in contentPlaceHolder.length"-->
-<!--              :key="index"-->
-<!--              class="post-content-media"-->
-<!--              v-bind:style="index === iteratorContent ? '' : 'display: none'"-->
-<!--              :src="contentPlaceHolder[index]"-->
-<!--              alt="Post content"/>-->
-<!--      <div class="post-content">-->
-<!--        <v-img  class="post-content-media"-->
-<!--                src="https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg"-->
-<!--                alt="Post content"/>-->
-<!--      </div>-->
-
     </div>
     <div class="post-interactions">
       <div class="post-interactions-left-side">
         <div style="width: 50px; height: 50px; text-align: -webkit-center">
-          <i class="fa fa-thumbs-o-up like" aria-hidden="true"/>
+          <i class="fa fa-thumbs-o-up"
+             @click="like()"
+             v-bind:class="userReactionStatus === 'LIKE' ? 'liked' : 'like'"
+             aria-hidden="true"/>
         </div>
         <div style="width: 50px; height: 50px; text-align: -webkit-center;">
-          <i class="fa fa-thumbs-o-up dislike" aria-hidden="true"/>
+          <i class="fa fa-thumbs-o-up"
+             @click="dislike()"
+             v-bind:class="userReactionStatus === 'DISLIKE' ? 'disliked' : 'dislike'"
+             aria-hidden="true"/>
         </div>
         <div style="width: 50px; height: 50px; text-align: -webkit-center">
           <i class="fa fa fa-comment-o like" aria-hidden="true" @click="showPostFun"/>
@@ -63,22 +67,24 @@
     <div class="post-description">
       <div style=" padding: 5px;">
         <p style="text-align: left; font-size: 12pt; margin-bottom: auto;">
-          <b>1234</b> Likes  <b>532</b> Dislikes
-        <p style="text-align: left; font-size: 10pt; margin-bottom: auto;">
-          <b>USERNAME </b>
-          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+          <b>{{likes}}</b> Likes  <b>{{dislikes}}</b> Dislikes
+        <p style="text-align: left; font-size: 12pt; margin-bottom: auto; margin-top: 10px">
+          <b>{{ user.username }}</b>
+        {{ postElement.post.sharedMedia.media[0].description}}
         </p>
       </div>
     </div>
     <div class="post-comment-section">
       <div class="all-comments" >
+        <div v-for="(item, index) in comments" :key="index">
+          <CommentOnPostView  v-if="index < 2" :comment="item" style="min-height: 10px; height: auto; max-height: 20px;"/>
+        </div>
 
-        <CommentOnPostView v-for="index in 2" :key="index" style="min-height: 10px; height: auto; max-height: 20px;"/>
-        <p style="text-align: left; font-size: 10pt; margin-bottom: auto; cursor: pointer" @click="showPostFun">
-          View all <b>32</b> comments
+        <p v-if="comments.length > 2" style="text-align: left; font-size: 10pt; margin-bottom: auto; margin-top: 20px; cursor: pointer" @click="showPostFun">
+          View all <b>{{ comments.length }}</b> comments
         </p>
-        <p style="text-align: left; font-size: 10pt; margin-bottom: auto; color: #858585">
-          Posted 1 hour ago
+        <p style="text-align: left; font-size: 10pt; margin-bottom: auto; margin-top: 20px; color: #858585">
+          {{ new Date(postElement.post.sharedMedia.media[0].addedOn.substring(0, lastIndex).replace('CEST', '(CEST)')).toLocaleString('sr') }}
         </p>
       </div>
 
@@ -86,11 +92,13 @@
     <!--  TODO(Mile): Emojis need to be included GENERICALLY  -->
     <div class="post-footer">
       <div style="float: left; height: available; display: flex; flex-direction: row; width: 80%">
-        <v-text-field label="Add a comment" style="width: available; padding: 5px" />
+        <v-text-field label="Add a comment" v-model="input" style="width: available; padding: 5px" />
       </div>
       <div style="float: right; height: available; display: inline-block; ">
-        <v-btn class="follow-button" style="margin: 5px; width: 75px">
-          post
+        <v-btn class="follow-button"
+               @click="sendComment()"
+               style="margin: 5px; width: 100px">
+          comment
         </v-btn>
       </div>
     </div>
@@ -109,42 +117,152 @@ export default {
     PostView, CommentOnPostView, PostInfo
   },
   props: {
-
+    postElement: { type: Object, required: true},
+    user: { type: Object, required: true}
   },
   methods: {
-    insert(emoji) {
-      this.input += emoji
-    },
-    append(emoji) {
-      this.input += emoji
-    },
     showPostFun() {
       this.$refs.postView.$data.show = !this.$refs.postView.$data.show
     },
-    decrease() {
-      if (this.iteratorContent > 0) this.iteratorContent -= 1;
+    getComments() {
+      this.comments = [];
+      this.axios.get("content/comment/" + this.postElement.post.id)
+          .then(r => {
+            // console.log(r);
+            this.comments = r.data;
+            // console.log(this.comments);
+          }).catch(err => {
+        console.log(err)
+        this.$router.push('/');
+      })
     },
-    increase() {
-      if (this.iteratorContent + 1 < this.contentPlaceHolder.length) this.iteratorContent += 1;
-    }
+    getReactions() {
+      this.reactions = [];
+      this.likes = 0;
+      this.dislikes = 0;
+      this.axios.get("content/reaction/" + this.postElement.post.id)
+          .then(r => {
+            // console.log(r);
+            this.reactions = r.data;
+            if(this.reactions === null){
+              this.reactions = [];
+            }
+            // console.log(this.reactions);
+            for(let i = 0; i < this.reactions.length; i++){
+              if(this.reactions[i].reactionType === 'LIKE'){
+                this.likes += 1;
+              } else {
+                this.dislikes += 1;
+              }
+            }
+            if(this.$store.state.jws){
+              this.checkIfReacted();
+            }
+          }).catch(err => {
+        console.log(err)
+        this.$router.push('/');
+      })
+    },
+    checkIfReacted() {
+      this.axios.get("users", {headers: this.getAHeader()})
+          .then(r => {
+            // console.log(r);
+            this.loggedUser = r.data;
+            // console.log(this.user.id);
+            for(let i = 0; i < this.reactions.length; i++){
+              // console.log(this.reactions[i].userId)
+              if(this.reactions[i].userId == this.loggedUser.id){
+                this.userReactionStatus = this.reactions[i].reactionType;
+                this.reactionId = this.reactions[i].id;
+                break;
+              }
+            }
+          }).catch(err => {
+        console.log(err)
+        this.$router.push('/');
+      })
+    },
+    like() {
+      let reaction = {reactionType: 'LIKE', postId: this.postElement.post.id};
+      if(this.userReactionStatus === ''){
+        this.axios.post("content/reaction", reaction, {headers: this.getAHeader()})
+            .then(() => {
+              // console.log(r);
+              this.userReactionStatus = 'LIKE';
+              this.getReactions();
+            }).catch(err => {
+          console.log(err)
+          this.$router.push('/');
+        })
+      } else if (this.userReactionStatus === 'DISLIKE') {
+        let putReaction = {reactionType: 'LIKE', id: this.reactionId}
+        this.axios.put("content/reaction", putReaction, {headers: this.getAHeader()})
+            .then(() => {
+              // console.log(r);
+              this.userReactionStatus = 'LIKE';
+              this.getReactions();
+            }).catch(err => {
+          console.log(err)
+          this.$router.push('/');
+        })
+      }
+    },
+    dislike() {
+      let reaction = {reactionType: 'DISLIKE', postId: this.postElement.post.id};
+      if(this.userReactionStatus === ''){
+        this.axios.post("content/reaction", reaction, {headers: this.getAHeader()})
+            .then(() => {
+              // console.log(r);
+              this.userReactionStatus = 'DISLIKE';
+              this.getReactions();
+            }).catch(err => {
+          console.log(err)
+          this.$router.push('/');
+        })
+      } else if (this.userReactionStatus === 'LIKE'){
+        let putReaction = {reactionType: 'DISLIKE', id: this.reactionId}
+        this.axios.put("content/reaction", putReaction, {headers: this.getAHeader()})
+            .then(() => {
+              // console.log(r);
+              this.userReactionStatus = 'DISLIKE';
+              this.getReactions();
+            }).catch(err => {
+          console.log(err)
+          this.$router.push('/');
+        })
+      }
+    },
+    sendComment() {
+      let com = {content: this.input, postId: this.postElement.post.id};
+      this.axios.post("content/comment", com, {headers: this.getAHeader()})
+          .then(() => {
+            // console.log(r);
+            this.input = '';
+            this.getComments();
+          }).catch(err => {
+        console.log(err)
+        this.$router.push('/');
+      })
+    },
   },
   mounted() {
-    this.iteratorContent = 0
+    this.lastIndex = this.postElement.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+    // console.log(this.postElement.post.sharedMedia.media[0].url)
+    this.getComments();
+    this.getReactions();
   },
   data: function () {
     return {
       input: '',
-      search: '',
       showPost: false,
-      iteratorContent: 0,
-      contentPlaceHolder: [
-        'https://skinnyms.com/wp-content/uploads/2015/04/9-Best-Grumpy-Cat-Memes-750x500.jpg',
-        'https://i.kym-cdn.com/entries/icons/original/000/035/692/cover1.jpg',
-        'https://www.thehonestkitchen.com/blog/wp-content/uploads/2019/07/CatMemes-copy-10.jpg',
-        'https://i.ytimg.com/vi/KHa4OOvYLx0/maxresdefault.jpg',
-        'https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1543715662l/43075028._SX318_.jpg',
-        'https://www.w3schools.com/html/movie.mp4'
-      ]
+      comments: [],
+      reactions: {},
+      likes: 0,
+      dislikes: 0,
+      loggedUser: {},
+      userReactionStatus: false,
+      reactionId: false,
+      lastIndex: 0,
     }
   }
 }
@@ -195,7 +313,8 @@ export default {
   width: 30px;
   height: 30px;
   object-fit: cover;
-  border-radius: 20%;
+  border-radius: 10px;
+  border: black solid 1px;
   margin: 10px;
   cursor: pointer;
 
@@ -292,7 +411,7 @@ export default {
 }
 
 .all-comments {
-
+  display: grid;
 }
 
 .follow-button, .unfollow-button  {
@@ -366,6 +485,22 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+}
+
+.liked, .disliked {
+  position: relative;
+  top: 12px;
+  left: 0;
+  transform: scale(2);
+  margin: 0 3px;
+  transition: 0.2s;
+  color: #016ddb;
+  cursor: pointer;
+}
+
+.disliked {
+  color: #ff0000;
+  transform: scale(2) rotate(180deg);
 }
 
 </style>

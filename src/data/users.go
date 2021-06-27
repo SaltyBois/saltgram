@@ -19,6 +19,7 @@ type UserDTO struct {
 	DateOfBirth    time.Time `json:"dateOfBirth" validate:"required"`
 	WebSite        string    `json:"webSite"`
 	PrivateProfile bool      `json:"privateProfile"`
+	ProfilePictureURL string `json:"profilePictureURL"`
 }
 
 type ProflieDTO struct {
@@ -71,10 +72,11 @@ type FollowRequestDOT struct {
 }
 
 type ProfileFollowDetailedDTO struct {
-	Username       string `json:"username"`
-	Following      bool   `json:"following"`
-	Pending        bool   `json:"pending"`
-	ProfliePicture string `json:"profilePictureURL"`
+	Username       string 		`json:"username"`
+	Following      bool   		`json:"following"`
+	Pending        bool   		`json:"pending"`
+	ProfliePicture string 		`json:"profilePictureURL"`
+	Id 			   string 		`json:"id"`
 }
 
 type FollowDTO struct {

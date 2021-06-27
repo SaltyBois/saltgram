@@ -71,13 +71,13 @@
                     <div class="post-interactions-left-side">
                       <div style="width: 50px; height: 50px; text-align: -webkit-center">
                         <i class="fa fa-thumbs-o-up " 
-                          @click="like()" 
+                          @click="like()"
                           aria-hidden="true" 
                           v-bind:class="userReactionStatus === 'LIKE' ? 'liked' : 'like'"/>
                       </div>
                       <div style="width: 50px; height: 50px; text-align: -webkit-center;">
                         <i class="fa fa-thumbs-o-up " 
-                          @click="dislike()" 
+                          @click="dislike()"
                           aria-hidden="true"
                           v-bind:class="userReactionStatus === 'DISLIKE' ? 'disliked' : 'dislike'"/>
                       </div>
@@ -94,7 +94,7 @@
                       <b>{{likes}}</b> Likes  <b>{{dislikes}}</b> Dislikes
                     </p>
                     <p style="text-align: left; font-size: 10pt; margin-bottom: auto; color: #858585">
-                      Posted 1 hour ago
+                      {{ new Date(contentPlaceHolder[0].addedOn.substring(0, lastIndex).replace('CEST', '(CEST)')).toLocaleString('sr') }}
                     </p>
                   </div>                                    
                     <div v-if="isUserLoggedIn" style="float: left; height: available; display: flex; flex-direction: row; width: 80%; margin-bottom: 10px">
@@ -125,10 +125,6 @@ export default {
     }
   },
   props: {
-      mediaPath: {
-        required: false,
-        type: String
-      },
       post: { type: Object, required: true},
       userProp: { type: Object, required: true}
   },
@@ -144,6 +140,7 @@ export default {
       this.description = this.post.post.sharedMedia.media[0].description;
     },
     loadingComments() {
+           this.comments = []
            this.axios.get("content/comment/" + this.post.post.id)
            .then(r => {
               // console.log(r);
@@ -160,7 +157,7 @@ export default {
            .then(() => {
               // console.log(r);
               this.commentContent = '';
-              this.$emit('reload');
+              this.loadingComments();
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -173,7 +170,7 @@ export default {
             .then(() => {
                 // console.log(r);
                 this.userReactionStatus = 'LIKE';
-              this.$emit('reload');
+                this.loadingReactions()
               }).catch(err => {
                 console.log(err)
                 this.$router.push('/');
@@ -184,7 +181,7 @@ export default {
            .then(() => {
               // console.log(r);
               this.userReactionStatus = 'LIKE';
-              this.$emit('reload');
+              this.loadingReactions()
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -198,7 +195,7 @@ export default {
            .then(() => {
               // console.log(r);
               this.userReactionStatus = 'DISLIKE';
-              this.$emit('reload');
+              this.loadingReactions()
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -209,7 +206,7 @@ export default {
            .then(() => {
               // console.log(r);
               this.userReactionStatus = 'DISLIKE';
-              this.$emit('reload');
+             this.loadingReactions()
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -217,6 +214,9 @@ export default {
       }
     },
     loadingReactions() {
+          this.reactions = [];
+          this.likes = 0;
+          this.dislikes = 0;
            this.axios.get("content/reaction/" + this.post.post.id)
            .then(r => {
               // console.log(r);
@@ -263,6 +263,7 @@ export default {
   },
   mounted() {
     // console.log(this.post)
+    this.lastIndex = this.post.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
     this.iteratorContent = 0
     this.loadingPost();
     this.loadingComments();
@@ -283,6 +284,7 @@ export default {
       likes: 0,
       dislikes: 0,
       reactionId: '',
+      lastIndex: 0,
     }
   }
 }

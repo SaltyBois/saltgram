@@ -16,7 +16,7 @@
                 align-center
                 column>
         <v-hover v-slot="{ hover }">
-          <v-carousel class="post-content-media" :cycle="!hover" :interval="10000" :continuous="false">
+          <v-carousel class="post-content-media" :cycle="!hover" :interval="5000" :continuous="false">
             <div v-for="(story, index) in stories" :key="index">
               <v-carousel-item>
               <v-img v-if="story.mimeType == 'image'" contain
@@ -82,9 +82,10 @@ export default {
     // },
   },
   computed() {
-    this.countDownTimer()
+    // this.countDownTimer()
   },
   mounted() {
+    // console.log(this.stories)
         // console.log(this.stories);
 
   //  this.loadingStory();

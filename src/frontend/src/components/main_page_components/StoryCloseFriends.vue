@@ -1,15 +1,24 @@
 <template>
   <div class="story-layout">
     <v-img  class="story-close-friends"
-            src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
+            v-if="user.profilePictureURL"
+            :src="user.profilePictureURL"
             alt="Profile picture"/>
-    <b>Close Friend Story</b>
+    <v-img  class="story-close-friends"
+            v-else
+            :src="require('@/assets/profile_placeholder.png')"
+            alt="Profile picture"/>
+    <b>{{ user.username }}</b>
   </div>
 </template>
 
 <script>
 export default {
-name: "StoryCloseFriends"
+  name: "StoryCloseFriends",
+  props: {
+    user: { type: Object, required: true},
+    stories: { type: Array, required: true}
+  }
 }
 </script>
 
