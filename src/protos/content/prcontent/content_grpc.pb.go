@@ -40,7 +40,8 @@ type ContentClient interface {
 	AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error)
 	AddHighlight(ctx context.Context, in *AddHighlightRequest, opts ...grpc.CallOption) (*AddHighlightResponse, error)
 	PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error)
-	SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (Content_SearchContentClient, error)
+	SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error)
+	GetTagsByName(ctx context.Context, in *GetTagsByNameRequest, opts ...grpc.CallOption) (*GetTagsByNameResponse, error)
 }
 
 type contentClient struct {
@@ -423,36 +424,22 @@ func (c *contentClient) PutReaction(ctx context.Context, in *PutReactionRequest,
 	return out, nil
 }
 
-func (c *contentClient) SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (Content_SearchContentClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[8], "/Content/SearchContent", opts...)
+func (c *contentClient) SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error) {
+	out := new(SearchContentResponse)
+	err := c.cc.Invoke(ctx, "/Content/SearchContent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &contentSearchContentClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
 
-type Content_SearchContentClient interface {
-	Recv() (*SearchContentResponse, error)
-	grpc.ClientStream
-}
-
-type contentSearchContentClient struct {
-	grpc.ClientStream
-}
-
-func (x *contentSearchContentClient) Recv() (*SearchContentResponse, error) {
-	m := new(SearchContentResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
+func (c *contentClient) GetTagsByName(ctx context.Context, in *GetTagsByNameRequest, opts ...grpc.CallOption) (*GetTagsByNameResponse, error) {
+	out := new(GetTagsByNameResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetTagsByName", in, out, opts...)
+	if err != nil {
 		return nil, err
 	}
-	return m, nil
+	return out, nil
 }
 
 // ContentServer is the server API for Content service.
@@ -481,7 +468,8 @@ type ContentServer interface {
 	AddProfilePicture(Content_AddProfilePictureServer) error
 	AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error)
 	PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error)
-	SearchContent(*SearchContentRequest, Content_SearchContentServer) error
+	SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error)
+	GetTagsByName(context.Context, *GetTagsByNameRequest) (*GetTagsByNameResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -549,8 +537,11 @@ func (UnimplementedContentServer) AddHighlight(context.Context, *AddHighlightReq
 func (UnimplementedContentServer) PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutReaction not implemented")
 }
-func (UnimplementedContentServer) SearchContent(*SearchContentRequest, Content_SearchContentServer) error {
-	return status.Errorf(codes.Unimplemented, "method SearchContent not implemented")
+func (UnimplementedContentServer) SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchContent not implemented")
+}
+func (UnimplementedContentServer) GetTagsByName(context.Context, *GetTagsByNameRequest) (*GetTagsByNameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTagsByName not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -969,25 +960,40 @@ func _Content_PutReaction_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Content_SearchContent_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(SearchContentRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _Content_SearchContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(ContentServer).SearchContent(m, &contentSearchContentServer{stream})
+	if interceptor == nil {
+		return srv.(ContentServer).SearchContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/SearchContent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).SearchContent(ctx, req.(*SearchContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-type Content_SearchContentServer interface {
-	Send(*SearchContentResponse) error
-	grpc.ServerStream
-}
-
-type contentSearchContentServer struct {
-	grpc.ServerStream
-}
-
-func (x *contentSearchContentServer) Send(m *SearchContentResponse) error {
-	return x.ServerStream.SendMsg(m)
+func _Content_GetTagsByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTagsByNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetTagsByName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetTagsByName",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetTagsByName(ctx, req.(*GetTagsByNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // Content_ServiceDesc is the grpc.ServiceDesc for Content service.
@@ -1045,6 +1051,14 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "PutReaction",
 			Handler:    _Content_PutReaction_Handler,
 		},
+		{
+			MethodName: "SearchContent",
+			Handler:    _Content_SearchContent_Handler,
+		},
+		{
+			MethodName: "GetTagsByName",
+			Handler:    _Content_GetTagsByName_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1086,11 +1100,6 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "AddProfilePicture",
 			Handler:       _Content_AddProfilePicture_Handler,
 			ClientStreams: true,
-		},
-		{
-			StreamName:    "SearchContent",
-			Handler:       _Content_SearchContent_Handler,
-			ServerStreams: true,
 		},
 	},
 	Metadata: "content/content.proto",

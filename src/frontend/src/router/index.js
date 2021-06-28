@@ -93,6 +93,11 @@ const routes = [
     name: 'Reactions',
     component: () => import(/* webpackChunkName: "admin" */ '../views/Reactions.vue')
 },
+{
+  path: '/tag/:name',
+  name: 'Tag',
+  component: () => import(/* webpackChunkName: "admin" */ '../views/Tag.vue')
+},
 ]
 
 const router = new VueRouter({

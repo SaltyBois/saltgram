@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"saltgram/data"
 	saltdata "saltgram/data"
 	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
@@ -1124,24 +1125,88 @@ func (s *Content) GetPostsByTag(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	value := vars["value"]
 
-	stream, err := s.cc.SearchContent(context.Background(), &prcontent.SearchContentRequest{Value: value})
+	posts, err := s.cc.SearchContent(context.Background(), &prcontent.SearchContentRequest{Value: value})
 	if err != nil {
 		s.l.Errorf("failed fetching posts %v\n", err)
 		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
 		return
 	}
-	var postsArray []*prcontent.SearchContentResponse
-	for {
-		post, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
+
+	type Message struct {
+		Post *prcontent.Post `json:"post"`
+		User *data.UserDTO   `json:"user"`
+	}
+
+	postsArray := []*Message{}
+
+	for i := 0; i < len(posts.Post); i++ {
+		vr := posts.Post[i]
+
+		i, err := strconv.ParseUint(vr.UserId, 10, 64)
 		if err != nil {
-			s.l.Errorf("failed to fetch posts: %v\n", err)
-			http.Error(w, "Error couldn't fetch posts", http.StatusInternalServerError)
+			s.l.Errorf("failed to convert id %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
 			return
 		}
-		postsArray = append(postsArray, post)
+
+		user, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: i})
+
+		if err != nil {
+			s.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			s.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		if profile.IsPublic {
+			postsArray = append(postsArray, &Message{
+				Post: vr,
+				User: &data.UserDTO{
+					Username:          user.Username,
+					ProfilePictureURL: profile.ProfilePictureURL,
+				},
+			})
+		}
 	}
 	saltdata.ToJSON(postsArray, w)
+}
+
+func (c *Content) GetTagsByName(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	queryTag := vars["value"]
+
+	queryResults, err := c.cc.GetTagsByName(context.Background(), &prcontent.GetTagsByNameRequest{Query: queryTag})
+
+	if err != nil {
+		c.l.Println("[ERROR] Searching tags failed")
+		http.Error(w, "Error Searching tags: ", http.StatusInternalServerError)
+		return
+	}
+
+	var finalResult []string
+
+	const MAX_NUMBER_OF_RESULTS = 20
+
+	for i := 0; i < len(queryResults.Name); i++ {
+		if i == MAX_NUMBER_OF_RESULTS {
+			break
+		}
+		finalResult = append(finalResult, queryResults.Name[i])
+	}
+
+	err = saltdata.ToJSON(&finalResult, w)
+
+	if err != nil {
+		c.l.Println("[ERROR] Searching tags failed")
+		http.Error(w, "Error Searching tags: ", http.StatusInternalServerError)
+		return
+	}
+
 }

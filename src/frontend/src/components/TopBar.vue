@@ -210,6 +210,13 @@ export default {
                 console.log(err)
                 })
         }
+      })
+       this.axios.get('content/tag/search/' + this.searchQuery, {headers: this.getAHeader()})
+      .then( r => {
+        console.log(r.data)
+        this.searchedData.tags = r.data
+        this.$refs.searchPanel.$data.searchedData = this.searchedData
+        this.$refs.searchPanel.$data.processing = false
 
       }).catch(err => {
         console.log(err)

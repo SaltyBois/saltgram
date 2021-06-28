@@ -336,7 +336,7 @@ export default {
               // console.log(this.usersPosts);
             }).catch(err => {
               console.log(err)
-              this.$router.push('/');
+              //this.$router.push('/');
             })
         },
         getUserStories(id) {
@@ -363,7 +363,7 @@ export default {
 
             }).catch(err => {
               console.log(err)
-              this.$router.push('/');
+            //  this.$router.push('/');
             })
         },
 

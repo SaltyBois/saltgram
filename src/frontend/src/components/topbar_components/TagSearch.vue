@@ -1,11 +1,11 @@
 <template>
-  <div class="tag-search-div">
+  <div class="tag-search-div" @click="goToTag()">
     <div style="padding: 3%">
       <i class="fa fa-hashtag tag-search-head pt-1"/>
     </div>
     <div style="padding: 3%;overflow: hidden">
       <b>
-        Tag name
+        {{name}}
       </b>
     </div>
   </div>
@@ -13,8 +13,17 @@
 
 <script>
 export default {
-name: "TagSearch"
+name: "TagSearch",
+props: {
+  name: {type: String, required: true},
+},
+methods: {
+  goToTag() {
+    this.$router.push("tag/" + this.name);
+  }
+},
 }
+
 </script>
 
 <style scoped>

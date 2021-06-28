@@ -380,3 +380,10 @@ func (db *DBConn) GetPostsByTag(value string) (*[]Post, error) {
 	posts, err := db.GetPostsBySharedMediaId(ids)
 	return posts, err
 }
+
+func (db *DBConn) GetAllTagsByNameSubstring(value string) ([]Tag, error) {
+	var tags []Tag
+	query := "%" + value + "%"
+	err := db.DB.Where("value LIKE ?", query).Limit(21).Find(&tags).Error
+	return tags, err
+}

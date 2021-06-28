@@ -30,7 +30,8 @@ service Content {
 
     rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
 
-    rpc SearchContent(SearchContentRequest) returns (stream SearchContentResponse);
+    rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
+    rpc GetTagsByName(GetTagsByNameRequest) returns (GetTagsByNameResponse);
 }
 
 message GetPostPreviewURLRequest {
@@ -158,8 +159,10 @@ message SharedMedia {
 
 message Post {
     string id = 1;
-    uint64 userId = 2;
+    string userId = 2;
     SharedMedia sharedMedia = 3;
+    string username = 4;
+    string profilePicture = 5;
 }
 
 message GetPostsResponse {
@@ -287,5 +290,13 @@ message SearchContentRequest {
 }
 
 message SearchContentResponse {
-    Post post = 1;
+    repeated Post post = 1;
+}
+
+message GetTagsByNameRequest {
+    string query = 1;
+}
+
+message GetTagsByNameResponse {
+    repeated string name = 1;
 }

@@ -3,11 +3,11 @@
     <div class="reactions-main">
       <TopBar style="position: sticky; z-index: 2"/>
       <div id="reactions-header-div">
-        <h1 style="letter-spacing: 1px">Reactions</h1>
+        <h1 style="letter-spacing: 1px">Tag {{$route.params.name}}</h1>
       </div>
       <v-layout class="user-media"
                 column>
-        <PostOnUserPage v-for="(item, index) in content" :key="index" :post="item" :user="user"/>
+        <PostOnUserPage v-for="(item, index) in content" :key="index" :post="item" :user="item.user"/>
       </v-layout>
     </div>
   </div>
@@ -18,7 +18,7 @@ import TopBar from "@/components/TopBar";
 import PostOnUserPage from "@/components/user_page_components/PostOnUserPage";
 
 export default {
-  name: "Reactions",
+  name: "Tag",
   components: { TopBar, PostOnUserPage },
   data() {
     return {
@@ -27,53 +27,16 @@ export default {
     }
   },
   mounted() {
-    this.loadReactedContent();
+    this.loadTagContent();
   },
   methods: {
-    loadReactedContent() {
-      this.refreshToken(this.getAHeader())
-          .then(rr => {
-            this.$store.state.jws = rr.data;
-            let config = {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': 'Bearer ' + this.$store.state.jws,
-              },
-            };
-
-            this.axios.get('content/reaction/user', config)
+    loadTagContent() {
+            this.axios.get('content/tag/' + this.$route.params.name)
                 .then(r => {
                   this.content = r.data
-                  /*this.content.array.forEach(element => {
-                    this.axios.get('users/')
-                  });*/
                   console.log(this.content)
                 })
                 .catch(r => console.log(r));
-
-
-
-
-
-
-            this.axios.get('users', {headers: this.getAHeader()})
-            .then(r => {
-              // console.log(r.data)
-
-              this.axios.get('users/profile/' + r.data.username, {headers: this.getAHeader()})
-              .then(rr => {
-                // console.log(rr.data)
-                this.user = rr.data
-              })
-              .catch(err2 => {
-                console.log(err2)
-              })
-            })
-            .catch(err => {
-              console.log(err)
-            })
-
-          }).catch(() => this.$router.push('/'));
     }
   }
 }

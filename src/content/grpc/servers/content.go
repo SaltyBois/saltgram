@@ -288,7 +288,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 		}
 		post := &prcontent.Post{
 			Id:     strconv.FormatUint(p.ID, 10),
-			UserId: p.UserID,
+			UserId: strconv.FormatUint(p.UserID, 10),
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
 			},
@@ -329,7 +329,7 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 		}
 		post := &prcontent.Post{
 			Id:     strconv.FormatUint(p.ID, 10),
-			UserId: p.UserID,
+			UserId: strconv.FormatUint(p.UserID, 10),
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
 			},
@@ -765,12 +765,15 @@ func (c *Content) PutReaction(ctx context.Context, r *prcontent.PutReactionReque
 	return &prcontent.PutReactionResponse{}, nil
 }
 
-func (c *Content) SearchContent(r *prcontent.SearchContentRequest, stream prcontent.Content_SearchContentServer) error {
+func (c *Content) SearchContent(ctx context.Context, r *prcontent.SearchContentRequest) (*prcontent.SearchContentResponse, error) {
 	posts, err := c.db.GetPostsByTag(r.Value)
 	if err != nil {
 		c.l.Errorf("failure getting posts: %v\n", err)
-		return err
+		return &prcontent.SearchContentResponse{}, err
 	}
+
+	retVal := []*prcontent.Post{}
+
 	for _, p := range *posts {
 		media := []*prcontent.Media{}
 		for _, m := range p.SharedMedia.Media {
@@ -795,18 +798,33 @@ func (c *Content) SearchContent(r *prcontent.SearchContentRequest, stream prcont
 		}
 		post := &prcontent.Post{
 			Id:     strconv.FormatUint(p.ID, 10),
-			UserId: p.UserID,
+			UserId: strconv.FormatUint(p.UserID, 10),
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
 			},
 		}
-		err = stream.Send(&prcontent.SearchContentResponse{
-			Post: post,
-		})
+
+		retVal = append(retVal, post)
+
 		if err != nil {
 			c.l.Errorf("failed sending post response: %v\n", err)
-			return err
+			return &prcontent.SearchContentResponse{}, err
 		}
 	}
-	return nil
+	return &prcontent.SearchContentResponse{Post: retVal}, nil
+}
+
+func (c *Content) GetTagsByName(ctx context.Context, r *prcontent.GetTagsByNameRequest) (*prcontent.GetTagsByNameResponse, error) {
+	tags, err := c.db.GetAllTagsByNameSubstring(r.Query)
+	if err != nil {
+		c.l.Printf("[ERROR] geting tag: %v\n", err)
+		return &prcontent.GetTagsByNameResponse{}, err
+	}
+
+	var tagNames []string
+	for _, tagName := range tags {
+		tagNames = append(tagNames, tagName.Value)
+	}
+
+	return &prcontent.GetTagsByNameResponse{Name: tagNames}, nil
 }
