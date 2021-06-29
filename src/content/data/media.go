@@ -77,7 +77,9 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 			Country: pr.Location.Country,
 			State:   pr.Location.State,
 			ZipCode: pr.Location.ZipCode,
+			City:    pr.Location.City,
 			Street:  pr.Location.Street,
+			Name:    pr.Location.Name,
 		},
 	}
 }
@@ -119,7 +121,9 @@ func DataToPRMedia(d *Media) *prcontent.Media {
 			Country: d.Location.Country,
 			State:   d.Location.State,
 			ZipCode: d.Location.ZipCode,
+			City:    d.Location.City,
 			Street:  d.Location.Street,
+			Name:    d.Location.Name,
 		},
 		SharedMediaId: d.SharedMediaID,
 		Tags:          tags,
@@ -386,4 +390,33 @@ func (db *DBConn) GetAllTagsByNameSubstring(value string) ([]Tag, error) {
 	query := "%" + value + "%"
 	err := db.DB.Where("value LIKE ?", query).Limit(21).Find(&tags).Error
 	return tags, err
+}
+
+func (db *DBConn) GetAllLocationNames(name string) ([]string, error) {
+	var names []string
+	query := "%" + name + "%"
+	err := db.DB.Raw("SELECT DISTINCT name FROM media WHERE name LIKE ?", query).Limit(21).Find(&names).Error
+	return names, err
+}
+
+func (db *DBConn) GetSharedMediaIdByLocationName(name string) ([]uint64, error) {
+	var id []uint64
+	res := db.DB.Raw("select distinct shared_media_id from media where name = ?", name).Find(&id)
+	if res.RowsAffected == 0 {
+		return nil, ErrSharedMediaNotFound
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return id, res.Error
+}
+
+func (db *DBConn) GetContentsByLocation(name string) (*[]Post, error) {
+	ids, err := db.GetSharedMediaIdByLocationName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	posts, err := db.GetPostsBySharedMediaId(ids)
+	return posts, err
 }

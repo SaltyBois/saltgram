@@ -43,6 +43,8 @@ type ContentClient interface {
 	SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error)
 	GetTagsByName(ctx context.Context, in *GetTagsByNameRequest, opts ...grpc.CallOption) (*GetTagsByNameResponse, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsByUserReactionRequest, opts ...grpc.CallOption) (*GetPostsByUserReactionResponse, error)
+	GetLocationNames(ctx context.Context, in *GetLocationNamesRequest, opts ...grpc.CallOption) (*GetLocationNamesResponse, error)
+	SearchContentLocation(ctx context.Context, in *SearchContentLocationRequest, opts ...grpc.CallOption) (*SearchContentLocationResponse, error)
 }
 
 type contentClient struct {
@@ -420,6 +422,24 @@ func (c *contentClient) GetPostsByUserReaction(ctx context.Context, in *GetPosts
 	return out, nil
 }
 
+func (c *contentClient) GetLocationNames(ctx context.Context, in *GetLocationNamesRequest, opts ...grpc.CallOption) (*GetLocationNamesResponse, error) {
+	out := new(GetLocationNamesResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetLocationNames", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) SearchContentLocation(ctx context.Context, in *SearchContentLocationRequest, opts ...grpc.CallOption) (*SearchContentLocationResponse, error) {
+	out := new(SearchContentLocationResponse)
+	err := c.cc.Invoke(ctx, "/Content/SearchContentLocation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContentServer is the server API for Content service.
 // All implementations must embed UnimplementedContentServer
 // for forward compatibility
@@ -449,6 +469,8 @@ type ContentServer interface {
 	SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error)
 	GetTagsByName(context.Context, *GetTagsByNameRequest) (*GetTagsByNameResponse, error)
 	GetPostsByUserReaction(context.Context, *GetPostsByUserReactionRequest) (*GetPostsByUserReactionResponse, error)
+	GetLocationNames(context.Context, *GetLocationNamesRequest) (*GetLocationNamesResponse, error)
+	SearchContentLocation(context.Context, *SearchContentLocationRequest) (*SearchContentLocationResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -521,6 +543,12 @@ func (UnimplementedContentServer) GetTagsByName(context.Context, *GetTagsByNameR
 }
 func (UnimplementedContentServer) GetPostsByUserReaction(context.Context, *GetPostsByUserReactionRequest) (*GetPostsByUserReactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPostsByUserReaction not implemented")
+}
+func (UnimplementedContentServer) GetLocationNames(context.Context, *GetLocationNamesRequest) (*GetLocationNamesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLocationNames not implemented")
+}
+func (UnimplementedContentServer) SearchContentLocation(context.Context, *SearchContentLocationRequest) (*SearchContentLocationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchContentLocation not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -972,6 +1000,42 @@ func _Content_GetPostsByUserReaction_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_GetLocationNames_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLocationNamesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetLocationNames(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetLocationNames",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetLocationNames(ctx, req.(*GetLocationNamesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_SearchContentLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchContentLocationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).SearchContentLocation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/SearchContentLocation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).SearchContentLocation(ctx, req.(*SearchContentLocationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Content_ServiceDesc is the grpc.ServiceDesc for Content service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1038,6 +1102,14 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPostsByUserReaction",
 			Handler:    _Content_GetPostsByUserReaction_Handler,
+		},
+		{
+			MethodName: "GetLocationNames",
+			Handler:    _Content_GetLocationNames_Handler,
+		},
+		{
+			MethodName: "SearchContentLocation",
+			Handler:    _Content_SearchContentLocation_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

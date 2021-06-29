@@ -33,6 +33,8 @@ service Content {
     rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
     rpc GetTagsByName(GetTagsByNameRequest) returns (GetTagsByNameResponse);
     rpc GetPostsByUserReaction(GetPostsByUserReactionRequest) returns (GetPostsByUserReactionResponse);
+    rpc GetLocationNames(GetLocationNamesRequest) returns (GetLocationNamesResponse);
+    rpc SearchContentLocation(SearchContentLocationRequest) returns (SearchContentLocationResponse);
 }
 
 message GetPostPreviewURLRequest {
@@ -144,7 +146,9 @@ message Location {
     string country = 1;
 	string state = 2;
     string zipCode = 3;
-	string street = 4;
+    string city = 4;
+	string street = 5;
+    string name = 6;
 }
 
 message SharedMedia {
@@ -307,5 +311,21 @@ message GetPostsByUserReactionRequest {
 }
 
 message GetPostsByUserReactionResponse {
+    repeated Post post = 1;
+}
+
+message GetLocationNamesRequest {
+    string query = 1;
+}
+
+message GetLocationNamesResponse {
+    repeated string name = 1;
+}
+
+message SearchContentLocationRequest {
+    string name = 1;
+}
+
+message SearchContentLocationResponse {
     repeated Post post = 1;
 }

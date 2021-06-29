@@ -520,7 +520,9 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 			Country: location.Country,
 			State:   location.State,
 			ZipCode: location.ZipCode,
+			City:    location.City,
 			Street:  location.Street,
+			Name:    location.Name,
 		},
 		AddedOn: r.GetInfo().Media.AddedOn,
 	}
@@ -608,7 +610,9 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 			Country: location.Country,
 			State:   location.State,
 			ZipCode: location.ZipCode,
+			City:    location.City,
 			Street:  location.Street,
+			Name:    location.Name,
 		},
 		AddedOn: r.GetInfo().Media.AddedOn,
 	}
@@ -839,7 +843,9 @@ func (c *Content) SearchContent(ctx context.Context, r *prcontent.SearchContentR
 					Country: m.Location.Country,
 					State:   m.Location.State,
 					ZipCode: m.Location.ZipCode,
+					City:    m.Location.City,
 					Street:  m.Location.Street,
+					Name:    m.Location.Name,
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
@@ -876,4 +882,65 @@ func (c *Content) GetTagsByName(ctx context.Context, r *prcontent.GetTagsByNameR
 	}
 
 	return &prcontent.GetTagsByNameResponse{Name: tagNames}, nil
+}
+
+func (c *Content) GetLocationNames(ctx context.Context, r *prcontent.GetLocationNamesRequest) (*prcontent.GetLocationNamesResponse, error) {
+	names, err := c.db.GetAllLocationNames(r.Query)
+	if err != nil {
+		c.l.Printf("[ERROR] geting location names: %v\n", err)
+		return &prcontent.GetLocationNamesResponse{}, err
+	}
+
+	return &prcontent.GetLocationNamesResponse{Name: names}, nil
+}
+
+func (c *Content) SearchContentLocation(ctx context.Context, r *prcontent.SearchContentLocationRequest) (*prcontent.SearchContentLocationResponse, error) {
+	posts, err := c.db.GetContentsByLocation(r.Name)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return &prcontent.SearchContentLocationResponse{}, err
+	}
+
+	retVal := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					City:    m.Location.City,
+					Street:  m.Location.Street,
+					Name:    m.Location.Name,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: strconv.FormatUint(p.UserID, 10),
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+
+		retVal = append(retVal, post)
+
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return &prcontent.SearchContentLocationResponse{}, err
+		}
+	}
+	return &prcontent.SearchContentLocationResponse{Post: retVal}, nil
 }

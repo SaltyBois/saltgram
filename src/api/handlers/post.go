@@ -513,10 +513,10 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 	// NOTE(Jovan): default
 	location := &prcontent.Location{
-		Country: "RS",
+		/*Country: "RS",
 		State:   "Serbia",
 		ZipCode: "21000",
-		Street:  "Balzakova 69",
+		Street:  "Balzakova 69",*/
 	}
 
 	if len(r.PostForm["location"]) > 0 {
@@ -640,10 +640,10 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	// NOTE(Jovan): default
 	location := &prcontent.Location{
-		Country: "RS",
+		/*Country: "RS",
 		State:   "Serbia",
 		ZipCode: "21000",
-		Street:  "Balzakova 69",
+		Street:  "Balzakova 69",*/
 	}
 
 	if len(r.PostForm["location"]) > 0 {

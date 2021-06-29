@@ -118,6 +118,8 @@ func main() {
 	contentRouter.HandleFunc("/reaction", contentHandler.PutReaction).Methods(http.MethodPut)
 	contentRouter.HandleFunc("/tag/{value}", contentHandler.GetPostsByTag).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/tag/search/{value}", contentHandler.GetTagsByName).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/location/search/{name}", contentHandler.GetLocationNames).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/location/{name}", contentHandler.GetContentsByLocation).Methods(http.MethodGet)
 
 	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
 	if err != nil {
