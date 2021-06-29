@@ -304,7 +304,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	return nil
 }
 
-func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
+/*func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
 	posts, err := c.db.GetPostsByReaction(r.UserId)
 	if err != nil {
 		c.l.Errorf("failure getting user posts: %v\n", err)
@@ -343,6 +343,55 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 		}
 	}
 	return nil
+}*/
+
+func (c *Content) GetPostsByUserReaction(ctx context.Context, r *prcontent.GetPostsByUserReactionRequest) (*prcontent.GetPostsByUserReactionResponse, error) {
+	posts, err := c.db.GetPostsByReaction(r.Id)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return &prcontent.GetPostsByUserReactionResponse{}, err
+	}
+
+	retVal := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: strconv.FormatUint(p.UserID, 10),
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+
+		retVal = append(retVal, post)
+
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return &prcontent.GetPostsByUserReactionResponse{}, err
+		}
+	}
+	return &prcontent.GetPostsByUserReactionResponse{Post: retVal}, nil
 }
 
 func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureServer) error {

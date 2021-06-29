@@ -31,12 +31,16 @@ export default {
   },
   methods: {
     loadTagContent() {
-            this.axios.get('content/tag/' + this.$route.params.name)
+      this.refreshToken(this.getAHeader())
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+            this.axios.get('content/tag/' + this.$route.params.name, {headers: this.getAHeader()})
                 .then(r => {
                   this.content = r.data
                   console.log(this.content)
                 })
                 .catch(r => console.log(r));
+        })
     }
   }
 }

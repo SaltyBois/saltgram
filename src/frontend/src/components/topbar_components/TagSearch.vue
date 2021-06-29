@@ -19,7 +19,7 @@ props: {
 },
 methods: {
   goToTag() {
-    this.$router.push("tag/" + this.name);
+    this.$router.push("/tag/" + this.name);
   }
 },
 }

@@ -84,7 +84,7 @@
           View all <b>{{ comments.length }}</b> comments
         </p>
         <p style="text-align: left; font-size: 10pt; margin-bottom: auto; margin-top: 20px; color: #858585">
-          {{ new Date(postElement.post.sharedMedia.media[0].addedOn.substring(0, lastIndex).replace('CEST', '(CEST)')).toLocaleString('sr') }}
+        {{ new Date(postElement.post.sharedMedia.media[0].addedOn.substring(0, lastIndex).replace('CEST', '(CEST)')).toLocaleString('sr') }}
         </p>
       </div>
 
@@ -247,6 +247,16 @@ export default {
   },
   mounted() {
     this.lastIndex = this.postElement.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+    console.log(this.lastIndex)
+    console.log(this.postElement.post.sharedMedia.media[0].addedOn.substring(0, this.lastIndex).replace('CEST', '(CEST)'))
+    
+    let datetime = this.postElement.post.sharedMedia.media[0].addedOn.split('.')[0];
+    let date = datetime.split(' ')[0];
+    let time = datetime.split(' ')[1];
+    let dateParts = date.split('-');
+    let timeParts = time.split(':');
+
+    console.log(new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1]));
     // console.log(this.postElement.post.sharedMedia.media[0].url)
     this.getComments();
     this.getReactions();

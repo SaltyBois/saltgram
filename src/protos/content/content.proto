@@ -11,7 +11,7 @@ service Content {
     rpc GetComments(GetCommentsRequest) returns(GetCommentsResponse);
 
     rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
-    rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
+    //rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
     rpc GetHighlights(GetHighlightsRequest) returns (GetHighlightsResponse);
     rpc GetPostPreviewURL(GetPostPreviewURLRequest) returns (GetPostPreviewURLResponse);
     
@@ -32,6 +32,7 @@ service Content {
 
     rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
     rpc GetTagsByName(GetTagsByNameRequest) returns (GetTagsByNameResponse);
+    rpc GetPostsByUserReaction(GetPostsByUserReactionRequest) returns (GetPostsByUserReactionResponse);
 }
 
 message GetPostPreviewURLRequest {
@@ -299,4 +300,12 @@ message GetTagsByNameRequest {
 
 message GetTagsByNameResponse {
     repeated string name = 1;
+}
+
+message GetPostsByUserReactionRequest {
+    uint64 id = 1;
+}
+
+message GetPostsByUserReactionResponse {
+    repeated Post post = 1;
 }

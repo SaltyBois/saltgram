@@ -26,7 +26,7 @@ type ContentClient interface {
 	//rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
 	GetComments(ctx context.Context, in *GetCommentsRequest, opts ...grpc.CallOption) (*GetCommentsResponse, error)
 	GetReactions(ctx context.Context, in *GetReactionsRequest, opts ...grpc.CallOption) (Content_GetReactionsClient, error)
-	GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error)
+	//rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
 	GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error)
 	GetPostPreviewURL(ctx context.Context, in *GetPostPreviewURLRequest, opts ...grpc.CallOption) (*GetPostPreviewURLResponse, error)
 	CreateStory(ctx context.Context, in *CreateStoryRequest, opts ...grpc.CallOption) (*CreateStoryResponse, error)
@@ -42,6 +42,7 @@ type ContentClient interface {
 	PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error)
 	SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error)
 	GetTagsByName(ctx context.Context, in *GetTagsByNameRequest, opts ...grpc.CallOption) (*GetTagsByNameResponse, error)
+	GetPostsByUserReaction(ctx context.Context, in *GetPostsByUserReactionRequest, opts ...grpc.CallOption) (*GetPostsByUserReactionResponse, error)
 }
 
 type contentClient struct {
@@ -175,38 +176,6 @@ func (x *contentGetReactionsClient) Recv() (*GetReactionsResponse, error) {
 	return m, nil
 }
 
-func (c *contentClient) GetPostsByUserReaction(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (Content_GetPostsByUserReactionClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[3], "/Content/GetPostsByUserReaction", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &contentGetPostsByUserReactionClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Content_GetPostsByUserReactionClient interface {
-	Recv() (*GetPostsResponse, error)
-	grpc.ClientStream
-}
-
-type contentGetPostsByUserReactionClient struct {
-	grpc.ClientStream
-}
-
-func (x *contentGetPostsByUserReactionClient) Recv() (*GetPostsResponse, error) {
-	m := new(GetPostsResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 func (c *contentClient) GetHighlights(ctx context.Context, in *GetHighlightsRequest, opts ...grpc.CallOption) (*GetHighlightsResponse, error) {
 	out := new(GetHighlightsResponse)
 	err := c.cc.Invoke(ctx, "/Content/GetHighlights", in, out, opts...)
@@ -253,7 +222,7 @@ func (c *contentClient) CreateUserFolder(ctx context.Context, in *CreateUserFold
 }
 
 func (c *contentClient) AddVerificationImage(ctx context.Context, opts ...grpc.CallOption) (Content_AddVerificationImageClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/AddVerificationImage", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[3], "/Content/AddVerificationImage", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +256,7 @@ func (x *contentAddVerificationImageClient) CloseAndRecv() (*AddVerificationImag
 }
 
 func (c *contentClient) AddPost(ctx context.Context, opts ...grpc.CallOption) (Content_AddPostClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddPost", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[4], "/Content/AddPost", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +290,7 @@ func (x *contentAddPostClient) CloseAndRecv() (*AddPostResponse, error) {
 }
 
 func (c *contentClient) AddStory(ctx context.Context, opts ...grpc.CallOption) (Content_AddStoryClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddStory", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[5], "/Content/AddStory", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +342,7 @@ func (c *contentClient) AddReaction(ctx context.Context, in *AddReactionRequest,
 }
 
 func (c *contentClient) AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[7], "/Content/AddProfilePicture", opts...)
+	stream, err := c.cc.NewStream(ctx, &Content_ServiceDesc.Streams[6], "/Content/AddProfilePicture", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -442,6 +411,15 @@ func (c *contentClient) GetTagsByName(ctx context.Context, in *GetTagsByNameRequ
 	return out, nil
 }
 
+func (c *contentClient) GetPostsByUserReaction(ctx context.Context, in *GetPostsByUserReactionRequest, opts ...grpc.CallOption) (*GetPostsByUserReactionResponse, error) {
+	out := new(GetPostsByUserReactionResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetPostsByUserReaction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContentServer is the server API for Content service.
 // All implementations must embed UnimplementedContentServer
 // for forward compatibility
@@ -454,7 +432,7 @@ type ContentServer interface {
 	//rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
 	GetComments(context.Context, *GetCommentsRequest) (*GetCommentsResponse, error)
 	GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error
-	GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error
+	//rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
 	GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error)
 	GetPostPreviewURL(context.Context, *GetPostPreviewURLRequest) (*GetPostPreviewURLResponse, error)
 	CreateStory(context.Context, *CreateStoryRequest) (*CreateStoryResponse, error)
@@ -470,6 +448,7 @@ type ContentServer interface {
 	PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error)
 	SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error)
 	GetTagsByName(context.Context, *GetTagsByNameRequest) (*GetTagsByNameResponse, error)
+	GetPostsByUserReaction(context.Context, *GetPostsByUserReactionRequest) (*GetPostsByUserReactionResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -494,9 +473,6 @@ func (UnimplementedContentServer) GetComments(context.Context, *GetCommentsReque
 }
 func (UnimplementedContentServer) GetReactions(*GetReactionsRequest, Content_GetReactionsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetReactions not implemented")
-}
-func (UnimplementedContentServer) GetPostsByUserReaction(*GetPostsRequest, Content_GetPostsByUserReactionServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetPostsByUserReaction not implemented")
 }
 func (UnimplementedContentServer) GetHighlights(context.Context, *GetHighlightsRequest) (*GetHighlightsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHighlights not implemented")
@@ -542,6 +518,9 @@ func (UnimplementedContentServer) SearchContent(context.Context, *SearchContentR
 }
 func (UnimplementedContentServer) GetTagsByName(context.Context, *GetTagsByNameRequest) (*GetTagsByNameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTagsByName not implemented")
+}
+func (UnimplementedContentServer) GetPostsByUserReaction(context.Context, *GetPostsByUserReactionRequest) (*GetPostsByUserReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPostsByUserReaction not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -670,27 +649,6 @@ type contentGetReactionsServer struct {
 }
 
 func (x *contentGetReactionsServer) Send(m *GetReactionsResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _Content_GetPostsByUserReaction_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetPostsRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(ContentServer).GetPostsByUserReaction(m, &contentGetPostsByUserReactionServer{stream})
-}
-
-type Content_GetPostsByUserReactionServer interface {
-	Send(*GetPostsResponse) error
-	grpc.ServerStream
-}
-
-type contentGetPostsByUserReactionServer struct {
-	grpc.ServerStream
-}
-
-func (x *contentGetPostsByUserReactionServer) Send(m *GetPostsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -996,6 +954,24 @@ func _Content_GetTagsByName_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_GetPostsByUserReaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostsByUserReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetPostsByUserReaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetPostsByUserReaction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetPostsByUserReaction(ctx, req.(*GetPostsByUserReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Content_ServiceDesc is the grpc.ServiceDesc for Content service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1059,6 +1035,10 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetTagsByName",
 			Handler:    _Content_GetTagsByName_Handler,
 		},
+		{
+			MethodName: "GetPostsByUserReaction",
+			Handler:    _Content_GetPostsByUserReaction_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1074,11 +1054,6 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetReactions",
 			Handler:       _Content_GetReactions_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetPostsByUserReaction",
-			Handler:       _Content_GetPostsByUserReaction_Handler,
 			ServerStreams: true,
 		},
 		{
