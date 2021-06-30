@@ -767,10 +767,19 @@ func (u *Users) BlockProfile(ctx context.Context, r *prusers.BlockProfileRequest
 		return &prusers.BlockProfileResposne{}, err
 	}
 
-	err = u.db.BlockProfile(userProfile, profile)
+	err = u.db.BlockProfile(profile, userProfile)
 	if err != nil {
 		u.l.Printf("[ERROR] blocking profile: %v\n", err)
 		return &prusers.BlockProfileResposne{}, err
+	}
+
+	following, _ := data.CheckIfFollowing(u.db, profile, userProfile)
+	if following {
+		data.Unfollow(u.db, profile, userProfile)
+	}
+	follower, _ := data.CheckForFollowingRequest(u.db, userProfile, profile)
+	if follower {
+		data.Unfollow(u.db, userProfile, profile)
 	}
 	return &prusers.BlockProfileResposne{}, nil
 }
@@ -860,7 +869,6 @@ func (u *Users) RemoveCloseFriend(ctx context.Context, r *prusers.CloseFriendReq
 	}
 	return &prusers.CloseFriendResposne{}, nil
 }
-
 
 func (u *Users) GetCloseFriends(r *prusers.Profile, stream prusers.Users_GetCloseFriendsServer) error {
 	profile, err := u.db.GetProfileByUsername(r.Username)
