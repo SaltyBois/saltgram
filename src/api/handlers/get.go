@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"saltgram/data"
 	saltdata "saltgram/data"
 	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
@@ -107,10 +108,10 @@ func (u *Users) GetByJWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := saltdata.UserDTO{
-		Id:       strconv.FormatUint(user.Id, 10),
-		Email:    user.Email,
-		FullName: user.FullName,
-		Username: user.Username,
+		Id:                strconv.FormatUint(user.Id, 10),
+		Email:             user.Email,
+		FullName:          user.FullName,
+		Username:          user.Username,
 		ProfilePictureURL: profile.ProfilePictureURL,
 	}
 
@@ -623,7 +624,7 @@ func (s *Content) GetPostsByUser(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(postsArray, w)
 }
 
-func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request) {
+/*func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request) {
 
 	jws, err := getUserJWS(r)
 	if err != nil {
@@ -681,6 +682,94 @@ func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request)
 		posts = append(posts, post)
 	}
 	saltdata.ToJSON(posts, w)
+}*/
+
+func (s *Content) GetPostsByUserReaction(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		s.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		s.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		s.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := s.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		s.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	posts, err := s.cc.GetPostsByUserReaction(context.Background(), &prcontent.GetPostsByUserReactionRequest{Id: user.Id})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+
+	type Message struct {
+		Post *prcontent.Post `json:"post"`
+		User *data.UserDTO   `json:"user"`
+	}
+
+	postsArray := []*Message{}
+
+	for i := 0; i < len(posts.Post); i++ {
+		vr := posts.Post[i]
+
+		i, err := strconv.ParseUint(vr.UserId, 10, 64)
+		if err != nil {
+			s.l.Errorf("failed to convert id %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		user, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: i})
+
+		if err != nil {
+			s.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			s.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		postsArray = append(postsArray, &Message{
+			Post: vr,
+			User: &data.UserDTO{
+				Username:          user.Username,
+				ProfilePictureURL: profile.ProfilePictureURL,
+			},
+		})
+	}
+	saltdata.ToJSON(postsArray, w)
 }
 
 func (u *Users) GetFollowersDetailed(w http.ResponseWriter, r *http.Request) {
@@ -820,7 +909,7 @@ func (u *Users) GetFollowingDetailed(w http.ResponseWriter, r *http.Request) {
 			Following:      profile.Following,
 			Pending:        profile.Pending,
 			ProfliePicture: profile.ProfliePicture,
-			Id: 			strconv.FormatUint(user.Id, 10),
+			Id:             strconv.FormatUint(user.Id, 10),
 		}
 		profiles = append(profiles, dto)
 	}
@@ -1117,4 +1206,339 @@ func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
 	}
 
 	saltdata.ToJSON(&reports, w)
+}
+
+func (s *Content) GetPostsByTag(w http.ResponseWriter, r *http.Request) {
+
+	jws, err1 := getUserJWS(r)
+	s.l.Errorf("error1 ", err1)
+
+	var t *jwt.Token
+	var err2 error
+	var claims1 *saltdata.AccessClaims
+	var ok bool
+	//if err != nil {
+	//	u.l.Println("[ERROR] JWS not found")
+	//	http.Error(w, "JWS not found", http.StatusBadRequest)
+	//	return
+	//}
+	if jws != "" {
+		token, error2 := jwt.ParseWithClaims(
+			jws,
+			&saltdata.AccessClaims{},
+			func(t *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+			},
+		)
+		t = token
+		err2 = error2
+		s.l.Errorf("error2 ", err2)
+	}
+
+	//if err != nil {
+	//	u.l.Printf("[ERROR] parsing claims: %v", err)
+	//	http.Error(w, "Error parsing claims", http.StatusBadRequest)
+	//	return
+	//}
+	if t != nil {
+		claims, ok1 := t.Claims.(*saltdata.AccessClaims)
+		claims1 = claims
+		ok = ok1
+		s.l.Errorf("ok ", ok)
+	}
+
+	vars := mux.Vars(r)
+	value := vars["value"]
+
+	posts, err := s.cc.SearchContent(context.Background(), &prcontent.SearchContentRequest{Value: value})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+
+	isUserLogged := false
+
+	if err1 == nil && err2 == nil && ok {
+		s.l.Errorf("logged in")
+		isUserLogged = true
+	} else {
+		s.l.Errorf("not logged in")
+	}
+
+	type Message struct {
+		Post *prcontent.Post `json:"post"`
+		User *data.UserDTO   `json:"user"`
+	}
+
+	postsArray := []*Message{}
+
+	for i := 0; i < len(posts.Post); i++ {
+		vr := posts.Post[i]
+
+		i, err := strconv.ParseUint(vr.UserId, 10, 64)
+		if err != nil {
+			s.l.Errorf("failed to convert id %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		user, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: i})
+
+		if err != nil {
+			s.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			s.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		isFollowing := false
+		if isUserLogged {
+			s.l.Errorf("My username", claims1.Username)
+			following, err := s.uc.GerFollowing(context.Background(), &prusers.FollowerRequest{Username: claims1.Username})
+			if err != nil {
+				s.l.Println("[ERROR] fetching following", err)
+				http.Error(w, "Following fetching error", http.StatusInternalServerError)
+				return
+			}
+			for {
+				prof, err := following.Recv()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					s.l.Println("[ERROR] fetching following", err)
+					http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+					return
+				}
+				s.l.Errorf("error             ", prof.Username)
+				if prof.Username == profile.Username {
+					isFollowing = true
+				}
+			}
+		}
+		isMyPost := false
+		if err1 == nil && err2 == nil && ok {
+			if profile.Username == claims1.Username {
+				isMyPost = true
+			}
+
+		}
+
+		if profile.IsPublic || isFollowing || isMyPost {
+			postsArray = append(postsArray, &Message{
+				Post: vr,
+				User: &data.UserDTO{
+					Username:          user.Username,
+					ProfilePictureURL: profile.ProfilePictureURL,
+				},
+			})
+		}
+	}
+	saltdata.ToJSON(postsArray, w)
+}
+
+func (c *Content) GetTagsByName(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	queryTag := vars["value"]
+
+	queryResults, err := c.cc.GetTagsByName(context.Background(), &prcontent.GetTagsByNameRequest{Query: queryTag})
+
+	if err != nil {
+		c.l.Println("[ERROR] Searching tags failed")
+		http.Error(w, "Error Searching tags: ", http.StatusInternalServerError)
+		return
+	}
+
+	var finalResult []string
+
+	const MAX_NUMBER_OF_RESULTS = 20
+
+	for i := 0; i < len(queryResults.Name); i++ {
+		if i == MAX_NUMBER_OF_RESULTS {
+			break
+		}
+		finalResult = append(finalResult, queryResults.Name[i])
+	}
+
+	err = saltdata.ToJSON(&finalResult, w)
+
+	if err != nil {
+		c.l.Println("[ERROR] Searching tags failed")
+		http.Error(w, "Error Searching tags: ", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (c *Content) GetLocationNames(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	queryTag := vars["name"]
+
+	queryResults, err := c.cc.GetLocationNames(context.Background(), &prcontent.GetLocationNamesRequest{Query: queryTag})
+
+	if err != nil {
+		c.l.Println("[ERROR] Searching location names failed")
+		http.Error(w, "Error Searching location names: ", http.StatusInternalServerError)
+		return
+	}
+
+	var finalResult []string
+
+	const MAX_NUMBER_OF_RESULTS = 20
+
+	for i := 0; i < len(queryResults.Name); i++ {
+		if i == MAX_NUMBER_OF_RESULTS {
+			break
+		}
+		finalResult = append(finalResult, queryResults.Name[i])
+	}
+
+	err = saltdata.ToJSON(&finalResult, w)
+
+	if err != nil {
+		c.l.Println("[ERROR] Searching location names failed")
+		http.Error(w, "Error Searching location names: ", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Content) GetContentsByLocation(w http.ResponseWriter, r *http.Request) {
+
+	jws, err1 := getUserJWS(r)
+	s.l.Errorf("error1 ", err1)
+
+	var t *jwt.Token
+	var err2 error
+	var claims1 *saltdata.AccessClaims
+	var ok bool
+	//if err != nil {
+	//	u.l.Println("[ERROR] JWS not found")
+	//	http.Error(w, "JWS not found", http.StatusBadRequest)
+	//	return
+	//}
+	if jws != "" {
+		token, error2 := jwt.ParseWithClaims(
+			jws,
+			&saltdata.AccessClaims{},
+			func(t *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+			},
+		)
+		t = token
+		err2 = error2
+		s.l.Errorf("error2 ", err2)
+	}
+
+	//if err != nil {
+	//	u.l.Printf("[ERROR] parsing claims: %v", err)
+	//	http.Error(w, "Error parsing claims", http.StatusBadRequest)
+	//	return
+	//}
+	if t != nil {
+		claims, ok1 := t.Claims.(*saltdata.AccessClaims)
+		claims1 = claims
+		ok = ok1
+		s.l.Errorf("ok ", ok)
+	}
+
+	vars := mux.Vars(r)
+	name := vars["name"]
+
+	posts, err := s.cc.SearchContentLocation(context.Background(), &prcontent.SearchContentLocationRequest{Name: name})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+
+	isUserLogged := false
+
+	if err1 == nil && err2 == nil && ok {
+		s.l.Errorf("logged in")
+		isUserLogged = true
+	} else {
+		s.l.Errorf("not logged in")
+	}
+
+	type Message struct {
+		Post *prcontent.Post `json:"post"`
+		User *data.UserDTO   `json:"user"`
+	}
+
+	postsArray := []*Message{}
+
+	for i := 0; i < len(posts.Post); i++ {
+		vr := posts.Post[i]
+
+		i, err := strconv.ParseUint(vr.UserId, 10, 64)
+		if err != nil {
+			s.l.Errorf("failed to convert id %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		user, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: i})
+
+		if err != nil {
+			s.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			s.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		isFollowing := false
+		if isUserLogged {
+			following, err := s.uc.GerFollowing(context.Background(), &prusers.FollowerRequest{Username: claims1.Username})
+			if err != nil {
+				s.l.Println("[ERROR] fetching following", err)
+				http.Error(w, "Following fetching error", http.StatusInternalServerError)
+				return
+			}
+			for {
+				prof, err := following.Recv()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					s.l.Println("[ERROR] fetching following", err)
+					http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+					return
+				}
+				if prof.Username == profile.Username {
+					isFollowing = true
+				}
+			}
+		}
+		isMyPost := false
+		if err1 == nil && err2 == nil && ok {
+			if profile.Username == claims1.Username {
+				isMyPost = true
+			}
+		}
+
+		if profile.IsPublic || isFollowing || isMyPost {
+			postsArray = append(postsArray, &Message{
+				Post: vr,
+				User: &data.UserDTO{
+					Username:          user.Username,
+					ProfilePictureURL: profile.ProfilePictureURL,
+				},
+			})
+		}
+	}
+	saltdata.ToJSON(postsArray, w)
 }

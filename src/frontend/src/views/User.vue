@@ -47,7 +47,7 @@
 
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
-              v-if="isContentVisible && highlights.length !== 0"
+              v-if="isContentVisible"
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
@@ -336,7 +336,7 @@ export default {
               // console.log(this.usersPosts);
             }).catch(err => {
               console.log(err)
-              this.$router.push('/');
+              //this.$router.push('/');
             })
         },
         getUserStories(id) {
@@ -363,7 +363,7 @@ export default {
 
             }).catch(err => {
               console.log(err)
-              this.$router.push('/');
+            //  this.$router.push('/');
             })
         },
 

@@ -39,13 +39,28 @@
         dense
         hide-details
         style="flex: 0 1 auto"/>
-        <v-text-field
+        <!--<v-text-field
         
         outlined
         label="TODO Add location"
         dense
         hide-details
-        style="flex: 0 1 auto"/>
+        style="flex: 0 1 auto"/>-->
+        <geosearch @selected="selectLocation"></geosearch>
+        <div v-if="selectedLocation">
+          <v-text-field 
+          v-model="location.state"
+          label="Country"
+          disabled/>
+          <v-text-field 
+          label="City"
+          v-model="location.city"
+          disabled/>
+          <v-text-field 
+          v-model="location.street"
+          label="Street"
+          disabled/>
+        </div>
         <v-combobox
         v-model="tags"
         chips
@@ -86,18 +101,31 @@ export default {
       uploading: false,
       description: "",
       location: {
-				country: "RS",
-				state:   "Serbia",
-				zipCode: "21000",
-				street:  "Balzakova 69",
+				country: "",
+				state:   "",
+				zipCode: "",
+        city: "",
+				street:  "",
+        name: "",
       },
       tags: [],
       images: [],
       imageUrls: [],
 
+      selectedLocation: false,
     }
   },
   methods: {
+
+     selectLocation: function(l) {
+      this.selectedLocation = true;
+      this.location.country = l.address.country_code;
+      this.location.state = l.address.country;
+      this.location.zipCode = l.address.postcode;
+      this.location.city = l.address.city;
+      this.location.street = l.address.road;
+      this.location.name = l.display_name.split(',')[0];
+    },
 
     uploadFiles: function() {
       this.uploading = true;
@@ -149,6 +177,12 @@ export default {
       files.forEach(f => {
         this.imageUrls.push(URL.createObjectURL(f));
       });
+    },
+
+    select: function(r) {
+      this.selected = r;
+      this.results = [];
+      this.$emit('selected', r);
     },
   }
 }

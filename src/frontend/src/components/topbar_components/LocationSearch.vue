@@ -1,11 +1,11 @@
 <template>
-  <div class="location-search-div">
+  <div class="location-search-div" @click="goToTag()">
     <div style="padding: 3%">
       <i class="fa fa-map-marker location-search-head pt-1"/>
     </div>
     <div style="padding: 3%;overflow: hidden">
       <b>
-        Location name
+        {{name}}
       </b>
     </div>
   </div>
@@ -13,7 +13,15 @@
 
 <script>
 export default {
-  name: "LocationSearch"
+  name: "LocationSearch",
+  props: {
+  name: {type: String, required: true},
+},
+methods: {
+  goToTag() {
+    this.$router.push("/location/" + this.name);
+  }
+},
 }
 </script>
 
