@@ -17,6 +17,7 @@
                 alt="Profile picture"
                 @click="$router.push('/user/' + user.username)"/>
         <b @click="$router.push('/user/' + user.username)" style="cursor: pointer">{{ user.username }}</b>
+        <div  @click="$router.push('/location/' + postElement.post.sharedMedia.media[0].location.name)" style="margin-left:3px; cursor:pointer">&#183;   {{postElement.post.sharedMedia.media[0].location.name}}</div>
       </div>
       <div class="post-header-right-side">
         <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>

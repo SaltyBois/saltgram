@@ -279,8 +279,10 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 				Location: &prcontent.Location{
 					Country: m.Location.Country,
 					State:   m.Location.State,
+					City:    m.Location.City,
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
+					Name:    m.Location.Name,
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
@@ -369,8 +371,10 @@ func (c *Content) GetPostsByUserReaction(ctx context.Context, r *prcontent.GetPo
 				Location: &prcontent.Location{
 					Country: m.Location.Country,
 					State:   m.Location.State,
+					City:    m.Location.City,
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
+					Name:    m.Location.Name,
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),

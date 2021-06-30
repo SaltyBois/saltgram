@@ -47,7 +47,7 @@
 
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
-              v-if="isContentVisible && highlights.length !== 0"
+              v-if="isContentVisible"
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">

@@ -1502,7 +1502,6 @@ func (s *Content) GetContentsByLocation(w http.ResponseWriter, r *http.Request) 
 
 		isFollowing := false
 		if isUserLogged {
-			s.l.Errorf("My username", claims1.Username)
 			following, err := s.uc.GerFollowing(context.Background(), &prusers.FollowerRequest{Username: claims1.Username})
 			if err != nil {
 				s.l.Println("[ERROR] fetching following", err)
@@ -1519,7 +1518,6 @@ func (s *Content) GetContentsByLocation(w http.ResponseWriter, r *http.Request) 
 					http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
 					return
 				}
-				s.l.Errorf("error             ", prof.Username)
 				if prof.Username == profile.Username {
 					isFollowing = true
 				}
@@ -1530,7 +1528,6 @@ func (s *Content) GetContentsByLocation(w http.ResponseWriter, r *http.Request) 
 			if profile.Username == claims1.Username {
 				isMyPost = true
 			}
-
 		}
 
 		if profile.IsPublic || isFollowing || isMyPost {

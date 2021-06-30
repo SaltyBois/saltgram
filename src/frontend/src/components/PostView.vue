@@ -28,6 +28,7 @@
                         @click="$router.push('/user')"
                         alt="Profile picture"/>
                 <b @click="$router.push('/user')" style="cursor: pointer">{{ userProp.username }}</b>
+                <div  @click="$router.push('/location/' + post.post.sharedMedia.media[0].location.name)" style="margin-left:3px; cursor:pointer">&#183;   {{post.post.sharedMedia.media[0].location.name}}</div>
               </div>
               <div v-if="isUserLoggedIn" class="post-header-right-side">
                 <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
