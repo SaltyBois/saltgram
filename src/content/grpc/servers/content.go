@@ -271,6 +271,10 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 			for _, t := range m.Tags {
 				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
 			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
@@ -286,6 +290,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
 			})
 		}
 		post := &prcontent.Post{
@@ -363,6 +368,10 @@ func (c *Content) GetPostsByUserReaction(ctx context.Context, r *prcontent.GetPo
 			for _, t := range m.Tags {
 				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
 			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
@@ -378,6 +387,7 @@ func (c *Content) GetPostsByUserReaction(ctx context.Context, r *prcontent.GetPo
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
 			})
 		}
 		post := &prcontent.Post{
@@ -514,6 +524,35 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 		c.l.Info("Getting tag id: ", t.ID)
 	}
 	/////
+
+	userTags := []data.UserTag{}
+	for _, userTag := range r.GetInfo().Media.UserTags {
+
+		t := data.UserTag{
+			UserID: userTag.Id,
+		}
+		ta, err := c.db.GetUserTagById(t.UserID)
+		if err != nil {
+			if err == data.ErrUserTagNotFound {
+				ta, err = c.db.AddUserTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add user tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get user tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		userTags = append(userTags, *ta)
+	}
+	/////
+	for _, t := range userTags {
+		c.l.Info("Getting tag id: ", t.UserID)
+	}
+	/////
+
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
@@ -528,7 +567,8 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 			Street:  location.Street,
 			Name:    location.Name,
 		},
-		AddedOn: r.GetInfo().Media.AddedOn,
+		AddedOn:     r.GetInfo().Media.AddedOn,
+		TaggedUsers: userTags,
 	}
 
 	imageData := bytes.Buffer{}
@@ -603,6 +643,35 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 		c.l.Info("Getting tag id: ", t.ID)
 	}
 	/////
+
+	userTags := []data.UserTag{}
+	for _, userTag := range r.GetInfo().Media.UserTags {
+
+		t := data.UserTag{
+			UserID: userTag.Id,
+		}
+		ta, err := c.db.GetUserTagById(t.UserID)
+		if err != nil {
+			if err == data.ErrUserTagNotFound {
+				ta, err = c.db.AddUserTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add user tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get user tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		userTags = append(userTags, *ta)
+	}
+	/////
+	for _, t := range userTags {
+		c.l.Info("Getting tag id: ", t.UserID)
+	}
+	/////
+
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
@@ -618,7 +687,8 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 			Street:  location.Street,
 			Name:    location.Name,
 		},
-		AddedOn: r.GetInfo().Media.AddedOn,
+		AddedOn:     r.GetInfo().Media.AddedOn,
+		TaggedUsers: userTags,
 	}
 
 	/////
@@ -838,6 +908,10 @@ func (c *Content) SearchContent(ctx context.Context, r *prcontent.SearchContentR
 			for _, t := range m.Tags {
 				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
 			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
@@ -853,6 +927,7 @@ func (c *Content) SearchContent(ctx context.Context, r *prcontent.SearchContentR
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
 			})
 		}
 		post := &prcontent.Post{
@@ -914,6 +989,10 @@ func (c *Content) SearchContentLocation(ctx context.Context, r *prcontent.Search
 			for _, t := range m.Tags {
 				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
 			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
@@ -929,6 +1008,7 @@ func (c *Content) SearchContentLocation(ctx context.Context, r *prcontent.Search
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
 			})
 		}
 		post := &prcontent.Post{
