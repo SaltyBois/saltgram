@@ -33,9 +33,9 @@
       </transition>
       <transition name="fade" appear>
         <div class="search-panel" v-if="category === 'tags'" >
-          <div v-for="index in 5" :key="index">
+          <div v-for="(item, index) in searchedData.tags" :key="index">
             <div>
-              <TagSearch />
+              <TagSearch :name="item"/>
             </div>
             <v-divider/>
           </div>
@@ -43,9 +43,9 @@
       </transition>
       <transition name="fade" appear>
         <div class="search-panel" v-if="category === 'locations'">
-          <div v-for="index in 5" :key="index">
+          <div v-for="(item, index) in searchedData.locations" :key="index">
             <div>
-              <LocationSearch />
+              <LocationSearch :name="item"/>
             </div>
             <v-divider/>
           </div>

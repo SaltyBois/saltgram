@@ -77,7 +77,9 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 			Country: pr.Location.Country,
 			State:   pr.Location.State,
 			ZipCode: pr.Location.ZipCode,
+			City:    pr.Location.City,
 			Street:  pr.Location.Street,
+			Name:    pr.Location.Name,
 		},
 	}
 }
@@ -119,7 +121,9 @@ func DataToPRMedia(d *Media) *prcontent.Media {
 			Country: d.Location.Country,
 			State:   d.Location.State,
 			ZipCode: d.Location.ZipCode,
+			City:    d.Location.City,
 			Street:  d.Location.Street,
+			Name:    d.Location.Name,
 		},
 		SharedMediaId: d.SharedMediaID,
 		Tags:          tags,
@@ -318,7 +322,7 @@ func (db *DBConn) GetTagById(id uint64) (Tag, error) {
 	return tag, err
 }
 
-var ErrTagNotExists = fmt.Errorf("tag not found")
+var ErrTagNotExists = fmt.Errorf("tag not exists")
 
 func (db *DBConn) GetIfExists(value string) (*Tag, error) {
 	tag := Tag{}
@@ -330,4 +334,89 @@ func (db *DBConn) GetIfExists(value string) (*Tag, error) {
 		return nil, res.Error
 	}
 	return &tag, res.Error
+}
+
+var ErrTagNotFound = fmt.Errorf("tag not found")
+
+func (db *DBConn) GetTagId(value string) (uint64, error) {
+	tag := Tag{}
+	res := db.DB.Where("value = ?", value).First(&tag)
+	if res.RowsAffected == 0 {
+		return 0, ErrTagNotFound
+	}
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	return tag.ID, res.Error
+}
+
+var ErrSharedMediaNotFound = fmt.Errorf("shared media id not found")
+
+func (db *DBConn) GetSharedMediaIdByTagId(tagId uint64) ([]uint64, error) {
+	var id []uint64
+	res := db.DB.Raw("select distinct m.shared_media_id from media m inner join media_tags mt on m.id = mt.media_id where mt.tag_id = ?", tagId).Find(&id)
+	if res.RowsAffected == 0 {
+		return nil, ErrSharedMediaNotFound
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return id, res.Error
+}
+
+func (db *DBConn) GetPostsBySharedMediaId(ids []uint64) (*[]Post, error) {
+	posts := []Post{}
+	res := db.DB.Preload("SharedMedia.Media.Tags").Preload(clause.Associations).Where("shared_media_id IN ?", ids).Find(&posts)
+	return &posts, res.Error
+}
+
+func (db *DBConn) GetPostsByTag(value string) (*[]Post, error) {
+	id, err := db.GetTagId(value)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, err := db.GetSharedMediaIdByTagId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	posts, err := db.GetPostsBySharedMediaId(ids)
+	return posts, err
+}
+
+func (db *DBConn) GetAllTagsByNameSubstring(value string) ([]Tag, error) {
+	var tags []Tag
+	query := "%" + value + "%"
+	err := db.DB.Where("value LIKE ?", query).Limit(21).Find(&tags).Error
+	return tags, err
+}
+
+func (db *DBConn) GetAllLocationNames(name string) ([]string, error) {
+	var names []string
+	query := "%" + name + "%"
+	err := db.DB.Raw("SELECT DISTINCT name FROM media WHERE name LIKE ?", query).Limit(21).Find(&names).Error
+	return names, err
+}
+
+func (db *DBConn) GetSharedMediaIdByLocationName(name string) ([]uint64, error) {
+	var id []uint64
+	res := db.DB.Raw("select distinct shared_media_id from media where name = ?", name).Find(&id)
+	if res.RowsAffected == 0 {
+		return nil, ErrSharedMediaNotFound
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return id, res.Error
+}
+
+func (db *DBConn) GetContentsByLocation(name string) (*[]Post, error) {
+	ids, err := db.GetSharedMediaIdByLocationName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	posts, err := db.GetPostsBySharedMediaId(ids)
+	return posts, err
 }

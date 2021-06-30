@@ -29,7 +29,7 @@
               <div v-for="(item, index) in pageStories" :key="index">
                 <Story v-if="!item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" />
 
-                <StoryCloseFriends v-else-if="!item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement"/>
+                <StoryCloseFriends v-else-if="item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement"/>
 
 <!--                <StorySeen/>-->
 

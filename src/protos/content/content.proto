@@ -11,7 +11,7 @@ service Content {
     rpc GetComments(GetCommentsRequest) returns(GetCommentsResponse);
 
     rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
-    rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
+    //rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
     rpc GetHighlights(GetHighlightsRequest) returns (GetHighlightsResponse);
     rpc GetPostPreviewURL(GetPostPreviewURLRequest) returns (GetPostPreviewURLResponse);
     
@@ -29,6 +29,12 @@ service Content {
     rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
 
     rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
+
+    rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
+    rpc GetTagsByName(GetTagsByNameRequest) returns (GetTagsByNameResponse);
+    rpc GetPostsByUserReaction(GetPostsByUserReactionRequest) returns (GetPostsByUserReactionResponse);
+    rpc GetLocationNames(GetLocationNamesRequest) returns (GetLocationNamesResponse);
+    rpc SearchContentLocation(SearchContentLocationRequest) returns (SearchContentLocationResponse);
 }
 
 message GetPostPreviewURLRequest {
@@ -140,7 +146,9 @@ message Location {
     string country = 1;
 	string state = 2;
     string zipCode = 3;
-	string street = 4;
+    string city = 4;
+	string street = 5;
+    string name = 6;
 }
 
 message SharedMedia {
@@ -156,8 +164,10 @@ message SharedMedia {
 
 message Post {
     string id = 1;
-    uint64 userId = 2;
+    string userId = 2;
     SharedMedia sharedMedia = 3;
+    string username = 4;
+    string profilePicture = 5;
 }
 
 message GetPostsResponse {
@@ -279,3 +289,43 @@ message PutReactionRequest {
 }
 
 message PutReactionResponse {}
+
+message SearchContentRequest {
+    string value = 1;
+}
+
+message SearchContentResponse {
+    repeated Post post = 1;
+}
+
+message GetTagsByNameRequest {
+    string query = 1;
+}
+
+message GetTagsByNameResponse {
+    repeated string name = 1;
+}
+
+message GetPostsByUserReactionRequest {
+    uint64 id = 1;
+}
+
+message GetPostsByUserReactionResponse {
+    repeated Post post = 1;
+}
+
+message GetLocationNamesRequest {
+    string query = 1;
+}
+
+message GetLocationNamesResponse {
+    repeated string name = 1;
+}
+
+message SearchContentLocationRequest {
+    string name = 1;
+}
+
+message SearchContentLocationResponse {
+    repeated Post post = 1;
+}
