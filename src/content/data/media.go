@@ -28,6 +28,7 @@ type Media struct {
 	Location      Location  `gorm:"embedded"`
 	URL           string    `json:"url"`
 	MimeType      EMimeType `json:"mimeType"`
+	TaggedUsers   []UserTag `gorm:"many2many:media_taggedusers;" json:"taggedUsers"`
 }
 
 type Tag struct {
@@ -46,6 +47,10 @@ type Story struct {
 	SharedMedia   SharedMedia `json:"sharedMedia"`
 	SharedMediaID uint64      `json:"sharedMediaId" gorm:"type:numeric"`
 	CloseFriends  bool        `json:"closeFriends"`
+}
+
+type UserTag struct {
+	UserID uint64 `gorm:"primaryKey" json:"userId"`
 }
 
 type Post struct {
@@ -330,4 +335,16 @@ func (db *DBConn) GetIfExists(value string) (*Tag, error) {
 		return nil, res.Error
 	}
 	return &tag, res.Error
+}
+
+func (db *DBConn) AddUserTag(t *UserTag) (*UserTag, error) {
+	tag := t
+	err := db.DB.Create(tag).Error
+	return tag, err
+}
+
+func (db *DBConn) GetUserTagById(id uint64) (UserTag, error) {
+	tag := UserTag{}
+	err := db.DB.Where("id = ?", id).First(&tag).Error
+	return tag, err
 }
