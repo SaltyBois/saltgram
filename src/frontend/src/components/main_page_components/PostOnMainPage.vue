@@ -17,7 +17,7 @@
                 alt="Profile picture"
                 @click="$router.push('/user/' + user.username)"/>
         <b @click="$router.push('/user/' + user.username)" style="cursor: pointer">{{ user.username }}</b>
-        <div  @click="$router.push('/location/' + postElement.post.sharedMedia.media[0].location.name)" style="margin-left:3px; cursor:pointer">&#183;   {{postElement.post.sharedMedia.media[0].location.name}}</div>
+        <div v-if="postElement.post.sharedMedia.media[0].location.name == ''" @click="$router.push('/location/' + postElement.post.sharedMedia.media[0].location.name)" style="margin-left:3px; cursor:pointer">&#183;   {{postElement.post.sharedMedia.media[0].location.name}}</div>
       </div>
       <div class="post-header-right-side">
         <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
@@ -74,6 +74,26 @@
         {{ postElement.post.sharedMedia.media[0].description}}
         </p>
       </div>
+       <div style="display:flex; overflow:auto; white-space:nowrap" class="my-2">
+          <p class="tag" v-for="tag in postElement.post.sharedMedia.media[0].tags" :key="tag.value" @click="$router.push('/tag/'+tag.value)" >
+            #{{tag.value}}
+          </p>
+       </div>
+        <div style="display:flex; overflow:auto; white-space:nowrap" class="my-2">
+          <div v-for="tagged in postElement.taggedUsers" :key="tagged.username">
+            <div class="tagged-user" @click="$router.push('/user/'+tagged.username)">
+              <v-img  class="post-header-profile"
+                      v-if="tagged.profilePictureURL"
+                      :src="tagged.profilePictureURL"
+                      alt="Profile picture"/>
+              <v-img  class="post-header-profile"
+                      v-else
+                      :src="require('@/assets/profile_placeholder.png')"
+                      alt="Profile picture"/>
+              <b style="cursor: pointer" class="mt-3">{{ tagged.username }}</b>
+          </div>
+          </div>
+    </div>
     </div>
     <div class="post-comment-section">
       <div class="all-comments" >
@@ -512,6 +532,39 @@ export default {
 .disliked {
   color: #ff0000;
   transform: scale(2) rotate(180deg);
+}
+
+.tag {
+  border: rgb(15, 15, 202) solid 1px;
+  border-radius: 5px;
+  background: rgb(156, 240, 255);
+  width: auto;
+  transition: 0.3s;
+  cursor: pointer;
+  margin: 0 3px;
+  padding: 0 3px;
+}
+
+.tag:hover{
+  background: rgb(85, 228, 253);
+    transition: 0.3s;
+}
+
+.tagged-user{
+  border: rgb(0, 0, 0) solid 1px;
+  border-radius: 5px;
+  background: rgb(156, 240, 255);
+  width: auto;
+  transition: 0.3s;
+  cursor: pointer;
+  margin: 0 3px;
+  padding: 0 3px;
+  display: flex;
+}
+
+.tagged-user:hover{
+  background: rgb(85, 228, 253);
+    transition: 0.3s;
 }
 
 </style>

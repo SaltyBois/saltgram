@@ -50,7 +50,7 @@ type Story struct {
 }
 
 type UserTag struct {
-	UserID uint64 `gorm:"primaryKey" json:"userId"`
+	UserID uint64 `gorm:"primaryKey; type:numeric" json:"userId"`
 }
 
 type Post struct {
@@ -72,6 +72,11 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 		tags = append(tags, Tag{Value: t.Value})
 	}
 
+	userTags := []UserTag{}
+	for _, t := range pr.UserTags {
+		userTags = append(userTags, UserTag{UserID: t.Id})
+	}
+
 	return &Media{
 		SharedMediaID: pr.SharedMediaId,
 		Filename:      pr.Filename,
@@ -86,6 +91,7 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 			Street:  pr.Location.Street,
 			Name:    pr.Location.Name,
 		},
+		TaggedUsers: userTags,
 	}
 }
 
@@ -112,6 +118,13 @@ func DataToPRMedia(d *Media) *prcontent.Media {
 		})
 	}
 
+	userTags := []*prcontent.UserTag{}
+	for _, t := range d.TaggedUsers {
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: t.UserID,
+		})
+	}
+
 	mimeType := prcontent.EMimeType_IMAGE
 	if d.MimeType == EMimeType_VIDEO {
 		mimeType = prcontent.EMimeType_VIDEO
@@ -134,6 +147,7 @@ func DataToPRMedia(d *Media) *prcontent.Media {
 		Tags:          tags,
 		Url:           d.URL,
 		MimeType:      mimeType,
+		UserTags:      userTags,
 	}
 }
 
@@ -233,7 +247,7 @@ var ErrStoriesNotFound = fmt.Errorf("stories not found")
 
 func (db *DBConn) GetStoryByUser(id uint64) ([]*Story, error) {
 	story := []*Story{}
-	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Where("user_id = ?", id).Find(&story).Error
+	err := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("user_id = ?", id).Find(&story).Error
 	return story, err
 }
 
@@ -254,7 +268,7 @@ func (db *DBConn) GetStoriesByUserAsMedia(userId uint64) ([]*Media, error) {
 
 func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	post := []Post{}
-	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
+	err := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
 	return &post, err
 }
 
@@ -262,7 +276,7 @@ var ErrPostNotFound = fmt.Errorf("post not found")
 
 func (db *DBConn) GetPost(id uint64) (*Post, error) {
 	post := Post{}
-	res := db.DB.Preload("SharedMedia.Media").First(&post, id)
+	res := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).First(&post, id)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -310,7 +324,7 @@ func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
 
 func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
 	post := []Post{}
-	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
+	err := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
 	return &post, err
 }
 
@@ -347,10 +361,18 @@ func (db *DBConn) AddUserTag(t *UserTag) (*UserTag, error) {
 	return tag, err
 }
 
-func (db *DBConn) GetUserTagById(id uint64) (UserTag, error) {
-	tag := UserTag{}
-	err := db.DB.Where("id = ?", id).First(&tag).Error
-	return tag, err
+var ErrUserTagNotFound = fmt.Errorf("user tag not found")
+
+func (db *DBConn) GetUserTagById(id uint64) (*UserTag, error) {
+	userTag := UserTag{}
+	res := db.DB.Where("user_id = ?", id).First(&userTag)
+	if res.RowsAffected == 0 {
+		return nil, ErrUserTagNotFound
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return &userTag, res.Error
 }
 
 var ErrTagNotFound = fmt.Errorf("tag not found")
@@ -383,7 +405,7 @@ func (db *DBConn) GetSharedMediaIdByTagId(tagId uint64) ([]uint64, error) {
 
 func (db *DBConn) GetPostsBySharedMediaId(ids []uint64) (*[]Post, error) {
 	posts := []Post{}
-	res := db.DB.Preload("SharedMedia.Media.Tags").Preload(clause.Associations).Where("shared_media_id IN ?", ids).Find(&posts)
+	res := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("shared_media_id IN ?", ids).Find(&posts)
 	return &posts, res.Error
 }
 

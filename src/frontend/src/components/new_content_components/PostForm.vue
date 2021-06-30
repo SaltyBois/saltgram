@@ -63,16 +63,8 @@
         <geosearch @selected="selectLocation"></geosearch>
         <div v-if="selectedLocation">
           <v-text-field 
-          v-model="location.state"
-          label="Country"
-          disabled/>
-          <v-text-field 
-          label="City"
-          v-model="location.city"
-          disabled/>
-          <v-text-field 
-          v-model="location.street"
-          label="Street"
+          v-model="location.name"
+          label="Name"
           disabled/>
         </div>
         <v-combobox
@@ -92,6 +84,30 @@
               </v-chip>
           </template>
         </v-combobox>
+        <v-spacer></v-spacer>
+        <v-text-field v-model="query" label="Search profiles" @focus="filter()" @keyup="filter()"/>
+        <v-list style="height:200px">
+        <v-list-item v-for="p in filteredProfiles" :key="p.username">
+          <template>
+              <div class="post-header-left-side">
+                <v-img  class="post-header-profile"
+                        v-if="p.profilePictureURL"
+                        :src="p.profilePictureURL"
+                        alt="Profile picture"/>
+                <v-img  class="post-header-profile"
+                        v-else
+                        :src="require('@/assets/profile_placeholder.png')"
+                        alt="Profile picture"/>
+                <b @click="$router.push('/user')" style="cursor: pointer">{{ p.username }}</b>
+              </div>
+              <div class="post-header-right-side">
+                <v-checkbox v-model="p.checked" @change="updateFinalList(p.userId)">
+                  
+                </v-checkbox>
+              </div>
+          </template>
+        </v-list-item>
+        </v-list>
         <v-spacer></v-spacer>
         <v-btn color="accent" :disabled="!images.length" @click="uploadFiles" :loading="uploading">Upload</v-btn>
       </div>
@@ -118,12 +134,48 @@ export default {
       tags: [],
       images: [],
       imageUrls: [],
+      taggableProfiles: [],
+      taggedProfiles: [],
+      filteredProfiles: [],
+      finalList: [],
+      query: '',
 
       selectedLocation: false,
     }
   },
+  mounted() {
+          this.axios.get('users/taggableprofiles/get', {headers: this.getAHeader()})
+            .then(r => {
+                console.log(r.data);
+                this.taggableProfiles = r.data;
+            })
+            .catch(r => console.log(r));
+  },
   methods: {
 
+    filter() {
+      if(this.query === ''){
+        this.filteredProfiles = this.taggableProfiles;
+        return;
+      }
+
+      this.filteredProfiles = [];
+      this.taggableProfiles.forEach(el => {
+        if (el.username.includes(this.query)){
+          this.filteredProfiles.push(el);
+        } 
+      });
+    },
+
+    updateFinalList(userId) {
+      if(this.finalList.includes(userId)){
+        const index = this.finalList.indexOf(userId);
+        this.finalList.splice(index, 1);
+      } else {
+        this.finalList.push(userId);
+      }
+      console.log(this.finalList);
+    },
     selectLocation: function(l) {
       this.selectedLocation = true;
       this.location.country = l.address.country_code;
@@ -142,6 +194,9 @@ export default {
       });
       this.tags.forEach(tag => {
         data.append('tags', tag);
+      });
+      this.finalList.forEach(userTag => {
+        data.append('userTags', userTag);
       });
       data.append('description', this.description)
       data.append('location', JSON.stringify(this.location))
@@ -235,6 +290,22 @@ export default {
   padding-top: 10px;
 }
 
+.post-header-left-side, .post-header-right-side, .post-interactions-left-side, .post-interactions-right-side {
+  direction: ltr;
+  flex-direction: row;
+  text-align: -webkit-center;
+  align-items: center;
+  float: left;
+  display: flex;
+  justify-content: center
+}
+
+.post-header-right-side, .post-interactions-right-side {
+  float: right;
+  width: 50px;
+  height: 50px;
+}
+
 .content-shape {
   /*display: flex;*/
   width: min-content;
@@ -256,6 +327,23 @@ export default {
   border-end-end-radius: 10px 10px;
   border-start-start-radius: 10px 10px;
   border-end-start-radius: 10px 10px;
+}
+
+.post-header-profile {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: black solid 1px;
+  margin: 10px;
+  cursor: pointer;
+
+
+  filter: brightness(1);
+
+  transition: .3s;
+  z-index: 0;
+
 }
 
 .content-item {

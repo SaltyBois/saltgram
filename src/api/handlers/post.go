@@ -504,6 +504,18 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 			Value: t,
 		})
 	}
+	userTags := []*prcontent.UserTag{}
+	for _, t := range r.PostForm["userTags"] {
+		i, err := strconv.ParseUint(t, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse user tag id: %v", err)
+			http.Error(w, "Failed to parse user tag id", http.StatusBadRequest)
+			return
+		}
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: i,
+		})
+	}
 	// TODO(Jovan): Pass location as object
 	// location := r.PostForm["location"]
 	description := ""
@@ -545,6 +557,7 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 			Description: description,
 			Location:    location,
 			AddedOn:     time.Now().String(),
+			UserTags:    userTags,
 		}
 		stream, err := c.cc.AddStory(context.Background())
 		if err != nil {
@@ -631,6 +644,19 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 			Value: t,
 		})
 	}
+
+	userTags := []*prcontent.UserTag{}
+	for _, t := range r.PostForm["userTags"] {
+		i, err := strconv.ParseUint(t, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse user tag id: %v", err)
+			http.Error(w, "Failed to parse user tag id", http.StatusBadRequest)
+			return
+		}
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: i,
+		})
+	}
 	// TODO(Jovan): Pass location as object
 	// location := r.PostForm["location"]
 	description := ""
@@ -670,6 +696,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 			Description: description,
 			Location:    location,
 			AddedOn:     time.Now().String(),
+			UserTags:    userTags,
 		}
 		stream, err := c.cc.AddPost(context.Background())
 		if err != nil {
