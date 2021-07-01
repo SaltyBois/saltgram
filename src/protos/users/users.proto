@@ -36,10 +36,12 @@ service Users {
     rpc GetMutedProfiles(Profile) returns (stream ProfileMBCF);
     rpc MuteProfile(MuteProfileRequest) returns (MuteProfileResponse);
     rpc UnmuteProfile(UnmuteProfileRequest) returns (UnmuteProfileResponse);
+    rpc CheckIfMuted(MuteProfileRequest) returns (BoolResponse);
 
     rpc GetBlockedProfiles(Profile) returns (stream ProfileMBCF);
     rpc BlockProfile(BlockProfileRequest) returns (BlockProfileResposne);
     rpc UnblockProfile(UnblockProfileRequest) returns (UnblockProfileResposne);
+    rpc CheckIfBlocked(BlockProfileRequest) returns (BoolResponse);
 
     rpc GetCloseFriends(Profile) returns (stream ProfileMBCF);
     rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
@@ -289,7 +291,7 @@ message ProfileFollowDetaild {
 }
 
 message BoolResponse {
-    bool resposne = 1;
+    bool response = 1;
 }
 
 message MuteProfileRequest{

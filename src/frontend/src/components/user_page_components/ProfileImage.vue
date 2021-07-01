@@ -38,10 +38,10 @@
         <v-btn v-if="userStories" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
           Show story
         </v-btn>
-        <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="other-buttons my-2">
+        <v-btn v-if="canMute && isMutedBtnVisible && $store.state.jws" @click="muteProfile()" class="other-buttons my-2">
           Mute
         </v-btn>
-        <v-btn v-if="!isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="mute-button my-2">
+        <v-btn v-if="canMute && !isMutedBtnVisible && $store.state.jws" @click="unmuteProfile()" class="mute-button my-2">
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
@@ -116,6 +116,16 @@ export default {
     },
     isMutedBtnVisible() {
       return !this.muted && !this.isMyProfileProp;
+    },
+    canMute() {
+      if (this.isMyProfileProp) {
+        return false;
+      } else if( !this.isMyProfileProp && this.following) {
+        return true;
+      }
+      else {
+        return false;
+      }
     }
   },
   methods: {
@@ -179,8 +189,48 @@ export default {
         .catch(r => {
           console.log(r)
         })
+    },
+    checkIfMuted: function() {
+      if(!this.isMyProfileProp){
+        this.axios.get("users/check/muted/" + this.username,{headers: this.getAHeader()})
+        .then(r => {
+          this.muted = r.data;
+        })
+        .catch(r => {
+          console.log(r);
+        })
+      }
+    },
+    muteProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/mute/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.muted = true;
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
+    unmuteProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/unmute/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.muted = false;
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
     }
-  }
+  },
+  
 }
 </script>
 

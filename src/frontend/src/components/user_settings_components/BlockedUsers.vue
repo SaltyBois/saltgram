@@ -8,7 +8,11 @@
         <h3>Blocked Users</h3>
         <v-layout column
                   class="scroll-div">
-          <BlockedProfile v-for="index in 14" style="width: 100%" :key="index"/>
+          <BlockedProfile v-for="(item, index) in this.blockedProfiles" 
+          :key="index"
+          :username-prop="item.username"
+          style="width: 100%" 
+          />
         </v-layout>
       </v-layout>
     </div>
@@ -23,6 +27,24 @@ import BlockedProfile from "@/components/user_settings_components/BlockedProfile
 export default {
   name: "BlockedUsers",
   components: { BlockedProfile },
+
+  data: function() {
+    return {
+      blockedProfiles: [],
+    }
+  },
+  methods: {
+    getBlockedProfiles: function() {
+      this.axios.get('users/get/blocked', {headers: this.getAHeader()})
+      .then(r => {
+        this.blockedProfiles = r.data
+      })
+      .catch(r => console.log(r));
+    }
+  },
+  mounted() {
+    this.getBlockedProfiles();
+  }
 }
 </script>
 

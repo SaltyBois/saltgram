@@ -8,18 +8,17 @@
                 alt="Profile picture"/>
       </div>
       <div style="margin: 0 3px; text-align: -webkit-left; width: 50%; padding-top: 5px">
-        <h3>@USERNAME</h3>
-        <h5>Ime i prezime</h5>
+        <h3>@{{this.usernameProp}}</h3>
       </div>
       <div style="margin: 0 3px; text-align: -webkit-center">
-        <v-btn v-if="!clicked"
-               @click="clicked=!clicked"
+        <v-btn v-if="!blocked"
+               @click="blockProfile()"
                depressed
                class="remove-button">
           Block
         </v-btn>
         <v-btn v-else
-               @click="clicked=!clicked"
+               @click="unblockProfile()"
                depressed
                class="restore-button">
           Unblock
@@ -34,8 +33,44 @@ export default {
   name: "BlockedProfile",
   data: function () {
     return {
-      clicked: false,
+      blocked: true,
     }
+  },
+  props: {
+    usernameProp: {
+      type: String,
+      required: true
+    },
+  },
+  methods: {
+    unblockProfile: function() {
+      let dto = {
+        profile: this.usernameProp,
+      }
+      this.axios.post('/users/unblock/profile', dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.blocked = false;
+        //this.$emit('get-blocked');
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
+    blockProfile: function() {
+      let dto = {
+        profile: this.usernameProp,
+      }
+      this.axios.post('/users/block/profile', dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.blocked = true;
+        //this.$emit('get-blocked');
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
   }
 }
 </script>

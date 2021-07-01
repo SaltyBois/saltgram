@@ -118,6 +118,7 @@ func CheckIfFollowing(db *DBConn, profile *Profile, following *Profile) (bool, e
 	return exists, nil
 }
 
+
 func GetFollowerCount(db *DBConn, profile *Profile) (int64, error) {
 	var count int64
 	err := db.DB.Table("profile_following").Where("following_id = ?", profile.ID).Count(&count).Error
@@ -242,14 +243,31 @@ func (db *DBConn) UnmuteProfile(profile *Profile, unmute *Profile) error {
 	return db.DB.Exec("DELETE FROM profile_muted WHERE profile_id = ? AND muted_id = ?", profile.ID, unmute.ID).Error
 }
 
-//Todo(Marko) Check this
 func (db *DBConn) GetMutedProfiles(profile *Profile) ([]*Profile, error) {
 	var profiles []*Profile
-	err := db.DB.Model(profile).Association("Muted").Find(profiles)
+	var ids []uint64
+	err := db.DB.Table("profile_muted").Select("muted_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
 	if err != nil {
 		return nil, err
 	}
 	return profiles, nil
+}
+
+func (db *DBConn) CheckIfMuted(profile *Profile, muted *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Table("profile_muted").Where("profile_id = ? AND muted_id = ?", profile.ID, muted.ID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	exists := count > 0
+	return exists, nil
 }
 
 func (db *DBConn) BlockProfile(profile *Profile, block *Profile) error {
@@ -260,30 +278,64 @@ func (db *DBConn) UnblockProfile(profile *Profile, unblock *Profile) error {
 	return db.DB.Exec("DELETE FROM profile_blocked WHERE profile_id = ? AND blocked_id = ?", profile.ID, unblock.ID).Error
 }
 
-//TODO(Marko) Check this
 func (db *DBConn) GetBlockedProfiles(profile *Profile) ([]*Profile, error) {
 	var profiles []*Profile
-	err := db.DB.Model(profile).Association("Blocked").Find(profiles)
+	var ids []uint64
+	err := db.DB.Table("profile_blocked").Select("blocked_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
 	if err != nil {
 		return nil, err
 	}
 	return profiles, nil
 }
 
-func (db *DBConn) AddCloseFriend(profile *Profile, block *Profile) error {
-	return db.DB.Exec("INSERT INTO profile_closefriends (profile_id, close_friend_id) VALUES (?, ?)", profile.ID, block.ID).Error
+func (db *DBConn) CheckIfBlocked(profile *Profile, blocked *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Table("profile_blocked").Where("profile_id = ? AND blocked_id = ?", profile.ID, blocked.ID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	exists := count > 0
+	return exists, nil
 }
 
-func (db *DBConn) RemoveCloseFriend(profile *Profile, unblock *Profile) error {
-	return db.DB.Exec("DELETE FROM profile_closefriends WHERE profile_id = ? AND close_friend_id = ?", profile.ID, unblock.ID).Error
+func (db *DBConn) AddCloseFriend(profile *Profile, friend *Profile) error {
+	return db.DB.Exec("INSERT INTO profile_closefriends (profile_id, close_friend_id) VALUES (?, ?)", profile.ID, friend.ID).Error
 }
 
-//TODO(Marko) Chekc this
+func (db *DBConn) RemoveCloseFriend(profile *Profile, friend *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_closefriends WHERE profile_id = ? AND close_friend_id = ?", profile.ID, friend.ID).Error
+}
+
 func (db *DBConn) GetCloseFriends(profile *Profile) ([]*Profile, error) {
 	var profiles []*Profile
-	err := db.DB.Model(profile).Association("CloseFriends").Find(profiles)
+	var ids []uint64
+	err := db.DB.Table("profile_closefriends").Select("close_friend_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
 	if err != nil {
 		return nil, err
 	}
 	return profiles, nil
+}
+
+func (db *DBConn) CheckIfCloseFriend(profile *Profile, friend *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Table("profile_closefriends").Where("profile_id = ? AND close_friend_id = ?", profile.ID, friend.ID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	exists := count > 0
+	return exists, nil
 }

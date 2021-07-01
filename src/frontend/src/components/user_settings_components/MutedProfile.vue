@@ -3,22 +3,21 @@
     <div style="width: 70px">
       <v-img  class="head"
               src="https://i.pinimg.com/564x/4e/c4/f2/4ec4f2d69c9bc6b152abcb420252c3a8.jpg"
-              @click="$router.push('/user')"
+              @click="$router.push('/user' + usernameProp)"
               alt="Profile picture"/>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-left; width: 50%; padding-top: 5px">
-      <h3>@USERNAME</h3>
-      <h5>Ime i prezime</h5>
+      <h3>@{{this.usernameProp}}</h3>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-center">
-      <v-btn v-if="!clicked"
-             @click="clicked=!clicked"
+      <v-btn v-if="!muted"
+             @click="muteProfile()"
              depressed
              class="remove-button">
         Mute
       </v-btn>
       <v-btn v-else
-             @click="clicked=!clicked"
+             @click="unmuteProfile()"
              depressed
              class="restore-button">
         Unmute
@@ -32,8 +31,47 @@ export default {
   name: "MutedProfile",
   data: function () {
     return {
-      clicked: false,
+      mutedProfiles: [],
+      muted: true,
     }
+  },
+  props: {
+    usernameProp: {
+      type: String,
+      required: true
+    },
+  },
+  methods: {
+    unmuteProfile: function() {
+      let dto = {
+        profile: this.usernameProp,
+      }
+      this.axios.post('/users/unmute/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.muted = false;
+        //this.$emit('get-muted');
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
+    muteProfile: function() {
+      let dto = {
+        profile: this.usernameProp,
+      }
+      this.axios.post('/users/mute/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.muted = true;
+        //this.$emit('get-muted');
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
+  },
+  mounted() {
   }
 }
 </script>

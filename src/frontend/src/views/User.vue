@@ -312,7 +312,9 @@ export default {
                   this.$refs.profileImage.$data.waitingForResponse = r.data
                 })
               }
+              this.checkIfMuted();
             }
+            
         },
         getUserPosts(id) {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
@@ -364,7 +366,18 @@ export default {
               .catch(err => {
                 console.log(err)
               })
-        }
+        },
+        checkIfMuted: function() {  
+          if(!this.isMyProfile){
+            this.axios.get("users/check/muted/" + this.$route.params.username, {headers: this.getAHeader()})
+            .then(r => {
+              this.$refs.profileImage.$data.muted = r.data;
+            })
+            .catch(r => {
+              console.log(r);
+            })
+          }
+        },
     },
     mounted() {
        this.getUserInfo(); // TODO UNCOMMENT THIS

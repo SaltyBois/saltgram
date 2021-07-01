@@ -853,7 +853,7 @@ func (u *Users) CheckFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saltdata.ToJSON(resp.Resposne, w)
+	saltdata.ToJSON(resp.Response, w)
 }
 
 func (u *Users) CheckFollowRequest(w http.ResponseWriter, r *http.Request) {
@@ -900,7 +900,7 @@ func (u *Users) CheckFollowRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saltdata.ToJSON(resp.Resposne, w)
+	saltdata.ToJSON(resp.Response, w)
 }
 func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) {
 
@@ -1104,7 +1104,7 @@ func (a *Admin) GetPendingReports(w http.ResponseWriter, r *http.Request) {
 func (u *Users) GetMutedProfiles(w http.ResponseWriter, r *http.Request) {
 	username, err := getUsernameByJWS(r)
 	if err != nil {
-		u.l.Println("faild to parse jws %v", err)
+		u.l.Println("failed to parse jws %v", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -1132,10 +1132,36 @@ func (u *Users) GetMutedProfiles(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(profiles, w)
 }
 
+func (u *Users) CheckIfMuted(w http.ResponseWriter, r *http.Request) {
+	user, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("failed to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	username, er := vars["username"]
+	if !er {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := u.uc.CheckIfMuted(context.Background(), &prusers.MuteProfileRequest{Logged: user, Profile: username})
+	if err != nil {
+		http.Error(w, "Checking if muted", http.StatusNotFound)
+		return
+	}
+
+	saltdata.ToJSON(resp.Response, w)
+
+}
+
 func (u *Users) GetBlockedProfiles(w http.ResponseWriter, r *http.Request) {
 	username, err := getUsernameByJWS(r)
 	if err != nil {
-		u.l.Println("faild to parse jws %v", err)
+		u.l.Println("failed to parse jws %v", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -1162,10 +1188,36 @@ func (u *Users) GetBlockedProfiles(w http.ResponseWriter, r *http.Request) {
 	saltdata.ToJSON(profiles, w)
 }
 
+func (u *Users) CheckIfBlocked(w http.ResponseWriter, r *http.Request) {
+	user, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("failed to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	username, er := vars["username"]
+	if !er {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := u.uc.CheckIfBlocked(context.Background(), &prusers.BlockProfileRequest{Logged: user, Profile: username})
+	if err != nil {
+		http.Error(w, "Checking if blocked", http.StatusNotFound)
+		return
+	}
+
+	saltdata.ToJSON(resp.Response, w)
+
+}
+
 func (u *Users) GetCloseFriends(w http.ResponseWriter, r *http.Request) {
 	username, err := getUsernameByJWS(r)
 	if err != nil {
-		u.l.Println("faild to parse jws %v", err)
+		u.l.Println("failed to parse jws %v", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
