@@ -88,6 +88,7 @@ func main() {
 	usersRouter.HandleFunc("/add/closefrined", usersHandler.AddCloseFriend).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/remove/closefrined", usersHandler.RemoveCloseFriend).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/get/closefriend", usersHandler.GetCloseFriends).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/get/closefriend/following", usersHandler.GetProfilesForCloseFriends).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {

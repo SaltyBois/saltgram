@@ -48,8 +48,11 @@
                v-if="!isMyProfile && $store.state.jws"
                @click="showProfileImageDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile && $store.state.jws"
-               @click="showProfileImageDialog = false">Block @{{username}}</v-btn>
+               v-if="isBloced && $store.state.jws"
+               @click="blockProfile()">Block @{{username}}</v-btn>
+        <v-btn class="other-buttons my-2"
+               v-if="!isBloced && $store.state.jws"
+               @click="unblockProfile()">Unblock @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
         <v-btn @click="showProfileImageDialog = false" class="accent">
@@ -82,6 +85,7 @@ export default {
       waitingForResponse: false,
       userStories: [],
       storyVisible: false,
+      blocked: false,
     }
   },
   mounted() {
@@ -116,6 +120,9 @@ export default {
     },
     isMutedBtnVisible() {
       return !this.muted && !this.isMyProfileProp;
+    },
+    isBloced() {
+      return !this.isMyProfileProp && !this.blocked;
     },
     canMute() {
       if (this.isMyProfileProp) {
@@ -224,6 +231,34 @@ export default {
         console.log(r);
         this.showProfileImageDialog = false;
         this.muted = false;
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    }, 
+    blockProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/block/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.blocked = true;
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
+    unblockProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/unblock/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.blocked = false;
       })
       .cathc(r =>{
         console.log(r);

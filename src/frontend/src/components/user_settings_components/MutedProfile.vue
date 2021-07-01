@@ -3,7 +3,7 @@
     <div style="width: 70px">
       <v-img  class="head"
               src="https://i.pinimg.com/564x/4e/c4/f2/4ec4f2d69c9bc6b152abcb420252c3a8.jpg"
-              @click="$router.push('/user' + usernameProp)"
+              @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-left; width: 50%; padding-top: 5px">

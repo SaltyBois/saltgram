@@ -44,6 +44,7 @@ service Users {
     rpc CheckIfBlocked(BlockProfileRequest) returns (BoolResponse);
 
     rpc GetCloseFriends(Profile) returns (stream ProfileMBCF);
+    rpc GetProfilesForCloseFriends(Profile) returns (stream ProfileMBCF);
     rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
     rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
 

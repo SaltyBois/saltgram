@@ -118,7 +118,6 @@ func CheckIfFollowing(db *DBConn, profile *Profile, following *Profile) (bool, e
 	return exists, nil
 }
 
-
 func GetFollowerCount(db *DBConn, profile *Profile) (int64, error) {
 	var count int64
 	err := db.DB.Table("profile_following").Where("following_id = ?", profile.ID).Count(&count).Error
@@ -324,6 +323,32 @@ func (db *DBConn) GetCloseFriends(profile *Profile) ([]*Profile, error) {
 		return profiles, nil
 	}
 	err = db.DB.Find(&profiles, ids).Error
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
+func (db *DBConn) GetProfilesForCloseFriends(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	var ids []uint64
+	var id []uint64
+	err := db.DB.Table("profile_closefriends").Select("close_friend_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		err = db.DB.Table("profile_following").Select("following_id").Where("profile_id = ?", profile.ID).Find(&id).Error
+	} else {
+		err = db.DB.Table("profile_following").Select("following_id").Where("profile_id = ? AND following_id NOT IN ?", profile.ID, ids).Find(&id).Error
+	}
+	if err != nil {
+		return nil, err
+	}
+	if len(id) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, id).Error
 	if err != nil {
 		return nil, err
 	}

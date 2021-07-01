@@ -8,7 +8,11 @@
         <h3>Close Friends</h3>
         <v-layout column
                   class="scroll-div">
-          <CloseFriendsProfile v-for="index in 14" :key="index"/>
+          <CloseFriendsProfile v-for="(item, index) in this.closeFriends" 
+          :key="index"
+          :username-prop="item.username"
+          @refresh="refreshData"
+          />
         </v-layout>
       </v-layout>
       <v-layout justify-center
@@ -18,7 +22,10 @@
         <h3>List of Following Users</h3>
         <v-layout column
                   class="scroll-div">
-          <FollowingProfile v-for="index in 14" :key="index"/>
+          <FollowingProfile v-for="(item, index) in this.following"
+          :key="index"
+          :username-prop="item.username"
+          @refresh="refreshData"/>
         </v-layout>
       </v-layout>
     </div>
@@ -31,7 +38,39 @@ import CloseFriendsProfile from "@/components/user_settings_components/CloseFrie
 import FollowingProfile from "@/components/user_settings_components/FollowingProfile";
 export default {
   name: "CloseFriends",
-  components: { CloseFriendsProfile, FollowingProfile }
+  components: { CloseFriendsProfile, FollowingProfile },
+
+  data: function() {
+    return {
+      closeFriends: [],
+      following: [],
+    }
+  },
+  methods: {
+    refreshData: function() {
+      this.getCloseFriends();
+      this.getFollowing();
+    },
+    getCloseFriends: function() {
+      this.axios.get('users/get/closefriend', {headers: this.getAHeader()})
+      .then(r => {
+        this.closeFriends = r.data
+      })
+      .catch(r => console.log(r));
+    },
+    getFollowing: function() {
+      this.axios.get('users/get/closefriend/following', {headers: this.getAHeader()})
+      .then(r => {
+        this.following = r.data
+      })
+      .catch(r => console.log(r));
+    },
+  },
+  mounted() {
+    this.getCloseFriends();
+    this.getFollowing();
+  }
+
 }
 </script>
 

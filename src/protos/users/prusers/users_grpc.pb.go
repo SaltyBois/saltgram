@@ -54,6 +54,7 @@ type UsersClient interface {
 	UnblockProfile(ctx context.Context, in *UnblockProfileRequest, opts ...grpc.CallOption) (*UnblockProfileResposne, error)
 	CheckIfBlocked(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	GetCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetCloseFriendsClient, error)
+	GetProfilesForCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetProfilesForCloseFriendsClient, error)
 	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 }
@@ -574,6 +575,38 @@ func (x *usersGetCloseFriendsClient) Recv() (*ProfileMBCF, error) {
 	return m, nil
 }
 
+func (c *usersClient) GetProfilesForCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetProfilesForCloseFriendsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[8], "/Users/GetProfilesForCloseFriends", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetProfilesForCloseFriendsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetProfilesForCloseFriendsClient interface {
+	Recv() (*ProfileMBCF, error)
+	grpc.ClientStream
+}
+
+type usersGetProfilesForCloseFriendsClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetProfilesForCloseFriendsClient) Recv() (*ProfileMBCF, error) {
+	m := new(ProfileMBCF)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *usersClient) AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error) {
 	out := new(CloseFriendResposne)
 	err := c.cc.Invoke(ctx, "/Users/AddCloseFriend", in, out, opts...)
@@ -632,6 +665,7 @@ type UsersServer interface {
 	UnblockProfile(context.Context, *UnblockProfileRequest) (*UnblockProfileResposne, error)
 	CheckIfBlocked(context.Context, *BlockProfileRequest) (*BoolResponse, error)
 	GetCloseFriends(*Profile, Users_GetCloseFriendsServer) error
+	GetProfilesForCloseFriends(*Profile, Users_GetProfilesForCloseFriendsServer) error
 	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	mustEmbedUnimplementedUsersServer()
@@ -748,6 +782,9 @@ func (UnimplementedUsersServer) CheckIfBlocked(context.Context, *BlockProfileReq
 }
 func (UnimplementedUsersServer) GetCloseFriends(*Profile, Users_GetCloseFriendsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetCloseFriends not implemented")
+}
+func (UnimplementedUsersServer) GetProfilesForCloseFriends(*Profile, Users_GetProfilesForCloseFriendsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetProfilesForCloseFriends not implemented")
 }
 func (UnimplementedUsersServer) AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddCloseFriend not implemented")
@@ -1440,6 +1477,27 @@ func (x *usersGetCloseFriendsServer) Send(m *ProfileMBCF) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Users_GetProfilesForCloseFriends_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetProfilesForCloseFriends(m, &usersGetProfilesForCloseFriendsServer{stream})
+}
+
+type Users_GetProfilesForCloseFriendsServer interface {
+	Send(*ProfileMBCF) error
+	grpc.ServerStream
+}
+
+type usersGetProfilesForCloseFriendsServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetProfilesForCloseFriendsServer) Send(m *ProfileMBCF) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _Users_AddCloseFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CloseFriendRequest)
 	if err := dec(in); err != nil {
@@ -1643,6 +1701,11 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetCloseFriends",
 			Handler:       _Users_GetCloseFriends_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetProfilesForCloseFriends",
+			Handler:       _Users_GetProfilesForCloseFriends_Handler,
 			ServerStreams: true,
 		},
 	},

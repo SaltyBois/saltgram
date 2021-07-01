@@ -313,6 +313,7 @@ export default {
                 })
               }
               this.checkIfMuted();
+              this.checkIfBlocked();
             }
             
         },
@@ -372,6 +373,17 @@ export default {
             this.axios.get("users/check/muted/" + this.$route.params.username, {headers: this.getAHeader()})
             .then(r => {
               this.$refs.profileImage.$data.muted = r.data;
+            })
+            .catch(r => {
+              console.log(r);
+            })
+          }
+        },
+        checkIfBlocked: function() {  
+          if(!this.isMyProfile){
+            this.axios.get("users/check/blocked/" + this.$route.params.username, {headers: this.getAHeader()})
+            .then(r => {
+              this.$refs.profileImage.$data.blocked = r.data;
             })
             .catch(r => {
               console.log(r);

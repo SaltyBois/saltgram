@@ -844,9 +844,9 @@ func (u *Users) UnblockProfile(ctx context.Context, r *prusers.UnblockProfileReq
 		return &prusers.UnblockProfileResposne{}, err
 	}
 
-	err = u.db.BlockProfile(userProfile, profile)
+	err = u.db.UnblockProfile(userProfile, profile)
 	if err != nil {
-		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		u.l.Printf("[ERROR] unblocking profile: %v\n", err)
 		return &prusers.UnblockProfileResposne{}, err
 	}
 	return &prusers.UnblockProfileResposne{}, nil
@@ -859,9 +859,9 @@ func (u *Users) GetBlockedProfiles(r *prusers.Profile, stream prusers.Users_GetB
 		return err
 	}
 
-	profiles, err := u.db.GetMutedProfiles(profile)
+	profiles, err := u.db.GetBlockedProfiles(profile)
 	if err != nil {
-		u.l.Printf("[ERROR]  geting muted profiles %v\n", err)
+		u.l.Printf("[ERROR]  geting blocked profiles %v\n", err)
 		return err
 	}
 	for _, profile := range profiles {
@@ -913,7 +913,7 @@ func (u *Users) AddCloseFriend(ctx context.Context, r *prusers.CloseFriendReques
 	}
 	err = u.db.AddCloseFriend(userProfile, profile)
 	if err != nil {
-		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		u.l.Printf("[ERROR] adding close friend: %v\n", err)
 		return &prusers.CloseFriendResposne{}, err
 	}
 	return &prusers.CloseFriendResposne{}, nil
@@ -933,7 +933,7 @@ func (u *Users) RemoveCloseFriend(ctx context.Context, r *prusers.CloseFriendReq
 	}
 	err = u.db.RemoveCloseFriend(userProfile, profile)
 	if err != nil {
-		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		u.l.Printf("[ERROR] removing close friend %v\n", err)
 		return &prusers.CloseFriendResposne{}, err
 	}
 	return &prusers.CloseFriendResposne{}, nil
@@ -946,9 +946,34 @@ func (u *Users) GetCloseFriends(r *prusers.Profile, stream prusers.Users_GetClos
 		return err
 	}
 
-	profiles, err := u.db.GetMutedProfiles(profile)
+	profiles, err := u.db.GetCloseFriends(profile)
 	if err != nil {
-		u.l.Printf("[ERROR]  geting muted profiles %v\n", err)
+		u.l.Printf("[ERROR]  geting close friends %v\n", err)
+		return err
+	}
+	for _, profile := range profiles {
+
+		err = stream.Send(&prusers.ProfileMBCF{
+			Username:          profile.Username,
+			ProfilePictureURL: profile.ProfilePictureURL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u *Users) GetProfilesForCloseFriends(r *prusers.Profile, stream prusers.Users_GetProfilesForCloseFriendsServer) error {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+
+	profiles, err := u.db.GetProfilesForCloseFriends(profile)
+	if err != nil {
+		u.l.Printf("[ERROR]  geting profiles for close friends %v\n", err)
 		return err
 	}
 	for _, profile := range profiles {

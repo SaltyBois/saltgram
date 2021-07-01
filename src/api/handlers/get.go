@@ -1224,8 +1224,8 @@ func (u *Users) GetCloseFriends(w http.ResponseWriter, r *http.Request) {
 
 	stream, err := u.uc.GetCloseFriends(context.Background(), &prusers.Profile{Username: username})
 	if err != nil {
-		u.l.Println("[ERROR] fetching muted profiles")
-		http.Error(w, "Error fetching muted profiles", http.StatusInternalServerError)
+		u.l.Println("[ERROR] fetching close friends")
+		http.Error(w, "Error fetching close friends", http.StatusInternalServerError)
 		return
 	}
 	var profiles []*prusers.ProfileMBCF
@@ -1235,8 +1235,39 @@ func (u *Users) GetCloseFriends(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		if err != nil {
-			u.l.Println("[ERROR] fetching followers")
-			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+			u.l.Println("[ERROR] fetching profiles")
+			http.Error(w, "Error couldn't fetch profile", http.StatusInternalServerError)
+			return
+		}
+
+		profiles = append(profiles, profile)
+	}
+	saltdata.ToJSON(profiles, w)
+}
+
+func (u *Users) GetProfilesForCloseFriends(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("failed to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	stream, err := u.uc.GetProfilesForCloseFriends(context.Background(), &prusers.Profile{Username: username})
+	if err != nil {
+		u.l.Println("[ERROR] fetching profiles for close friends")
+		http.Error(w, "Error fetching profiles for close friends", http.StatusInternalServerError)
+		return
+	}
+	var profiles []*prusers.ProfileMBCF
+	for {
+		profile, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			u.l.Println("[ERROR] fetching profile")
+			http.Error(w, "Error couldn't fetch profile", http.StatusInternalServerError)
 			return
 		}
 
