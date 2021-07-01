@@ -504,7 +504,7 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 		su := users[i]
 		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
 			Username:              su.Username,
-			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
+			ProfilePictureAddress: su.ProfilePictureURL})
 	}
 
 	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil
@@ -802,7 +802,7 @@ func (u *Users) BlockProfile(ctx context.Context, r *prusers.BlockProfileRequest
 		return &prusers.BlockProfileResposne{}, err
 	}
 
-	err = u.db.BlockProfile(profile, userProfile)
+	err = u.db.BlockProfile(userProfile, profile)
 	if err != nil {
 		u.l.Printf("[ERROR] blocking profile: %v\n", err)
 		return &prusers.BlockProfileResposne{}, err

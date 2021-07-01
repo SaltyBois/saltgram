@@ -48,10 +48,10 @@
                v-if="!isMyProfile && $store.state.jws"
                @click="showProfileImageDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="isBloced && $store.state.jws"
+               v-if="isBlocked && $store.state.jws"
                @click="blockProfile()">Block @{{username}}</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isBloced && $store.state.jws"
+               v-if="!isBlocked && $store.state.jws"
                @click="unblockProfile()">Unblock @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
@@ -121,7 +121,7 @@ export default {
     isMutedBtnVisible() {
       return !this.muted && !this.isMyProfileProp;
     },
-    isBloced() {
+    isBlocked() {
       return !this.isMyProfileProp && !this.blocked;
     },
     canMute() {

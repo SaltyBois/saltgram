@@ -191,6 +191,13 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	if userByJWS != nil {
 		isThisME = userByJWS.Username == profileUsername
+		if !isThisME {
+			blocked, _ := u.uc.CheckIfBlocked(context.Background(), &prusers.BlockProfileRequest{Logged: profileUsername, Profile: userByJWS.Username})
+			if blocked.Response {
+				http.Error(w, "Profile not found", http.StatusForbidden)
+				return
+			}
+		}
 	}
 
 	profile, err := u.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: profileUsername, Username: profileUsername})
@@ -1168,8 +1175,8 @@ func (u *Users) GetBlockedProfiles(w http.ResponseWriter, r *http.Request) {
 
 	stream, err := u.uc.GetBlockedProfiles(context.Background(), &prusers.Profile{Username: username})
 	if err != nil {
-		u.l.Println("[ERROR] fetching muted profiles")
-		http.Error(w, "Error fetching muted profiles", http.StatusInternalServerError)
+		u.l.Println("[ERROR] fetching blocked profiles")
+		http.Error(w, "Error fetching blocked profiles", http.StatusInternalServerError)
 		return
 	}
 	var profiles []*prusers.ProfileMBCF
@@ -1180,7 +1187,7 @@ func (u *Users) GetBlockedProfiles(w http.ResponseWriter, r *http.Request) {
 		}
 		if err != nil {
 			u.l.Println("[ERROR] fetching followers")
-			http.Error(w, "Error couldn't fetch following", http.StatusInternalServerError)
+			http.Error(w, "Error couldn't fetch blocked", http.StatusInternalServerError)
 			return
 		}
 		profiles = append(profiles, profile)

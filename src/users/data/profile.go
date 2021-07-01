@@ -234,6 +234,13 @@ func CheckForFollowingRequest(db *DBConn, profile *Profile, profile_request *Pro
 	return count > 0, err
 }
 
+func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]Profile, error) {
+	var profiles []Profile
+	query := "%" + username + "%"
+	err := db.DB.Where("username LIKE ?", query).Limit(21).Find(&profiles).Error
+	return profiles, err
+}
+
 func (db *DBConn) MuteProfile(profile *Profile, mute *Profile) error {
 	return db.DB.Exec("INSERT INTO profile_muted (profile_id, muted_id) VALUES (?, ?)", profile.ID, mute.ID).Error
 }
