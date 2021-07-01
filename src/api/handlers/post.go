@@ -499,6 +499,23 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(Jovan): Tag value as ID or predefined tags
 	tags := []*prcontent.Tag{}
+	for _, t := range r.PostForm["tags"] {
+		tags = append(tags, &prcontent.Tag{
+			Value: t,
+		})
+	}
+	userTags := []*prcontent.UserTag{}
+	for _, t := range r.PostForm["userTags"] {
+		i, err := strconv.ParseUint(t, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse user tag id: %v", err)
+			http.Error(w, "Failed to parse user tag id", http.StatusBadRequest)
+			return
+		}
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: i,
+		})
+	}
 	// TODO(Jovan): Pass location as object
 	// location := r.PostForm["location"]
 	description := ""
@@ -508,10 +525,10 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 	// NOTE(Jovan): default
 	location := &prcontent.Location{
-		Country: "RS",
+		/*Country: "RS",
 		State:   "Serbia",
 		ZipCode: "21000",
-		Street:  "Balzakova 69",
+		Street:  "Balzakova 69",*/
 	}
 
 	if len(r.PostForm["location"]) > 0 {
@@ -540,6 +557,7 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 			Description: description,
 			Location:    location,
 			AddedOn:     time.Now().String(),
+			UserTags:    userTags,
 		}
 		stream, err := c.cc.AddStory(context.Background())
 		if err != nil {
@@ -621,6 +639,24 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(Jovan): Tag value as ID or predefined tags
 	tags := []*prcontent.Tag{}
+	for _, t := range r.PostForm["tags"] {
+		tags = append(tags, &prcontent.Tag{
+			Value: t,
+		})
+	}
+
+	userTags := []*prcontent.UserTag{}
+	for _, t := range r.PostForm["userTags"] {
+		i, err := strconv.ParseUint(t, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse user tag id: %v", err)
+			http.Error(w, "Failed to parse user tag id", http.StatusBadRequest)
+			return
+		}
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: i,
+		})
+	}
 	// TODO(Jovan): Pass location as object
 	// location := r.PostForm["location"]
 	description := ""
@@ -630,10 +666,10 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	// NOTE(Jovan): default
 	location := &prcontent.Location{
-		Country: "RS",
+		/*Country: "RS",
 		State:   "Serbia",
 		ZipCode: "21000",
-		Street:  "Balzakova 69",
+		Street:  "Balzakova 69",*/
 	}
 
 	if len(r.PostForm["location"]) > 0 {
@@ -660,6 +696,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 			Description: description,
 			Location:    location,
 			AddedOn:     time.Now().String(),
+			UserTags:    userTags,
 		}
 		stream, err := c.cc.AddPost(context.Background())
 		if err != nil {

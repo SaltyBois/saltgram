@@ -246,6 +246,9 @@ message FollowersResponse {
 
 message ProfileFollower {
     string username = 1;
+    bool taggable = 2;
+    string profilePicture = 3;
+    string userId = 4;
 }
 
 message SearchRequest {

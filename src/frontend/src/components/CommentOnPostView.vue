@@ -25,7 +25,7 @@ export default {
     }
   },
   mounted() {
-    console.log(this.comment);
+    // console.log(this.comment);
   }
 }
 </script>
@@ -56,7 +56,8 @@ export default {
   width: 30px;
   height: 30px;
   object-fit: cover;
-  border-radius: 20%;
+  border-radius: 10px;
+  border: black solid 1px;
   margin: 3px;
   cursor: pointer;
 

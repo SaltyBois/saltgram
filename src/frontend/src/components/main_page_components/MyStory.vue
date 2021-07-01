@@ -1,9 +1,15 @@
 <template>
   <div class="story-layout">
-    <!--<StoryView ref="storyView" image-src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"/>-->
+    <StoryView ref="storyView" :stories="realStories"/>
     <v-img  class="story"
             @click="toggle()"
-            src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
+            v-if="user.profilePictureURL"
+            :src="user.profilePictureURL"
+            alt="Profile picture"/>
+    <v-img  class="story"
+            @click="toggle()"
+            v-else
+            :src="require('@/assets/profile_placeholder.png')"
             alt="Profile picture"/>
     <b>Your story</b>
   </div>
@@ -15,13 +21,26 @@ import StoryView from "@/components/StoryView";
 export default {
   name: "MyStory",
   components: {StoryView},
+  props: {
+    user: { type: Object, required: true},
+    stories: { type: Object, required: true},
+  },
+  data: function () {
+    return {
+      realStories: []
+    }
+  },
   methods: {
     toggle() {
       this.$refs.storyView.toggleView();
     }
   },
   mounted() {
-    // console.log(this.$refs.storyView.$data.visible)
+    this.stories.storyElement.forEach(el => {
+      el.closeFriends = this.stories.closeFriends
+      this.realStories.push(el.stories[0])
+    })
+    // console.log(this.stories)
   }
 }
 </script>

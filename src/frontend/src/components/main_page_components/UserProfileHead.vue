@@ -2,17 +2,20 @@
   <div id="profile-info"
        style="background-color: transparent;">
     <v-img  class="profile-head"
-            src="https://i.pinimg.com/474x/ab/62/39/ab6239024f15022185527618f541f429.jpg"
-            @click="$router.push('/user')"
+            :src="user.profilePictureURL"
+            @click="$router.push('/user/' + user.username)"
             alt="Profile picture"/>
     <b style="cursor: pointer;"
-       @click="$router.push('/user')">USERNAME</b>
+       @click="$router.push('/user/' + user.username)">{{ user.username }}</b>
   </div>
 </template>
 
 <script>
 export default {
-name: "UserProfileHead"
+  name: "UserProfileHead",
+  props: {
+    user: { type: Object, required: true}
+  }
 }
 </script>
 

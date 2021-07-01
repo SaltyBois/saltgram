@@ -82,6 +82,8 @@ func getProfileByJWS(r *http.Request, uc prusers.UsersClient) (*prusers.ProfileR
 		return nil, fmt.Errorf("unable to parse claims")
 	}
 
+	fmt.Println("claims: ", claims.Username)
+
 	return uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{Username: claims.Username, User: claims.Username})
 }
 

@@ -35,7 +35,7 @@
         <v-btn class="primary mb-2"
                v-if="isMyProfile && $store.state.jws"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn v-if="userStories" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
+        <v-btn v-if="userStories.length != 0" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
           Show story
         </v-btn>
         <v-btn v-if="canMute && isMutedBtnVisible && $store.state.jws" @click="muteProfile()" class="other-buttons my-2">
@@ -89,6 +89,7 @@ export default {
     }
   },
   mounted() {
+    console.log(this.userStories);
   },
   props: {
     username: {

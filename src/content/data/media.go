@@ -22,12 +22,13 @@ type Media struct {
 	data.Identifiable
 	SharedMediaID uint64    `json:"sharedMediaId" gorm:"type:numeric"`
 	Filename      string    `json:"filename" validate:"required"`
-	Tags          []Tag     `gorm:"many2many:media_tags" json:"tags" validate:"required"`
+	Tags          []Tag     `gorm:"many2many:media_tags;" json:"tags" validate:"required"`
 	Description   string    `json:"description" validate:"required"`
 	AddedOn       string    `json:"addedOn"`
 	Location      Location  `gorm:"embedded"`
 	URL           string    `json:"url"`
 	MimeType      EMimeType `json:"mimeType"`
+	TaggedUsers   []UserTag `gorm:"many2many:media_taggedusers;" json:"taggedUsers"`
 }
 
 type Tag struct {
@@ -46,6 +47,10 @@ type Story struct {
 	SharedMedia   SharedMedia `json:"sharedMedia"`
 	SharedMediaID uint64      `json:"sharedMediaId" gorm:"type:numeric"`
 	CloseFriends  bool        `json:"closeFriends"`
+}
+
+type UserTag struct {
+	UserID uint64 `gorm:"primaryKey; type:numeric" json:"userId"`
 }
 
 type Post struct {
@@ -67,6 +72,11 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 		tags = append(tags, Tag{Value: t.Value})
 	}
 
+	userTags := []UserTag{}
+	for _, t := range pr.UserTags {
+		userTags = append(userTags, UserTag{UserID: t.Id})
+	}
+
 	return &Media{
 		SharedMediaID: pr.SharedMediaId,
 		Filename:      pr.Filename,
@@ -77,8 +87,11 @@ func PRToDataMedia(pr *prcontent.Media) *Media {
 			Country: pr.Location.Country,
 			State:   pr.Location.State,
 			ZipCode: pr.Location.ZipCode,
+			City:    pr.Location.City,
 			Street:  pr.Location.Street,
+			Name:    pr.Location.Name,
 		},
+		TaggedUsers: userTags,
 	}
 }
 
@@ -105,6 +118,13 @@ func DataToPRMedia(d *Media) *prcontent.Media {
 		})
 	}
 
+	userTags := []*prcontent.UserTag{}
+	for _, t := range d.TaggedUsers {
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: t.UserID,
+		})
+	}
+
 	mimeType := prcontent.EMimeType_IMAGE
 	if d.MimeType == EMimeType_VIDEO {
 		mimeType = prcontent.EMimeType_VIDEO
@@ -119,12 +139,15 @@ func DataToPRMedia(d *Media) *prcontent.Media {
 			Country: d.Location.Country,
 			State:   d.Location.State,
 			ZipCode: d.Location.ZipCode,
+			City:    d.Location.City,
 			Street:  d.Location.Street,
+			Name:    d.Location.Name,
 		},
 		SharedMediaId: d.SharedMediaID,
 		Tags:          tags,
 		Url:           d.URL,
 		MimeType:      mimeType,
+		UserTags:      userTags,
 	}
 }
 
@@ -145,6 +168,11 @@ func (db *DBConn) AddMediaToSharedMedia(sharedMediaId uint64, media *Media) erro
 	if err != nil {
 		return err
 	}
+	media.SharedMediaID = sm.ID
+	err = db.AddMedia(media)
+	if err != nil {
+		return err
+	}
 	return db.DB.Model(sm).Association("Media").Append(media)
 }
 
@@ -154,6 +182,10 @@ func (db *DBConn) AddMediaToPost(postId uint64, media *Media) error {
 		return err
 	}
 	return db.AddMediaToSharedMedia(post.SharedMediaID, media)
+}
+
+func (db *DBConn) AddMedia(media *Media) error {
+	return db.DB.Create(media).Error
 }
 
 func (db *DBConn) AddMediaToStory(storyId uint64, media *Media) error {
@@ -215,7 +247,7 @@ var ErrStoriesNotFound = fmt.Errorf("stories not found")
 
 func (db *DBConn) GetStoryByUser(id uint64) ([]*Story, error) {
 	story := []*Story{}
-	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Where("user_id = ?", id).Find(&story).Error
+	err := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("user_id = ?", id).Find(&story).Error
 	return story, err
 }
 
@@ -236,7 +268,7 @@ func (db *DBConn) GetStoriesByUserAsMedia(userId uint64) ([]*Media, error) {
 
 func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	post := []Post{}
-	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
+	err := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
 	return &post, err
 }
 
@@ -244,7 +276,7 @@ var ErrPostNotFound = fmt.Errorf("post not found")
 
 func (db *DBConn) GetPost(id uint64) (*Post, error) {
 	post := Post{}
-	res := db.DB.Preload("SharedMedia.Media").First(&post, id)
+	res := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).First(&post, id)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -292,6 +324,138 @@ func (db *DBConn) AddProfilePicture(pp *ProfilePicture) error {
 
 func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
 	post := []Post{}
-	err := db.DB.Preload("SharedMedia.Media").Preload(clause.Associations).Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
+	err := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Raw("SELECT p.* FROM posts p INNER JOIN reactions r on p.id = r.post_id WHERE r.user_id = ?", userId).Find(&post).Error
 	return &post, err
+}
+
+func (db *DBConn) AddTag(t *Tag) (*Tag, error) {
+	tag := t
+	err := db.DB.Create(tag).Error
+	fmt.Println(tag.ID)
+	return tag, err
+}
+
+func (db *DBConn) GetTagById(id uint64) (Tag, error) {
+	tag := Tag{}
+	err := db.DB.Where("id = ?", id).First(&tag).Error
+	return tag, err
+}
+
+var ErrTagNotExists = fmt.Errorf("tag not exists")
+
+func (db *DBConn) GetIfExists(value string) (*Tag, error) {
+	tag := Tag{}
+	res := db.DB.Where("value = ?", value).First(&tag)
+	if res.RowsAffected == 0 {
+		return nil, ErrTagNotExists
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return &tag, res.Error
+}
+
+func (db *DBConn) AddUserTag(t *UserTag) (*UserTag, error) {
+	tag := t
+	err := db.DB.Create(tag).Error
+	return tag, err
+}
+
+var ErrUserTagNotFound = fmt.Errorf("user tag not found")
+
+func (db *DBConn) GetUserTagById(id uint64) (*UserTag, error) {
+	userTag := UserTag{}
+	res := db.DB.Where("user_id = ?", id).First(&userTag)
+	if res.RowsAffected == 0 {
+		return nil, ErrUserTagNotFound
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return &userTag, res.Error
+}
+
+var ErrTagNotFound = fmt.Errorf("tag not found")
+
+func (db *DBConn) GetTagId(value string) (uint64, error) {
+	tag := Tag{}
+	res := db.DB.Where("value = ?", value).First(&tag)
+	if res.RowsAffected == 0 {
+		return 0, ErrTagNotFound
+	}
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	return tag.ID, res.Error
+}
+
+var ErrSharedMediaNotFound = fmt.Errorf("shared media id not found")
+
+func (db *DBConn) GetSharedMediaIdByTagId(tagId uint64) ([]uint64, error) {
+	var id []uint64
+	res := db.DB.Raw("select distinct m.shared_media_id from media m inner join media_tags mt on m.id = mt.media_id where mt.tag_id = ?", tagId).Find(&id)
+	if res.RowsAffected == 0 {
+		return nil, ErrSharedMediaNotFound
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return id, res.Error
+}
+
+func (db *DBConn) GetPostsBySharedMediaId(ids []uint64) (*[]Post, error) {
+	posts := []Post{}
+	res := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("shared_media_id IN ?", ids).Find(&posts)
+	return &posts, res.Error
+}
+
+func (db *DBConn) GetPostsByTag(value string) (*[]Post, error) {
+	id, err := db.GetTagId(value)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, err := db.GetSharedMediaIdByTagId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	posts, err := db.GetPostsBySharedMediaId(ids)
+	return posts, err
+}
+
+func (db *DBConn) GetAllTagsByNameSubstring(value string) ([]Tag, error) {
+	var tags []Tag
+	query := "%" + value + "%"
+	err := db.DB.Where("value LIKE ?", query).Limit(21).Find(&tags).Error
+	return tags, err
+}
+
+func (db *DBConn) GetAllLocationNames(name string) ([]string, error) {
+	var names []string
+	query := "%" + name + "%"
+	err := db.DB.Raw("SELECT DISTINCT name FROM media WHERE name LIKE ?", query).Limit(21).Find(&names).Error
+	return names, err
+}
+
+func (db *DBConn) GetSharedMediaIdByLocationName(name string) ([]uint64, error) {
+	var id []uint64
+	res := db.DB.Raw("select distinct shared_media_id from media where name = ?", name).Find(&id)
+	if res.RowsAffected == 0 {
+		return nil, ErrSharedMediaNotFound
+	}
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return id, res.Error
+}
+
+func (db *DBConn) GetContentsByLocation(name string) (*[]Post, error) {
+	ids, err := db.GetSharedMediaIdByLocationName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	posts, err := db.GetPostsBySharedMediaId(ids)
+	return posts, err
 }

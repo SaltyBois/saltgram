@@ -398,7 +398,10 @@ func (u *Users) GerFollowing(r *prusers.FollowerRequest, stream prusers.Users_Ge
 	}
 	for _, profile := range following {
 		err = stream.Send(&prusers.ProfileFollower{
-			Username: profile.Username,
+			Username:       profile.Username,
+			Taggable:       profile.Taggable,
+			ProfilePicture: profile.ProfilePictureURL,
+			UserId:         strconv.FormatUint(profile.UserID, 10),
 		})
 		if err != nil {
 			return err
