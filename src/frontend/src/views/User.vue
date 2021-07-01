@@ -119,8 +119,10 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'saved' && isContentVisible"
                 column>
-        <!--<PostOnUserPage/>
-        <PostOnUserPage/>-->
+                <div v-for="(object, index) in savedPosts" :key="index">
+                  <PostOnUserPage :post="object"
+                                  :user="{username: object.user.username, profilePictureURL: object.user.profilePictureURL}"/>
+                </div>
       </v-layout>
     </transition>
 
@@ -129,9 +131,10 @@
       <v-layout class="user-media"
                 v-if="radioButton === 'tagged' && isContentVisible"
                 column>
-        <!--<PostOnUserPage/>
-        <PostOnUserPage/>
-        <PostOnUserPage/>-->
+                <div v-for="(object, index) in taggedPosts" :key="index">
+                  <PostOnUserPage :post="object"
+                                  :user="{username:  object.user.username, profilePictureURL:  object.user.profilePictureURL}"/>
+                </div>
       </v-layout>
     </transition>
   </div>
@@ -181,6 +184,8 @@ export default {
         usersPosts: [],
         userStories: [],
         loggedUser: { username: '' },
+        taggedPosts: [],
+        savedPosts: [],
       }
     },
     computed: {
@@ -296,6 +301,8 @@ export default {
               // console.log('this.profile.followers: ', this.profile.fol)
               this.getUserPosts(r.data.userId);
               this.getUserStories(r.data.userId);
+              this.getTaggedPosts();
+              this.getSavedPosts();
             }).catch(err => {
               console.log(err)
             })
@@ -320,6 +327,56 @@ export default {
            .then(r => {
                this.usersPosts = r.data;
                this.usersPosts.sort(function (a,b) {
+                 let index1 = a.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+                 let index2 = b.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+                 let d1 = new Date(a.post.sharedMedia.media[0].addedOn.substring(0, index1).replace('CEST', '(CEST)'))
+                 let d2 = new Date(b.post.sharedMedia.media[0].addedOn.substring(0, index2).replace('CEST', '(CEST)'))
+                 if (d1 < d2) {
+                   return 1;
+                 }
+                 if (d1 > d2) {
+                   return -1;
+                 }
+                 // dates must be equal
+                 return 0;
+               });
+              // console.log(this.usersPosts);
+            }).catch(err => {
+              console.log(err)
+              //this.$router.push('/');
+            })
+        },
+        getTaggedPosts() {
+           this.axios.get("content/taggedposts" /*+ id*/, {headers: this.getAHeader()})
+           .then(r => {
+             console.log(r.data);
+               this.taggedPosts = r.data;
+               this.taggedPosts.sort(function (a,b) {
+                 let index1 = a.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+                 let index2 = b.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+                 let d1 = new Date(a.post.sharedMedia.media[0].addedOn.substring(0, index1).replace('CEST', '(CEST)'))
+                 let d2 = new Date(b.post.sharedMedia.media[0].addedOn.substring(0, index2).replace('CEST', '(CEST)'))
+                 if (d1 < d2) {
+                   return 1;
+                 }
+                 if (d1 > d2) {
+                   return -1;
+                 }
+                 // dates must be equal
+                 return 0;
+               });
+              // console.log(this.usersPosts);
+            }).catch(err => {
+              console.log(err)
+              //this.$router.push('/');
+            })
+        },
+        getSavedPosts() {
+           this.axios.get("content/savedposts" /*+ id*/, {headers: this.getAHeader()})
+           .then(r => {
+                          console.log(r.data);
+               this.savedPosts = r.data;
+               this.savedPosts.sort(function (a,b) {
                  let index1 = a.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
                  let index2 = b.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
                  let d1 = new Date(a.post.sharedMedia.media[0].addedOn.substring(0, index1).replace('CEST', '(CEST)'))

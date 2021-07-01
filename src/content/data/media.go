@@ -66,6 +66,11 @@ type ProfilePicture struct {
 	URL    string `json:"url"`
 }
 
+type SavedPost struct {
+	UserID uint64 `json:"userId" gorm:"type:numeric"`
+	PostID uint64 `json:"postId" gorm:"type:numeric"`
+}
+
 func PRToDataMedia(pr *prcontent.Media) *Media {
 	tags := []Tag{}
 	for _, t := range pr.Tags {
@@ -454,6 +459,33 @@ func (db *DBConn) GetContentsByLocation(name string) (*[]Post, error) {
 	ids, err := db.GetSharedMediaIdByLocationName(name)
 	if err != nil {
 		return nil, err
+	}
+
+	posts, err := db.GetPostsBySharedMediaId(ids)
+	return posts, err
+}
+
+func (db *DBConn) AddSavedPost(sp *SavedPost) error {
+	savedPost := sp
+	return db.DB.Create(savedPost).Error
+}
+
+func (db *DBConn) GetSavedPosts(userId uint64) (*[]Post, error) {
+	var ids []uint64
+	res := db.DB.Raw("select distinct post_id from saved_posts where user_id = ?", userId).Find(&ids)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	posts := []Post{}
+	err := db.DB.Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("id IN ?", ids).Find(&posts).Error
+	return &posts, err
+}
+
+func (db *DBConn) GetTaggedPostsByUser(userId uint64) (*[]Post, error) {
+	var ids []uint64
+	res := db.DB.Raw("select distinct m.shared_media_id from media m inner join media_taggedusers mt on m.id = mt.media_id where mt.user_tag_user_id = ?", userId).Find(&ids)
+	if res.Error != nil {
+		return nil, res.Error
 	}
 
 	posts, err := db.GetPostsBySharedMediaId(ids)
