@@ -410,6 +410,12 @@ export default {
         },
     },
     mounted() {
+        this.axios.get("users/check/block/" + this.$route.params.username, {headers: this.getAHeader()})
+          .then(r => {
+            if (r.data) {
+              this.$router.push('/main/')
+            }
+          })
        this.getUserInfo(); // TODO UNCOMMENT THIS
        this.getLoggedUserInfo();
     },

@@ -85,6 +85,7 @@ func main() {
 	usersRouter.HandleFunc("/unblock/profile", usersHandler.UnblockProfile).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/get/blocked", usersHandler.GetBlockedProfiles).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/check/blocked/{username}", usersHandler.CheckIfBlocked).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/check/block/{username}", usersHandler.CheckIsBlocked).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/add/closefrined", usersHandler.AddCloseFriend).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/remove/closefrined", usersHandler.RemoveCloseFriend).Methods(http.MethodPost)
 	usersRouter.HandleFunc("/get/closefriend", usersHandler.GetCloseFriends).Methods(http.MethodGet)

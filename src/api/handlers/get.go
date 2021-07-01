@@ -558,6 +558,10 @@ func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
 			if su.Username == claims1.Username {
 				continue
 			}
+			blocked, _ := u.uc.CheckIfBlocked(context.Background(), &prusers.BlockProfileRequest{Logged: su.Username, Profile: claims1.Username})
+			if blocked.Response {
+				continue
+			}
 		}
 
 		if i == MAX_NUMBER_OF_RESULTS {
@@ -1387,6 +1391,32 @@ func (u *Users) CheckIfBlocked(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := u.uc.CheckIfBlocked(context.Background(), &prusers.BlockProfileRequest{Logged: user, Profile: username})
+	if err != nil {
+		http.Error(w, "Checking if blocked", http.StatusNotFound)
+		return
+	}
+
+	saltdata.ToJSON(resp.Response, w)
+
+}
+
+func (u *Users) CheckIsBlocked(w http.ResponseWriter, r *http.Request) {
+	user, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("failed to parse jws %v", err)
+		saltdata.ToJSON(false, w)
+		return
+	}
+
+	vars := mux.Vars(r)
+	username, er := vars["username"]
+	if !er {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := u.uc.CheckIfBlocked(context.Background(), &prusers.BlockProfileRequest{Logged: username, Profile: user})
 	if err != nil {
 		http.Error(w, "Checking if blocked", http.StatusNotFound)
 		return
