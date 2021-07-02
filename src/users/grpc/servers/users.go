@@ -305,6 +305,11 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		return &prusers.FollowRespose{Message: "Already following"}, nil
 	}
 
+	blocked, _ := u.db.CheckIfBlocked(profile, profileToFollow)
+	if blocked {
+		u.db.UnblockProfile(profile, profileToFollow)
+	}
+
 	if !profileToFollow.Public {
 		followRequest, _ := data.CheckForFollowingRequest(u.db, profileToFollow, profile)
 		if followRequest {
