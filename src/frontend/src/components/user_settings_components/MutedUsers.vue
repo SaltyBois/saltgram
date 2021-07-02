@@ -11,6 +11,7 @@
           <MutedProfile v-for="(item, index) in this.mutedProfiles"
            :key="index"
            :username-prop="item.username"
+           :picture-prop="item.profilePictureURL"
            @get-muted="getMutedProfiles"
            style="width: 100%" />
         </v-layout>

@@ -11,6 +11,7 @@
           <BlockedProfile v-for="(item, index) in this.blockedProfiles" 
           :key="index"
           :username-prop="item.username"
+          :picture-prop="item.profilePictureURL"
           style="width: 100%" 
           />
         </v-layout>
@@ -43,7 +44,7 @@ export default {
     }
   },
   mounted() {
-    this.getBlockedProfiles();
+    getBlockedProfiles();
   }
 }
 </script>

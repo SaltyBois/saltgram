@@ -1,11 +1,15 @@
 <template>
   <div class="layout-div">
     <div class="post-header-left-side">
-      <v-img  class="post-header-profile"
+      <v-img  v-if="this.pictureProp"
+              class="post-header-profile"
               :src="this.pictureProp"
-              @click="$router.push('/user')"
+              @click="$router.push('/user/' + this.usernameProp)"
               alt="Profile picture"/>
-      <b @click="$router.push('/user')" style="cursor: pointer">{{this.usernameProp}}</b>
+      <v-img v-else class="post-header-profile"
+          @click="$router.push('/user/' + this.usernameProp)"
+          :src="require('@/assets/profile_placeholder.png')"/>
+      <b @click="$router.push('/user/' + this.usernameProp)" style="cursor: pointer">{{this.usernameProp}}</b>
       <p style="margin-left: 5px; margin-right: 5px; margin-top: 15px">has sent You a follow request</p>
       <v-btn class="add-button mx-2" @click="acceptRequest(), $emit('reloadRequests')">
         Accept

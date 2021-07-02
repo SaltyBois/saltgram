@@ -1,10 +1,14 @@
 <template>
   <div class="profile">
     <div style="width: 70px">
-      <v-img  class="head"
-              src="https://i.pinimg.com/564x/4e/c4/f2/4ec4f2d69c9bc6b152abcb420252c3a8.jpg"
+      <v-img  v-if="this.pictureProp"
+              class="head"
+              :src="this.pictureProp"
               @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
+       <v-img v-else class="head"
+          @click="$router.push('/user/' + this.usernameProp)"
+          :src="require('@/assets/profile_placeholder.png')"/>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-left; width: auto; padding-top: 5px; overflow-x: hidden">
       <h3>@{{this.usernameProp}}</h3>
@@ -39,6 +43,10 @@ export default {
       type: String,
       required: true
     },
+    pictureProp: {
+      type: String,
+      required: true,
+    }
   },
   methods: {
     addCloseFriend: function() {

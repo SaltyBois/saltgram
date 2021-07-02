@@ -11,6 +11,7 @@
           <CloseFriendsProfile v-for="(item, index) in this.closeFriends" 
           :key="index"
           :username-prop="item.username"
+          :picture-prop="item.profilePictureURL"
           @refresh="refreshData"
           />
         </v-layout>
@@ -25,6 +26,7 @@
           <FollowingProfile v-for="(item, index) in this.following"
           :key="index"
           :username-prop="item.username"
+          :picture-prop="item.profilePictureURL"
           @refresh="refreshData"/>
         </v-layout>
       </v-layout>

@@ -246,6 +246,7 @@ export default {
         console.log(r);
         this.showProfileImageDialog = false;
         this.blocked = true;
+        this.$router.go(0);
       })
       .cathc(r =>{
         console.log(r);
@@ -260,6 +261,7 @@ export default {
         console.log(r);
         this.showProfileImageDialog = false;
         this.blocked = false;
+        this.$router.go(0);
       })
       .cathc(r =>{
         console.log(r);
