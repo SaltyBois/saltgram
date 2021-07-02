@@ -8,7 +8,7 @@
         <h3>Muted Users</h3>
         <v-layout column
                   class="scroll-div">
-          <MutedProfile v-for="(item, index) in this.mutedProfiles"
+          <MutedProfile v-for="(item, index) in mutedProfiles"
            :key="index"
            :username-prop="item.username"
            :picture-prop="item.profilePictureURL"

@@ -44,7 +44,7 @@ export default {
     }
   },
   mounted() {
-    getBlockedProfiles();
+    this.getBlockedProfiles();
   }
 }
 </script>

@@ -4,14 +4,14 @@
       <v-img  v-if="this.pictureProp"
               class="head"
               :src="this.pictureProp"
-              @click="$router.push('/user/' + this.usernameProp)"
+              @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
        <v-img v-else class="head"
-          @click="$router.push('/user/' + this.usernameProp)"
+          @click="$router.push('/user/' + usernameProp)"
           :src="require('@/assets/profile_placeholder.png')"/>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-left; width: auto; padding-top: 5px">
-      <h3>@{{this.usernameProp}}</h3>
+      <h3>@{{usernameProp}}</h3>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-center">
       <v-btn v-if="!clicked"
