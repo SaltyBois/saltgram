@@ -17,7 +17,6 @@
         </v-layout>
       </v-layout>
     </div>
-    <v-btn class="primary mx-10 mb-3">Confirm changes</v-btn>
   </div>
 </template>
 
