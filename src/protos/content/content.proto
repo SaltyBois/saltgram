@@ -35,6 +35,9 @@ service Content {
     rpc GetPostsByUserReaction(GetPostsByUserReactionRequest) returns (GetPostsByUserReactionResponse);
     rpc GetLocationNames(GetLocationNamesRequest) returns (GetLocationNamesResponse);
     rpc SearchContentLocation(SearchContentLocationRequest) returns (SearchContentLocationResponse);
+    rpc SavePost(SavePostRequest) returns (SavePostResponse);
+    rpc GetSavedPosts(GetSavedPostsRequest) returns (GetSavedPostsResponse);
+    rpc GetTaggedPosts(GetTaggedPostsRequest) returns (GetTaggedPostsResponse);
 }
 
 message GetPostPreviewURLRequest {
@@ -332,5 +335,28 @@ message SearchContentLocationRequest {
 }
 
 message SearchContentLocationResponse {
+    repeated Post post = 1;
+}
+
+message SavePostRequest {
+    uint64 userId = 1;
+    uint64 postId = 2;
+}
+
+message SavePostResponse {}
+
+message GetSavedPostsRequest {
+    uint64 userId = 1;
+}
+
+message GetSavedPostsResponse {
+    repeated Post post = 1;
+}
+
+message GetTaggedPostsRequest {
+    uint64 userId = 1;
+}
+
+message GetTaggedPostsResponse {
     repeated Post post = 1;
 }

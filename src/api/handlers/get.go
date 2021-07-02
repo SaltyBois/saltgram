@@ -1862,3 +1862,171 @@ func (s *Users) GetTaggableProfiles(w http.ResponseWriter, r *http.Request) {
 
 	saltdata.ToJSON(taggableProfiles, w)
 }
+
+func (s *Content) GetSavedPosts(w http.ResponseWriter, r *http.Request) {
+
+	myProfile, err := getProfileByJWS(r, s.uc)
+	if err != nil {
+		s.l.Println("getting jws: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	posts, err := s.cc.GetSavedPosts(context.Background(), &prcontent.GetSavedPostsRequest{UserId: myProfile.UserId})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+
+	type Message struct {
+		Post        *prcontent.Post `json:"post"`
+		User        *data.UserDTO   `json:"user"`
+		TaggedUsers []*data.UserDTO `json:"taggedUsers"`
+	}
+
+	postsArray := []*Message{}
+
+	for i := 0; i < len(posts.Post); i++ {
+		vr := posts.Post[i]
+
+		i, err := strconv.ParseUint(vr.UserId, 10, 64)
+		if err != nil {
+			s.l.Errorf("failed to convert id %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		user, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: i})
+
+		if err != nil {
+			s.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			s.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		taggedUsers := []*data.UserDTO{}
+		for _, userTag := range vr.SharedMedia.Media[0].UserTags {
+			userTagged, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: userTag.Id})
+
+			if err != nil {
+				s.l.Errorf("failed fetching user %v\n", err)
+				http.Error(w, "User getting error", http.StatusInternalServerError)
+				return
+			}
+
+			profileTagged, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: userTagged.Username, Username: userTagged.Username})
+			if err != nil {
+				s.l.Errorf("failed fetching profile %v\n", err)
+				http.Error(w, "Profile getting error", http.StatusInternalServerError)
+				return
+			}
+
+			taggedUsers = append(taggedUsers, &saltdata.UserDTO{
+				Username:          profileTagged.Username,
+				ProfilePictureURL: profileTagged.ProfilePictureURL,
+			})
+		}
+
+		postsArray = append(postsArray, &Message{
+			Post: vr,
+			User: &data.UserDTO{
+				Username:          user.Username,
+				ProfilePictureURL: profile.ProfilePictureURL,
+			},
+			TaggedUsers: taggedUsers,
+		})
+	}
+	saltdata.ToJSON(postsArray, w)
+}
+
+func (s *Content) GetTaggedPosts(w http.ResponseWriter, r *http.Request) {
+
+	myProfile, err := getProfileByJWS(r, s.uc)
+	if err != nil {
+		s.l.Println("getting jws: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	posts, err := s.cc.GetTaggedPosts(context.Background(), &prcontent.GetTaggedPostsRequest{UserId: myProfile.UserId})
+	if err != nil {
+		s.l.Errorf("failed fetching posts %v\n", err)
+		http.Error(w, "failed fetching posts", http.StatusInternalServerError)
+		return
+	}
+
+	type Message struct {
+		Post        *prcontent.Post `json:"post"`
+		User        *data.UserDTO   `json:"user"`
+		TaggedUsers []*data.UserDTO `json:"taggedUsers"`
+	}
+
+	postsArray := []*Message{}
+
+	for i := 0; i < len(posts.Post); i++ {
+		vr := posts.Post[i]
+
+		i, err := strconv.ParseUint(vr.UserId, 10, 64)
+		if err != nil {
+			s.l.Errorf("failed to convert id %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		user, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: i})
+
+		if err != nil {
+			s.l.Errorf("failed fetching user %v\n", err)
+			http.Error(w, "User getting error", http.StatusInternalServerError)
+			return
+		}
+
+		profile, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+		if err != nil {
+			s.l.Errorf("failed fetching profile %v\n", err)
+			http.Error(w, "Profile getting error", http.StatusInternalServerError)
+			return
+		}
+
+		taggedUsers := []*data.UserDTO{}
+		for _, userTag := range vr.SharedMedia.Media[0].UserTags {
+			userTagged, err := s.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: userTag.Id})
+
+			if err != nil {
+				s.l.Errorf("failed fetching user %v\n", err)
+				http.Error(w, "User getting error", http.StatusInternalServerError)
+				return
+			}
+
+			profileTagged, err := s.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: userTagged.Username, Username: userTagged.Username})
+			if err != nil {
+				s.l.Errorf("failed fetching profile %v\n", err)
+				http.Error(w, "Profile getting error", http.StatusInternalServerError)
+				return
+			}
+
+			taggedUsers = append(taggedUsers, &saltdata.UserDTO{
+				Username:          profileTagged.Username,
+				ProfilePictureURL: profileTagged.ProfilePictureURL,
+			})
+		}
+
+		postsArray = append(postsArray, &Message{
+			Post: vr,
+			User: &data.UserDTO{
+				Username:          user.Username,
+				ProfilePictureURL: profile.ProfilePictureURL,
+			},
+			TaggedUsers: taggedUsers,
+		})
+	}
+	saltdata.ToJSON(postsArray, w)
+}

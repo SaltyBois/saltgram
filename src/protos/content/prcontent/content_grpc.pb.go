@@ -45,6 +45,9 @@ type ContentClient interface {
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsByUserReactionRequest, opts ...grpc.CallOption) (*GetPostsByUserReactionResponse, error)
 	GetLocationNames(ctx context.Context, in *GetLocationNamesRequest, opts ...grpc.CallOption) (*GetLocationNamesResponse, error)
 	SearchContentLocation(ctx context.Context, in *SearchContentLocationRequest, opts ...grpc.CallOption) (*SearchContentLocationResponse, error)
+	SavePost(ctx context.Context, in *SavePostRequest, opts ...grpc.CallOption) (*SavePostResponse, error)
+	GetSavedPosts(ctx context.Context, in *GetSavedPostsRequest, opts ...grpc.CallOption) (*GetSavedPostsResponse, error)
+	GetTaggedPosts(ctx context.Context, in *GetTaggedPostsRequest, opts ...grpc.CallOption) (*GetTaggedPostsResponse, error)
 }
 
 type contentClient struct {
@@ -440,6 +443,33 @@ func (c *contentClient) SearchContentLocation(ctx context.Context, in *SearchCon
 	return out, nil
 }
 
+func (c *contentClient) SavePost(ctx context.Context, in *SavePostRequest, opts ...grpc.CallOption) (*SavePostResponse, error) {
+	out := new(SavePostResponse)
+	err := c.cc.Invoke(ctx, "/Content/SavePost", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) GetSavedPosts(ctx context.Context, in *GetSavedPostsRequest, opts ...grpc.CallOption) (*GetSavedPostsResponse, error) {
+	out := new(GetSavedPostsResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetSavedPosts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) GetTaggedPosts(ctx context.Context, in *GetTaggedPostsRequest, opts ...grpc.CallOption) (*GetTaggedPostsResponse, error) {
+	out := new(GetTaggedPostsResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetTaggedPosts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContentServer is the server API for Content service.
 // All implementations must embed UnimplementedContentServer
 // for forward compatibility
@@ -471,6 +501,9 @@ type ContentServer interface {
 	GetPostsByUserReaction(context.Context, *GetPostsByUserReactionRequest) (*GetPostsByUserReactionResponse, error)
 	GetLocationNames(context.Context, *GetLocationNamesRequest) (*GetLocationNamesResponse, error)
 	SearchContentLocation(context.Context, *SearchContentLocationRequest) (*SearchContentLocationResponse, error)
+	SavePost(context.Context, *SavePostRequest) (*SavePostResponse, error)
+	GetSavedPosts(context.Context, *GetSavedPostsRequest) (*GetSavedPostsResponse, error)
+	GetTaggedPosts(context.Context, *GetTaggedPostsRequest) (*GetTaggedPostsResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -549,6 +582,15 @@ func (UnimplementedContentServer) GetLocationNames(context.Context, *GetLocation
 }
 func (UnimplementedContentServer) SearchContentLocation(context.Context, *SearchContentLocationRequest) (*SearchContentLocationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchContentLocation not implemented")
+}
+func (UnimplementedContentServer) SavePost(context.Context, *SavePostRequest) (*SavePostResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SavePost not implemented")
+}
+func (UnimplementedContentServer) GetSavedPosts(context.Context, *GetSavedPostsRequest) (*GetSavedPostsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSavedPosts not implemented")
+}
+func (UnimplementedContentServer) GetTaggedPosts(context.Context, *GetTaggedPostsRequest) (*GetTaggedPostsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTaggedPosts not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -1036,6 +1078,60 @@ func _Content_SearchContentLocation_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_SavePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SavePostRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).SavePost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/SavePost",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).SavePost(ctx, req.(*SavePostRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_GetSavedPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSavedPostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetSavedPosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetSavedPosts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetSavedPosts(ctx, req.(*GetSavedPostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_GetTaggedPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaggedPostsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetTaggedPosts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetTaggedPosts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetTaggedPosts(ctx, req.(*GetTaggedPostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Content_ServiceDesc is the grpc.ServiceDesc for Content service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1110,6 +1206,18 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchContentLocation",
 			Handler:    _Content_SearchContentLocation_Handler,
+		},
+		{
+			MethodName: "SavePost",
+			Handler:    _Content_SavePost_Handler,
+		},
+		{
+			MethodName: "GetSavedPosts",
+			Handler:    _Content_GetSavedPosts_Handler,
+		},
+		{
+			MethodName: "GetTaggedPosts",
+			Handler:    _Content_GetTaggedPosts_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

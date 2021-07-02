@@ -90,7 +90,7 @@
                     </div>
                     <div class="post-interactions-right-side">
                       <div style="width: 50px; height: 50px; text-align: -webkit-center">
-                        <i class="fa fa-folder-open-o like" aria-hidden="true"/>
+                        <i class="fa fa-folder-open-o like" aria-hidden="true" @click="save()"/>
                       </div>
                     </div>
                   </div>
@@ -233,6 +233,17 @@ export default {
               this.$router.push('/');
             })
       }
+    },
+    save() {
+      console.log("saving")
+        let postId = {id: this.post.post.id};
+        this.axios.post("content/save", postId, {headers: this.getAHeader()})
+           .then(() => {
+              // console.log(r);
+            }).catch(err => {
+              console.log(err)
+              this.$router.push('/');
+            })
     },
     loadingReactions() {
           this.reactions = [];
