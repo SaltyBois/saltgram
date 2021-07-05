@@ -1,0 +1,334 @@
+syntax = "proto3";
+option go_package = "./users/prusers";
+
+service Users {
+    rpc UpdateProfilePicture(UpdateProfilePictureRequest) returns (UpdateProfilePictureResponse);
+
+    rpc CheckEmail(CheckEmailRequest) returns (CheckEmailResponse);
+    rpc CheckPassword(CheckPasswordRequest) returns (CheckPasswordResponse);
+    rpc Register(RegisterRequest) returns (RegisterResponse);
+    rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
+    rpc ChangePassword(ChangeRequest) returns (ChangeResponse);
+    rpc ResetPassword(UserResetRequest) returns(UserResetResponse);
+    rpc UpdateUsername(UsernameRequest) returns (UsernameResponse);
+    rpc UpdateProfile(UpdateRequest) returns (UpdateResponse);
+    rpc Follow(FollowRequest) returns (FollowRespose);
+    rpc UnFollow(FollowRequest) returns (FollowRespose);
+    rpc ChangeProfilePublic(ChangePublicRequest) returns (ChangePublicResponse);
+    rpc ChangeProfileTaggable(ChangeTaggableRequest) returns (ChangeTaggableResponse);
+
+    rpc GetByUsername(GetByUsernameRequest) returns (GetByUsernameResponse);
+    rpc GetRole(RoleRequest) returns (RoleResponse);
+    rpc GetProfileByUsername(ProfileRequest) returns (ProfileResponse);
+    rpc GetFollowers(FollowerRequest) returns(stream ProfileFollower);
+    rpc GerFollowing(FollowerRequest) returns(stream ProfileFollower);
+    rpc GetByUserId(GetByIdRequest) returns (GetByIdResponse);
+    rpc GetSearchedUsers(SearchRequest) returns (SearchResponse);
+    rpc GetFollowRequests(Profile) returns(stream FollowingRequest);
+    rpc SetFollowRequestRespond(FollowRequestRespond) returns (FollowRequestSet);
+    rpc GetFollowersDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc GetFollowingDetailed(ProflieFollowRequest) returns (stream ProfileFollowDetaild);
+    rpc CheckIfFollowing(ProflieFollowRequest) returns (BoolResponse);
+    rpc CheckForFollowingRequest(ProflieFollowRequest) returns (BoolResponse);
+
+    rpc VerifyProfile(VerifyProfileRequest) returns (VerifyProfileResponse);
+
+    rpc GetMutedProfiles(Profile) returns (stream ProfileMBCF);
+    rpc MuteProfile(MuteProfileRequest) returns (MuteProfileResponse);
+    rpc UnmuteProfile(UnmuteProfileRequest) returns (UnmuteProfileResponse);
+    rpc CheckIfMuted(MuteProfileRequest) returns (BoolResponse);
+
+    rpc GetBlockedProfiles(Profile) returns (stream ProfileMBCF);
+    rpc BlockProfile(BlockProfileRequest) returns (BlockProfileResposne);
+    rpc UnblockProfile(UnblockProfileRequest) returns (UnblockProfileResposne);
+    rpc CheckIfBlocked(BlockProfileRequest) returns (BoolResponse);
+
+    rpc GetCloseFriends(Profile) returns (stream ProfileMBCF);
+    rpc GetProfilesForCloseFriends(Profile) returns (stream ProfileMBCF);
+    rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
+    rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
+
+    
+}
+
+message VerifyProfileRequest {
+    uint64 userId = 1;
+    string accountType = 2;
+}
+
+message VerifyProfileResponse {}
+
+message UpdateProfilePictureRequest {
+    string url = 1;
+    string username = 2;
+}
+message UpdateProfilePictureResponse {}
+
+message RoleRequest {
+    string username = 1;
+}
+
+message RoleResponse {
+    string role = 1;
+}
+
+message UsernameRequest {
+    string oldUsername = 1;
+    string newUsername = 2;
+}
+
+message UsernameResponse {}
+
+message UpdateRequest {
+    string oldUsername = 1;
+    string newUsername = 2;
+    string email = 3;
+    string fullName = 4;
+    bool public = 5;
+    bool taggable = 6;
+    string phoneNumber = 7;
+    string gender = 8;
+    int64 dateOfBirth = 9;
+    string webSite = 10;
+    bool privateProfile = 11;
+    string description = 12;
+    bool messageable = 13;
+}
+
+message UpdateResponse {}
+
+message UserResetRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message UserResetResponse {}
+
+message GetByUsernameRequest {
+    string username = 1;
+}
+
+message GetByUsernameResponse {
+    string email = 1;
+	string fullName = 2;
+	string username = 3;
+	string role = 4;
+    string hashedPassword = 5;
+    uint64 id = 6;
+}
+
+message GetByIdRequest {
+    uint64 id = 1;
+}
+
+message GetByIdResponse {
+    string email = 1;
+	string fullName = 2;
+	string username = 3;
+	string role = 4;
+    string hashedPassword = 5;
+    uint64 id = 6;
+}
+
+message ChangeRequest {
+    string oldPlainPassword = 1;
+    string newPlainPassword = 2;
+    string username = 3;
+}
+
+message ChangeResponse {}
+
+message VerifyEmailRequest {
+    string email = 1;
+}
+
+message VerifyEmailResponse {}
+
+message RegisterResponse {}
+
+message UserReCaptcha {
+    string action = 1;
+    string token = 2;
+}
+
+message RegisterRequest {
+    string username = 1;
+    string fullName = 2;
+    string email = 3;
+    string password = 4;
+    string description = 5;
+    UserReCaptcha reCaptcha = 6;
+    string phoneNumber = 7;
+    string gender = 8;
+    int64 dateOfBirth = 9;
+    string webSite = 10;
+    bool privateProfile = 11;
+}
+
+message CheckPasswordRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message CheckPasswordResponse {
+    string hashedPass = 2;
+}
+
+message CheckEmailRequest {
+    string username = 1;
+}
+
+message CheckEmailResponse {
+    bool verified = 1;
+}
+
+// TODO(Jovan): Decouple
+message ProfileRequest {
+    string user = 1;
+    string username = 2;
+}
+
+message ProfileResponse {
+    string username = 1;
+    int64 followers = 2;
+    int64 following = 3;
+    string fullName = 4;
+    string description = 5;
+    bool isFollowing = 6;
+    bool isPublic = 7;
+    string phoneNumber = 8;
+    string gender = 9;
+    int64 dateOfBirth = 10;
+    string webSite = 11;
+    string profileFolderId = 12;
+    string postsFolderId = 13;
+    string storiesFolderId = 14;
+    uint64 userId = 15;
+    string profilePictureURL = 16;
+    bool taggable = 17;
+    bool messageable = 18;
+    bool verified = 19;
+    string accountType = 20;
+}
+
+message ChangePublicRequest {
+    string username = 1;
+    bool public = 2;
+}
+
+message ChangePublicResponse {}
+
+message ChangeTaggableRequest {
+    string username = 1;
+    bool public = 2;
+}
+
+message ChangeTaggableResponse {}
+
+message FollowRequest {
+    string username = 1;
+    string toFollow = 2;
+}
+
+message FollowRespose {
+    string message = 1;
+}
+
+message FollowerRequest {
+    string username = 1;
+}
+
+message FollowersResponse {
+    string username = 1;
+    bool  public = 2;
+    bool taggable = 3; 
+}
+
+message ProfileFollower {
+    string username = 1;
+    bool taggable = 2;
+    string profilePicture = 3;
+    string userId = 4;
+}
+
+message SearchRequest {
+    string query = 1;
+}
+
+message SearchedUser {
+    string username = 1;
+    string profilePictureAddress = 2;
+}
+
+message SearchResponse {
+    repeated SearchedUser searchedUser = 1;
+}
+
+message Profile {
+    string username = 1;
+}
+
+message FollowingRequest{
+    string username = 1;
+    uint64 userId = 2;
+    string profilePicture = 3;
+}
+
+message FollowRequestRespond {
+    string username = 1;
+    string request_username = 2;
+    bool accepted = 3;
+}
+
+message FollowRequestSet {}
+
+message ProflieFollowRequest {
+    string logeduser = 1;
+    string username = 2;
+}
+
+message ProfileFollowDetaild {
+    string username = 1;
+    bool following = 2;
+    bool pending = 3;
+    string profliePicture = 4;
+}
+
+message BoolResponse {
+    bool response = 1;
+}
+
+message MuteProfileRequest{
+    string logged = 1;
+    string profile = 2;
+}
+message MuteProfileResponse {}
+
+message UnmuteProfileRequest{
+    string logged = 1;
+    string profile = 2;
+}
+message UnmuteProfileResponse {}
+
+message BlockProfileRequest {
+    string logged = 1;
+    string profile = 2;
+}
+message BlockProfileResposne {}
+
+message UnblockProfileRequest {
+    string logged = 1;
+    string profile = 2;
+}
+message UnblockProfileResposne {}
+
+message CloseFriendRequest {
+    string logged = 1;
+    string profile = 2;
+}
+message CloseFriendResposne {}
+
+message ProfileMBCF {
+    string username = 1;
+    string profilePictureURL = 2;
+}

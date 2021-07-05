@@ -1,0 +1,64 @@
+syntax = "proto3";
+option go_package = "./admin/pradmin";
+
+service Admin {
+    rpc AddVerificationReq(AddVerificationRequest) returns (AddVerificationResponse);
+    rpc GetPendingVerifications(GetVerificationRequest) returns (GetVerificationResponse);
+    rpc ReviewVerificationReq(ReviewVerificatonRequest) returns (ReviewVerificatonResponse);
+    rpc SendInappropriateContentReport(InappropriateContentReportRequest) returns (InappropriateContentReportResponse);
+    rpc GetPendingInappropriateContentReport(GetInappropriateContentReportRequest) returns (GetInappropriateContentReportResponse);
+}
+
+message AddVerificationRequest {
+    string fullName = 1;
+    uint64 userId = 2;
+    string category = 3;
+    string url = 4;
+}
+
+message AddVerificationResponse {}
+
+message GetVerificationRequest {}
+
+message VerificationRequest{
+    uint64 id = 1;
+    string fullName = 2;
+    string category = 3;
+    string url = 4;
+    uint64 userId = 5;
+    string username = 6;
+    string profilePicture = 7;
+}
+
+message GetVerificationResponse {
+    repeated VerificationRequest verificationRequest = 1;
+}
+
+message ReviewVerificatonRequest {
+    uint64 id = 1;
+    string status = 2;
+}
+
+message ReviewVerificatonResponse {}
+
+message InappropriateContentReportRequest {
+    uint64 userId = 1;
+    uint64 postId = 2;
+}
+
+message InappropriateContentReportResponse {}
+
+message GetInappropriateContentReportRequest {}
+
+message InappropriateContentReport {
+    uint64 id = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+    string username = 4;
+    string profilePicture = 5;
+    string url = 6;
+}
+
+message GetInappropriateContentReportResponse {
+    repeated InappropriateContentReport inappropriateContentReport = 1;
+}

@@ -1,0 +1,362 @@
+syntax = "proto3";
+option go_package = "./content/prcontent";
+
+service Content {
+    rpc GetSharedMedia(SharedMediaRequest) returns(stream SharedMediaResponse);
+    //rpc GetPostsByUser(GetPostsRequest) returns(GetPostsResponse);
+    rpc GetPostsByUser(GetPostsRequest) returns(stream GetPostsResponse);
+    rpc GetStoriesIndividual(GetStoriesIndividualRequest) returns(GetStoriesIndividualResponse);
+    rpc GetProfilePicture(GetProfilePictureRequest) returns(GetProfilePictureResponse);
+    //rpc GetComments(GetCommentsRequest) returns(stream GetCommentsResponse);
+    rpc GetComments(GetCommentsRequest) returns(GetCommentsResponse);
+
+    rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
+    //rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
+    rpc GetHighlights(GetHighlightsRequest) returns (GetHighlightsResponse);
+    rpc GetPostPreviewURL(GetPostPreviewURLRequest) returns (GetPostPreviewURLResponse);
+    
+
+    rpc CreateStory(CreateStoryRequest) returns(CreateStoryResponse);
+    rpc CreatePost(CreatePostRequest) returns(CreatePostResponse);
+    rpc CreateUserFolder(CreateUserFolderRequest) returns (CreateUserFolderResponse);
+
+    rpc AddVerificationImage(stream AddVerificationImageRequest) returns (AddVerificationImageResponse);
+    rpc AddPost(stream AddPostRequest) returns(AddPostResponse);
+    rpc AddStory(stream AddStoryRequest) returns(AddStoryResponse);
+    rpc AddComment(AddCommentRequest) returns(AddCommentResponse);
+    rpc AddReaction(AddReactionRequest) returns(AddReactionResponse);
+    rpc AddProfilePicture(stream AddProfilePictureRequest) returns(AddProfilePictureResponse);
+    rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
+
+    rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
+
+    rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
+    rpc GetTagsByName(GetTagsByNameRequest) returns (GetTagsByNameResponse);
+    rpc GetPostsByUserReaction(GetPostsByUserReactionRequest) returns (GetPostsByUserReactionResponse);
+    rpc GetLocationNames(GetLocationNamesRequest) returns (GetLocationNamesResponse);
+    rpc SearchContentLocation(SearchContentLocationRequest) returns (SearchContentLocationResponse);
+    rpc SavePost(SavePostRequest) returns (SavePostResponse);
+    rpc GetSavedPosts(GetSavedPostsRequest) returns (GetSavedPostsResponse);
+    rpc GetTaggedPosts(GetTaggedPostsRequest) returns (GetTaggedPostsResponse);
+}
+
+message GetPostPreviewURLRequest {
+    uint64 postId = 1;
+}
+
+message GetPostPreviewURLResponse {
+    string url = 1;
+}
+
+message AddVerificationImageRequest {
+    oneof data {
+        AddVerificationImageRequestInfo info = 1;
+        bytes image = 2;
+    }
+}
+message AddVerificationImageRequestInfo {
+    uint64 userId = 1;
+    string filename = 2;
+}
+message AddVerificationImageResponse {
+    string url = 1;
+}
+
+message GetHighlightsRequest {
+    uint64 userId = 1;
+}
+
+message GetHighlightsResponse {
+    repeated Highlight highlights = 1;
+}
+
+message Highlight {
+    string name = 1;
+    repeated Media stories = 2;
+}
+
+message CreatePostRequest {
+    uint64 userId = 1;
+}
+message CreatePostResponse {
+    uint64 postId = 1;
+}
+
+message AddHighlightRequest {
+    string name = 1;
+    repeated uint64 stories = 2;
+    uint64 userId = 3;
+}
+message AddHighlightResponse{}
+
+message CreateStoryRequest {
+    uint64 userId = 1;
+}
+message CreateStoryResponse {
+    uint64 storyId = 1;
+}
+
+message CreateUserFolderRequest {
+    string userId = 1;
+}
+
+message CreateUserFolderResponse {
+    string profileFolderId = 1;
+    string postsFolderId = 2;
+    string storyFolderId = 3;
+}
+
+message SharedMediaRequest {
+    uint64 userId = 1;
+}
+
+message GetPostsRequest {
+    uint64 userId = 1;
+}
+message GetStoriesIndividualRequest {
+    uint64 userId = 1;
+}
+
+message SharedMediaResponse {
+    repeated Media media = 1;
+}
+
+// Metadata
+enum EMimeType {
+    IMAGE = 0;
+    VIDEO = 1;
+}
+
+message Media {
+    uint64 userId = 1;
+    string filename = 2;
+    string description = 3;
+    string addedOn = 4;
+    Location location = 5;
+    repeated Tag tags = 6;
+    uint64 sharedMediaId = 7;
+    string url = 8;
+    uint64 id = 9;
+    EMimeType mimeType = 10;
+    repeated UserTag userTags = 11;
+}
+
+message Tag {
+    string value = 1;
+    uint64 id = 2;
+}
+
+message UserTag {
+    uint64 id = 1;
+}
+
+message Location {
+    string country = 1;
+	string state = 2;
+    string zipCode = 3;
+    string city = 4;
+	string street = 5;
+    string name = 6;
+}
+
+message SharedMedia {
+    repeated Media media = 1;
+}
+
+// What?
+// message AddSharedMediaRequest {
+//     repeated Media media = 1;
+// }
+
+// message AddSharedMediaResponse {}
+
+message Post {
+    string id = 1;
+    string userId = 2;
+    SharedMedia sharedMedia = 3;
+    string username = 4;
+    string profilePicture = 5;
+}
+
+message GetPostsResponse {
+    Post post = 1;
+}
+
+message Story {
+    uint64 id = 1;
+    uint64 userId = 2;
+    repeated Media media = 3;
+    bool closeFriends = 4;
+}
+
+message GetStoriesIndividualResponse {
+    // repeated Media stories = 1;
+    repeated Story stories = 1;
+}
+
+message GetProfilePictureRequest {
+    uint64 userId = 1;
+}
+
+message GetProfilePictureResponse {
+    string url = 1;
+}
+
+message AddPostResponse {}
+message AddPostRequest {
+    oneof data {
+        AddPostRequestInfo info = 1;
+        bytes image = 2;
+    }
+}
+message AddPostRequestInfo {
+    Media media = 1;
+    uint64 userId = 2;
+    string postsFolderId = 3;
+    uint64 postId = 4;
+}
+
+message AddStoryResponse {}
+message AddStoryRequest {
+    oneof data {
+        AddStoryRequestInfo info = 1;
+        bytes image = 2;
+    }
+}
+message AddStoryRequestInfo {
+    Media media = 1;
+    uint64 userId = 2;
+    string storiesFolderId = 3;
+    bool closeFriends = 4;
+    uint64 storyId = 5;
+}
+
+message AddProfilePictureRequest {
+    oneof data {
+        AddProfilePictureInfo info = 1;
+        bytes image = 2;
+    }
+}
+
+message AddProfilePictureInfo {
+    uint64 userId = 1;
+    string profileFolderId = 2;
+}
+
+message AddProfilePictureResponse {
+    string url = 1;
+}
+
+message Comment {
+    string content = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+}
+
+/*message GetCommentsResponse {
+    Comment comment = 1;
+}*/
+
+message GetCommentsResponse {
+    repeated Comment comment = 1;
+}
+
+message GetCommentsRequest {
+    uint64 postId = 1;
+}
+
+message AddCommentRequest {
+    string content = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+}
+
+message AddCommentResponse {}
+
+message AddReactionRequest {
+    string reactionType = 1;
+    uint64 userId = 2;
+    uint64 postId = 3;
+}
+
+message AddReactionResponse {}
+
+message GetReactionsRequest {
+    uint64 postId = 1;
+}
+
+message GetReactionsResponse {
+    string id = 1;
+    string userId = 2;
+    string reactionType = 3;
+}
+
+message PutReactionRequest {
+    string id = 1;
+    string reactionType = 2;
+}
+
+message PutReactionResponse {}
+
+message SearchContentRequest {
+    string value = 1;
+}
+
+message SearchContentResponse {
+    repeated Post post = 1;
+}
+
+message GetTagsByNameRequest {
+    string query = 1;
+}
+
+message GetTagsByNameResponse {
+    repeated string name = 1;
+}
+
+message GetPostsByUserReactionRequest {
+    uint64 id = 1;
+}
+
+message GetPostsByUserReactionResponse {
+    repeated Post post = 1;
+}
+
+message GetLocationNamesRequest {
+    string query = 1;
+}
+
+message GetLocationNamesResponse {
+    repeated string name = 1;
+}
+
+message SearchContentLocationRequest {
+    string name = 1;
+}
+
+message SearchContentLocationResponse {
+    repeated Post post = 1;
+}
+
+message SavePostRequest {
+    uint64 userId = 1;
+    uint64 postId = 2;
+}
+
+message SavePostResponse {}
+
+message GetSavedPostsRequest {
+    uint64 userId = 1;
+}
+
+message GetSavedPostsResponse {
+    repeated Post post = 1;
+}
+
+message GetTaggedPostsRequest {
+    uint64 userId = 1;
+}
+
+message GetTaggedPostsResponse {
+    repeated Post post = 1;
+}
