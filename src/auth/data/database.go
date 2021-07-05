@@ -5,7 +5,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"os"
 	"saltgram/internal"
-	"saltgram/users/data"
+    "saltgram/data"
 	"time"
 
 	"github.com/sirupsen/logrus"
