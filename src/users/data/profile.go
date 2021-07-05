@@ -26,30 +26,27 @@ type Profile struct {
 	Following         []*Profile `gorm:"many2many:profile_following;"`
 	Profiles          []FollowRequest
 	Requests          []FollowRequest
-	PhoneNumber       string    `json:"phoneNumber"`
-	Gender            string    `json:"gender"`
-	DateOfBirth       time.Time `json:"dateOfBirth"`
-	WebSite           string    `json:"webSite"`
-	PrivateProfile    bool      `json:"privateProfile"` // Why
-	ProfileFolderId   string    `json:"-"`
-	PostsFolderId     string    `json:"-"`
-	StoriesFolderId   string    `json:"-"`
-	ProfilePictureURL string    `json:"profilePictureURL"`
-	AccountType       string    `json:"accountType"`
-	Verified          bool      `json:"verified"`
+	Muted             []*Profile `gorm:"many2many:profile_muted;"`
+	Blocked           []*Profile `gorm:"many2many:profile_blocked;"`
+	CloseFriends      []*Profile `gorm:"many2many:profile_closefriends;"`
+	PhoneNumber       string     `json:"phoneNumber"`
+	Gender            string     `json:"gender"`
+	DateOfBirth       time.Time  `json:"dateOfBirth"`
+	WebSite           string     `json:"webSite"`
+	PrivateProfile    bool       `json:"privateProfile"` // Why
+	ProfileFolderId   string     `json:"-"`
+	PostsFolderId     string     `json:"-"`
+	StoriesFolderId   string     `json:"-"`
+	ProfilePictureURL string     `json:"profilePictureURL"`
+	AccountType       string     `json:"accountType"`
+	Verified          bool       `json:"verified"`
 }
 
 type FollowRequest struct {
-	data.Identifiable  
+	data.Identifiable
 	ProfileID     uint64        `json:"profileId" gorm:"type:numeric"`
 	RequestID     uint64        `json:"followerId" gorm:"type:numeric"`
 	RequestStatus RequestStatus `json:"stats"`
-}
-
-//TODO(Marko add profliPicture?)
-type ProfileFollowerDTO struct {
-	Username string
-	FullName string
 }
 
 func (db *DBConn) GetProfiles() []*Profile {
@@ -235,4 +232,142 @@ func CheckForFollowingRequest(db *DBConn, profile *Profile, profile_request *Pro
 		return false, err
 	}
 	return count > 0, err
+}
+
+func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]Profile, error) {
+	var profiles []Profile
+	query := "%" + username + "%"
+	err := db.DB.Where("username LIKE ?", query).Limit(21).Find(&profiles).Error
+	return profiles, err
+}
+
+func (db *DBConn) MuteProfile(profile *Profile, mute *Profile) error {
+	return db.DB.Exec("INSERT INTO profile_muted (profile_id, muted_id) VALUES (?, ?)", profile.ID, mute.ID).Error
+}
+
+func (db *DBConn) UnmuteProfile(profile *Profile, unmute *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_muted WHERE profile_id = ? AND muted_id = ?", profile.ID, unmute.ID).Error
+}
+
+func (db *DBConn) GetMutedProfiles(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	var ids []uint64
+	err := db.DB.Table("profile_muted").Select("muted_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
+func (db *DBConn) CheckIfMuted(profile *Profile, muted *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Table("profile_muted").Where("profile_id = ? AND muted_id = ?", profile.ID, muted.ID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	exists := count > 0
+	return exists, nil
+}
+
+func (db *DBConn) BlockProfile(profile *Profile, block *Profile) error {
+	return db.DB.Exec("INSERT INTO profile_blocked (profile_id, blocked_id) VALUES (?, ?)", profile.ID, block.ID).Error
+}
+
+func (db *DBConn) UnblockProfile(profile *Profile, unblock *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_blocked WHERE profile_id = ? AND blocked_id = ?", profile.ID, unblock.ID).Error
+}
+
+func (db *DBConn) GetBlockedProfiles(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	var ids []uint64
+	err := db.DB.Table("profile_blocked").Select("blocked_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
+func (db *DBConn) CheckIfBlocked(profile *Profile, blocked *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Table("profile_blocked").Where("profile_id = ? AND blocked_id = ?", profile.ID, blocked.ID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	exists := count > 0
+	return exists, nil
+}
+
+func (db *DBConn) AddCloseFriend(profile *Profile, friend *Profile) error {
+	return db.DB.Exec("INSERT INTO profile_closefriends (profile_id, close_friend_id) VALUES (?, ?)", profile.ID, friend.ID).Error
+}
+
+func (db *DBConn) RemoveCloseFriend(profile *Profile, friend *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_closefriends WHERE profile_id = ? AND close_friend_id = ?", profile.ID, friend.ID).Error
+}
+
+func (db *DBConn) GetCloseFriends(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	var ids []uint64
+	err := db.DB.Table("profile_closefriends").Select("close_friend_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, ids).Error
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
+func (db *DBConn) GetProfilesForCloseFriends(profile *Profile) ([]*Profile, error) {
+	var profiles []*Profile
+	var ids []uint64
+	var id []uint64
+	err := db.DB.Table("profile_closefriends").Select("close_friend_id").Where("profile_id = ?", profile.ID).Find(&ids).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		err = db.DB.Table("profile_following").Select("following_id").Where("profile_id = ?", profile.ID).Find(&id).Error
+	} else {
+		err = db.DB.Table("profile_following").Select("following_id").Where("profile_id = ? AND following_id NOT IN ?", profile.ID, ids).Find(&id).Error
+	}
+	if err != nil {
+		return nil, err
+	}
+	if len(id) == 0 {
+		return profiles, nil
+	}
+	err = db.DB.Find(&profiles, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
+func (db *DBConn) CheckIfCloseFriend(profile *Profile, friend *Profile) (bool, error) {
+	var count int64
+	err := db.DB.Table("profile_closefriends").Where("profile_id = ? AND close_friend_id = ?", profile.ID, friend.ID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	exists := count > 0
+	return exists, nil
 }

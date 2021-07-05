@@ -8,11 +8,15 @@
         <h3>Muted Users</h3>
         <v-layout column
                   class="scroll-div">
-          <MutedProfile v-for="index in 14" style="width: 100%" :key="index"/>
+          <MutedProfile v-for="(item, index) in mutedProfiles"
+           :key="index"
+           :username-prop="item.username"
+           :picture-prop="item.profilePictureURL"
+           @get-muted="getMutedProfiles"
+           style="width: 100%" />
         </v-layout>
       </v-layout>
     </div>
-    <v-btn class="primary mx-10 mb-3">Confirm changes</v-btn>
   </div>
 </template>
 
@@ -21,6 +25,24 @@ import MutedProfile from "@/components/user_settings_components/MutedProfile";
 export default {
   name: "MutedUsers",
   components: { MutedProfile },
+
+  data: function() {
+    return {
+      mutedProfiles: [],
+    }
+  },
+  methods: {
+    getMutedProfiles: function() {
+      this.axios.get('users/get/muted', {headers: this.getAHeader()})
+      .then(r => {
+        this.mutedProfiles = r.data
+      })
+      .catch(r => console.log(r));
+    }
+  },
+  mounted() {
+    this.getMutedProfiles();
+  }
 }
 </script>
 

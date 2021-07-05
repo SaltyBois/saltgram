@@ -320,7 +320,10 @@ export default {
                   this.$refs.profileImage.$data.waitingForResponse = r.data
                 })
               }
+              this.checkIfMuted();
+              this.checkIfBlocked();
             }
+            
         },
         getUserPosts(id) {
            this.axios.get("content/post/" + id, {headers: this.getAHeader()})
@@ -439,9 +442,37 @@ export default {
               .catch(err => {
                 console.log(err)
               })
-        }
+        },
+        checkIfMuted: function() {  
+          if(!this.isMyProfile){
+            this.axios.get("users/check/muted/" + this.$route.params.username, {headers: this.getAHeader()})
+            .then(r => {
+              this.$refs.profileImage.$data.muted = r.data;
+            })
+            .catch(r => {
+              console.log(r);
+            })
+          }
+        },
+        checkIfBlocked: function() {  
+          if(!this.isMyProfile){
+            this.axios.get("users/check/blocked/" + this.$route.params.username, {headers: this.getAHeader()})
+            .then(r => {
+              this.$refs.profileImage.$data.blocked = r.data;
+            })
+            .catch(r => {
+              console.log(r);
+            })
+          }
+        },
     },
     mounted() {
+        this.axios.get("users/check/block/" + this.$route.params.username, {headers: this.getAHeader()})
+          .then(r => {
+            if (r.data) {
+              this.$router.push('/main/')
+            }
+          })
        this.getUserInfo(); // TODO UNCOMMENT THIS
        this.getLoggedUserInfo();
     },

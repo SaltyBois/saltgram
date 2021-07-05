@@ -86,3 +86,31 @@ func getProfileByJWS(r *http.Request, uc prusers.UsersClient) (*prusers.ProfileR
 
 	return uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{Username: claims.Username, User: claims.Username})
 }
+
+func getUsernameByJWS(r *http.Request) (string, error) {
+	jws, err := getUserJWS(r)
+	if err != nil {
+		return "", fmt.Errorf("JWS not found: %v", err)
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		return "", fmt.Errorf("failed parsing claims: %v", err)
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		return "", fmt.Errorf("unable to parse claims")
+	}
+
+	return claims.Username, nil
+
+}
