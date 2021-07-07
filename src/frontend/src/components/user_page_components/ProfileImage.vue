@@ -35,21 +35,24 @@
         <v-btn class="primary mb-2"
                v-if="isMyProfile && $store.state.jws"
                @click="$refs.file.click(); showProfileImageDialog = false">Upload New Profile Photo</v-btn>
-        <v-btn v-if="userStories" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
+        <v-btn v-if="userStories.length != 0" @click="showProfileImageDialog = false; toggle()" class="mute-button my-2">
           Show story
         </v-btn>
-        <v-btn v-if="isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="other-buttons my-2">
+        <v-btn v-if="canMute && isMutedBtnVisible && $store.state.jws" @click="muteProfile()" class="other-buttons my-2">
           Mute
         </v-btn>
-        <v-btn v-if="!isMutedBtnVisible && $store.state.jws" @click="showProfileImageDialog = false" class="mute-button my-2">
+        <v-btn v-if="canMute && !isMutedBtnVisible && $store.state.jws" @click="unmuteProfile()" class="mute-button my-2">
           Unmute
         </v-btn>
         <v-btn class="other-buttons my-2"
                v-if="!isMyProfile && $store.state.jws"
                @click="showProfileImageDialog = false">Report</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isMyProfile && $store.state.jws"
-               @click="showProfileImageDialog = false">Block @{{username}}</v-btn>
+               v-if="isBlocked && $store.state.jws"
+               @click="blockProfile()">Block @{{username}}</v-btn>
+        <v-btn class="other-buttons my-2"
+               v-if="!isBlocked && $store.state.jws"
+               @click="unblockProfile()">Unblock @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>
         <v-btn @click="showProfileImageDialog = false" class="accent">
@@ -82,9 +85,11 @@ export default {
       waitingForResponse: false,
       userStories: [],
       storyVisible: false,
+      blocked: false,
     }
   },
   mounted() {
+    console.log(this.userStories);
   },
   props: {
     username: {
@@ -116,6 +121,19 @@ export default {
     },
     isMutedBtnVisible() {
       return !this.muted && !this.isMyProfileProp;
+    },
+    isBlocked() {
+      return !this.isMyProfileProp && !this.blocked;
+    },
+    canMute() {
+      if (this.isMyProfileProp) {
+        return false;
+      } else if( !this.isMyProfileProp && this.following) {
+        return true;
+      }
+      else {
+        return false;
+      }
     }
   },
   methods: {
@@ -179,8 +197,78 @@ export default {
         .catch(r => {
           console.log(r)
         })
+    },
+    checkIfMuted: function() {
+      if(!this.isMyProfileProp){
+        this.axios.get("users/check/muted/" + this.username,{headers: this.getAHeader()})
+        .then(r => {
+          this.muted = r.data;
+        })
+        .catch(r => {
+          console.log(r);
+        })
+      }
+    },
+    muteProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/mute/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.muted = true;
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
+    unmuteProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/unmute/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.muted = false;
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    }, 
+    blockProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/block/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.blocked = true;
+        this.$router.go(0);
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    },
+    unblockProfile: function() {
+      let dto = {
+        profile: this.username,
+      }
+      this.axios.post('/users/unblock/profile',dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.showProfileImageDialog = false;
+        this.blocked = false;
+        this.$router.go(0);
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
     }
-  }
+  },
+  
 }
 </script>
 

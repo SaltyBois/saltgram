@@ -28,6 +28,8 @@ type StoryDTO struct {
 	UserID       string     `json:"userId"`
 	Stories      []MediaDTO `json:"stories"`
 	CloseFriends bool       `json:"closeFriends"`
+	IsCampaign bool `json:"isCampaign"`
+	CampaignWebsite string `json:"campaignWebsite"`
 }
 
 type LocationDTO struct {
@@ -104,6 +106,8 @@ func PRToDTOStory(pr *prcontent.Story) *StoryDTO {
 		UserID:       strconv.FormatUint(pr.UserId, 10),
 		Stories:      stories,
 		CloseFriends: pr.CloseFriends,
+		IsCampaign: pr.IsCampaign,
+		CampaignWebsite: pr.CampaignWebsite,
 	}
 }
 

@@ -1,10 +1,14 @@
 <template>
   <div class="profile">
     <div style="width: 70px">
-      <v-img  class="head"
-              :src="pictureProp"
+       <v-img  v-if="this.pictureProp"
+              class="head"
+              :src="this.pictureProp"
               @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
+       <v-img v-else class="head"
+          @click="$router.push('/user/' + usernameProp)"
+          :src="require('@/assets/profile_placeholder.png')"/>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-left; width: 300px; padding-top: 5px">
       <h3>@{{usernameProp}}</h3>

@@ -16,23 +16,26 @@
                 align-center
                 column>
         <v-hover v-slot="{ hover }">
-          <v-carousel class="post-content-media" :cycle="!hover" :interval="10000" :continuous="false">
+          <v-carousel class="post-content-media" :cycle="!hover" :interval="5000" :continuous="false">
             <div v-for="(story, index) in stories" :key="index">
-              <v-carousel-item>
+              <v-carousel-item >
               <v-img v-if="story.mimeType == 'image'" contain
-                     :src="story.url"/>
+                     :src="story.url"
+                     @click="campaignWebsite(story)"/>
               <video v-else
                      autoplay
                      width="100%"
                      height="100%"
                      playsinline
-                     :src="story.url"/>
+                     :src="story.url"
+                     @click="campaignWebsite(story)"/>
               </v-carousel-item>
               <div class="close-friends-div" v-if="story.closeFriends">
                 <h3>
                   CLOSE FRIENDS
                 </h3>
               </div>
+              
             </div>
           </v-carousel>
         </v-hover>
@@ -71,6 +74,13 @@ export default {
         // this.countDownTimer()
       }
     },
+    campaignWebsite: function(story) {
+      console.log("AAA", story);
+      if(story.isCampaign) {
+      console.log("AAAA");
+        window.location = 'https://' + story.campaignWebsite;
+      }
+    },
     // loadingStory() {
     //   console.log(this.stories.story.sharedMedia.media.length);
     //   for(let i = 0; i < this.stories.story.sharedMedia.media.length; i++){
@@ -82,9 +92,10 @@ export default {
     // },
   },
   computed() {
-    this.countDownTimer()
+    // this.countDownTimer()
   },
   mounted() {
+    // console.log(this.stories)
         // console.log(this.stories);
 
   //  this.loadingStory();

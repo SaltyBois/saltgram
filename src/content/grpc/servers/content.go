@@ -142,9 +142,28 @@ func (c *Content) AddHighlight(ctx context.Context, r *prcontent.AddHighlightReq
 }
 
 func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest) (*prcontent.CreatePostResponse, error) {
+	ageGroup := data.EAgeGroup_PRE20
+	switch r.AgeGroup {
+	case "Pre 20s":
+		ageGroup = data.EAgeGroup_PRE20
+	case "20s":
+		ageGroup = data.EAgeGroup_20
+	case "30s":
+		ageGroup = data.EAgeGroup_30
+	default:
+		ageGroup = data.EAgeGroup_PRE20
+	}
+	sm := data.SharedMedia{
+		IsCampaign:       r.Campaign,
+		CampaignAgeGroup: data.EAgeGroup(ageGroup),
+		CampaignOneTime:  r.CampaignOneTime,
+		CampaignWebsite:  r.CampaignWebsite,
+		CampaignStart:    r.CampaignStart,
+		CampaignEnd:      r.CampaignEnd,
+	}
 	post := &data.Post{
 		UserID:      r.UserId,
-		SharedMedia: data.SharedMedia{},
+		SharedMedia: sm,
 	}
 	err := c.db.AddPost(post)
 	if err != nil {
@@ -156,9 +175,28 @@ func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest
 }
 
 func (c *Content) CreateStory(ctx context.Context, r *prcontent.CreateStoryRequest) (*prcontent.CreateStoryResponse, error) {
+	ageGroup := data.EAgeGroup_PRE20
+	switch r.AgeGroup {
+	case "Pre 20s":
+		ageGroup = data.EAgeGroup_PRE20
+	case "20s":
+		ageGroup = data.EAgeGroup_20
+	case "30s":
+		ageGroup = data.EAgeGroup_30
+	default:
+		ageGroup = data.EAgeGroup_PRE20
+	}
+	sm := data.SharedMedia{
+		IsCampaign:       r.Campaign,
+		CampaignAgeGroup: data.EAgeGroup(ageGroup),
+		CampaignOneTime:  r.CampaignOneTime,
+		CampaignWebsite:  r.CampaignWebsite,
+		CampaignStart:    r.CampaignStart,
+		CampaignEnd:      r.CampaignEnd,
+	}
 	story := &data.Story{
 		UserID:      r.UserId,
-		SharedMedia: data.SharedMedia{},
+		SharedMedia: sm,
 	}
 	err := c.db.AddStory(story)
 	if err != nil {
@@ -267,26 +305,40 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	for _, p := range *posts {
 		media := []*prcontent.Media{}
 		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
 			media = append(media, &prcontent.Media{
 				Filename:    m.Filename,
 				Description: m.Description,
 				AddedOn:     m.AddedOn,
+				Tags:        tags,
 				Location: &prcontent.Location{
 					Country: m.Location.Country,
 					State:   m.Location.State,
+					City:    m.Location.City,
 					ZipCode: m.Location.ZipCode,
 					Street:  m.Location.Street,
+					Name:    m.Location.Name,
 				},
 				Url:      m.URL,
 				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
 			})
 		}
 		post := &prcontent.Post{
 			Id:     strconv.FormatUint(p.ID, 10),
-			UserId: p.UserID,
+			UserId: strconv.FormatUint(p.UserID, 10),
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
 			},
+			IsCampaign: p.SharedMedia.IsCampaign,
+			CampaignWebsite: p.SharedMedia.CampaignWebsite,
 		}
 		err = stream.Send(&prcontent.GetPostsResponse{
 			Post: post,
@@ -299,7 +351,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 	return nil
 }
 
-func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
+/*func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream prcontent.Content_GetPostsByUserReactionServer) error {
 	posts, err := c.db.GetPostsByReaction(r.UserId)
 	if err != nil {
 		c.l.Errorf("failure getting user posts: %v\n", err)
@@ -324,7 +376,7 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 		}
 		post := &prcontent.Post{
 			Id:     strconv.FormatUint(p.ID, 10),
-			UserId: p.UserID,
+			UserId: strconv.FormatUint(p.UserID, 10),
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
 			},
@@ -338,6 +390,62 @@ func (c *Content) GetPostsByUserReaction(r *prcontent.GetPostsRequest, stream pr
 		}
 	}
 	return nil
+}*/
+
+func (c *Content) GetPostsByUserReaction(ctx context.Context, r *prcontent.GetPostsByUserReactionRequest) (*prcontent.GetPostsByUserReactionResponse, error) {
+	posts, err := c.db.GetPostsByReaction(r.Id)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return &prcontent.GetPostsByUserReactionResponse{}, err
+	}
+
+	retVal := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					City:    m.Location.City,
+					ZipCode: m.Location.ZipCode,
+					Street:  m.Location.Street,
+					Name:    m.Location.Name,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: strconv.FormatUint(p.UserID, 10),
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+
+		retVal = append(retVal, post)
+
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return &prcontent.GetPostsByUserReactionResponse{}, err
+		}
+	}
+	return &prcontent.GetPostsByUserReactionResponse{Post: retVal}, nil
 }
 
 func (c *Content) AddProfilePicture(stream prcontent.Content_AddProfilePictureServer) error {
@@ -431,10 +539,60 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 
 	tags := []data.Tag{}
 	for _, tag := range r.GetInfo().Media.Tags {
-		tags = append(tags, data.Tag{
+
+		t := data.Tag{
 			Value: tag.Value,
-		})
+		}
+		ta, err := c.db.GetIfExists(t.Value)
+		if err != nil {
+			if err == data.ErrTagNotExists {
+				ta, err = c.db.AddTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		tags = append(tags, *ta)
 	}
+	/////
+	for _, t := range tags {
+		c.l.Info("Getting tag id: ", t.ID)
+	}
+	/////
+
+	userTags := []data.UserTag{}
+	for _, userTag := range r.GetInfo().Media.UserTags {
+
+		t := data.UserTag{
+			UserID: userTag.Id,
+		}
+		ta, err := c.db.GetUserTagById(t.UserID)
+		if err != nil {
+			if err == data.ErrUserTagNotFound {
+				ta, err = c.db.AddUserTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add user tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get user tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		userTags = append(userTags, *ta)
+	}
+	/////
+	for _, t := range userTags {
+		c.l.Info("Getting tag id: ", t.UserID)
+	}
+	/////
+
 	location := r.GetInfo().Media.Location
 
 	media := &data.Media{
@@ -445,9 +603,12 @@ func (c *Content) AddStory(stream prcontent.Content_AddStoryServer) error {
 			Country: location.Country,
 			State:   location.State,
 			ZipCode: location.ZipCode,
+			City:    location.City,
 			Street:  location.Street,
+			Name:    location.Name,
 		},
-		AddedOn: r.GetInfo().Media.AddedOn,
+		AddedOn:     r.GetInfo().Media.AddedOn,
+		TaggedUsers: userTags,
 	}
 
 	imageData := bytes.Buffer{}
@@ -497,10 +658,59 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 
 	tags := []data.Tag{}
 	for _, tag := range r.GetInfo().Media.Tags {
-		tags = append(tags, data.Tag{
+
+		t := data.Tag{
 			Value: tag.Value,
-		})
+		}
+		ta, err := c.db.GetIfExists(t.Value)
+		if err != nil {
+			if err == data.ErrTagNotExists {
+				ta, err = c.db.AddTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		tags = append(tags, *ta)
 	}
+	/////
+	for _, t := range tags {
+		c.l.Info("Getting tag id: ", t.ID)
+	}
+	/////
+
+	userTags := []data.UserTag{}
+	for _, userTag := range r.GetInfo().Media.UserTags {
+
+		t := data.UserTag{
+			UserID: userTag.Id,
+		}
+		ta, err := c.db.GetUserTagById(t.UserID)
+		if err != nil {
+			if err == data.ErrUserTagNotFound {
+				ta, err = c.db.AddUserTag(&t)
+				if err != nil {
+					c.l.Errorf("failed to add user tag: %v", err)
+					return status.Error(codes.Internal, "Internal error")
+				}
+			} else {
+				c.l.Errorf("failed to get user tag: %v", err)
+				return status.Error(codes.Internal, "Internal error")
+			}
+		}
+
+		userTags = append(userTags, *ta)
+	}
+	/////
+	for _, t := range userTags {
+		c.l.Info("Getting tag id: ", t.UserID)
+	}
+	/////
 
 	location := r.GetInfo().Media.Location
 
@@ -513,10 +723,19 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 			Country: location.Country,
 			State:   location.State,
 			ZipCode: location.ZipCode,
+			City:    location.City,
 			Street:  location.Street,
+			Name:    location.Name,
 		},
-		AddedOn: r.GetInfo().Media.AddedOn,
+		AddedOn:     r.GetInfo().Media.AddedOn,
+		TaggedUsers: userTags,
 	}
+
+	/////
+	for _, t := range media.Tags {
+		c.l.Info("Getting tag from media      id: ", t.ID)
+	}
+	/////
 
 	imageData := bytes.Buffer{}
 	for {
@@ -545,6 +764,7 @@ func (c *Content) AddPost(stream prcontent.Content_AddPostServer) error {
 
 	media.URL = url
 	media.MimeType = mimeType
+
 	err = c.db.AddMediaToPost(r.GetInfo().PostId, media)
 	if err != nil {
 		c.l.Errorf("failed to add media to shared media: %v", err)
@@ -710,4 +930,267 @@ func (c *Content) PutReaction(ctx context.Context, r *prcontent.PutReactionReque
 	}
 
 	return &prcontent.PutReactionResponse{}, nil
+}
+
+func (c *Content) SearchContent(ctx context.Context, r *prcontent.SearchContentRequest) (*prcontent.SearchContentResponse, error) {
+	posts, err := c.db.GetPostsByTag(r.Value)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return &prcontent.SearchContentResponse{}, err
+	}
+
+	retVal := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					City:    m.Location.City,
+					Street:  m.Location.Street,
+					Name:    m.Location.Name,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: strconv.FormatUint(p.UserID, 10),
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+
+		retVal = append(retVal, post)
+
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return &prcontent.SearchContentResponse{}, err
+		}
+	}
+	return &prcontent.SearchContentResponse{Post: retVal}, nil
+}
+
+func (c *Content) GetTagsByName(ctx context.Context, r *prcontent.GetTagsByNameRequest) (*prcontent.GetTagsByNameResponse, error) {
+	tags, err := c.db.GetAllTagsByNameSubstring(r.Query)
+	if err != nil {
+		c.l.Printf("[ERROR] geting tag: %v\n", err)
+		return &prcontent.GetTagsByNameResponse{}, err
+	}
+
+	var tagNames []string
+	for _, tagName := range tags {
+		tagNames = append(tagNames, tagName.Value)
+	}
+
+	return &prcontent.GetTagsByNameResponse{Name: tagNames}, nil
+}
+
+func (c *Content) GetLocationNames(ctx context.Context, r *prcontent.GetLocationNamesRequest) (*prcontent.GetLocationNamesResponse, error) {
+	names, err := c.db.GetAllLocationNames(r.Query)
+	if err != nil {
+		c.l.Printf("[ERROR] geting location names: %v\n", err)
+		return &prcontent.GetLocationNamesResponse{}, err
+	}
+
+	return &prcontent.GetLocationNamesResponse{Name: names}, nil
+}
+
+func (c *Content) SearchContentLocation(ctx context.Context, r *prcontent.SearchContentLocationRequest) (*prcontent.SearchContentLocationResponse, error) {
+	posts, err := c.db.GetContentsByLocation(r.Name)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return &prcontent.SearchContentLocationResponse{}, err
+	}
+
+	retVal := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					City:    m.Location.City,
+					Street:  m.Location.Street,
+					Name:    m.Location.Name,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: strconv.FormatUint(p.UserID, 10),
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+
+		retVal = append(retVal, post)
+
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return &prcontent.SearchContentLocationResponse{}, err
+		}
+	}
+	return &prcontent.SearchContentLocationResponse{Post: retVal}, nil
+}
+
+func (c *Content) SavePost(ctx context.Context, r *prcontent.SavePostRequest) (*prcontent.SavePostResponse, error) {
+	savedPost := &data.SavedPost{
+		UserID: r.UserId,
+		PostID: r.PostId,
+	}
+	err := c.db.AddSavedPost(savedPost)
+	if err != nil {
+		c.l.Errorf("failed to save post: %v", err)
+		return &prcontent.SavePostResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	return &prcontent.SavePostResponse{}, nil
+}
+
+func (c *Content) GetSavedPosts(ctx context.Context, r *prcontent.GetSavedPostsRequest) (*prcontent.GetSavedPostsResponse, error) {
+	posts, err := c.db.GetSavedPosts(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return &prcontent.GetSavedPostsResponse{}, err
+	}
+
+	retVal := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					City:    m.Location.City,
+					Street:  m.Location.Street,
+					Name:    m.Location.Name,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: strconv.FormatUint(p.UserID, 10),
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+
+		retVal = append(retVal, post)
+
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return &prcontent.GetSavedPostsResponse{}, err
+		}
+	}
+	return &prcontent.GetSavedPostsResponse{Post: retVal}, nil
+}
+
+func (c *Content) GetTaggedPosts(ctx context.Context, r *prcontent.GetTaggedPostsRequest) (*prcontent.GetTaggedPostsResponse, error) {
+	posts, err := c.db.GetTaggedPostsByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failure getting posts: %v\n", err)
+		return &prcontent.GetTaggedPostsResponse{}, err
+	}
+
+	retVal := []*prcontent.Post{}
+
+	for _, p := range *posts {
+		media := []*prcontent.Media{}
+		for _, m := range p.SharedMedia.Media {
+			tags := []*prcontent.Tag{}
+			for _, t := range m.Tags {
+				tags = append(tags, &prcontent.Tag{Id: t.ID, Value: t.Value})
+			}
+			userTags := []*prcontent.UserTag{}
+			for _, t := range m.TaggedUsers {
+				userTags = append(userTags, &prcontent.UserTag{Id: t.UserID})
+			}
+			media = append(media, &prcontent.Media{
+				Filename:    m.Filename,
+				Description: m.Description,
+				AddedOn:     m.AddedOn,
+				Tags:        tags,
+				Location: &prcontent.Location{
+					Country: m.Location.Country,
+					State:   m.Location.State,
+					ZipCode: m.Location.ZipCode,
+					City:    m.Location.City,
+					Street:  m.Location.Street,
+					Name:    m.Location.Name,
+				},
+				Url:      m.URL,
+				MimeType: prcontent.EMimeType(m.MimeType),
+				UserTags: userTags,
+			})
+		}
+		post := &prcontent.Post{
+			Id:     strconv.FormatUint(p.ID, 10),
+			UserId: strconv.FormatUint(p.UserID, 10),
+			SharedMedia: &prcontent.SharedMedia{
+				Media: media,
+			},
+		}
+
+		retVal = append(retVal, post)
+
+		if err != nil {
+			c.l.Errorf("failed sending post response: %v\n", err)
+			return &prcontent.GetTaggedPostsResponse{}, err
+		}
+	}
+	return &prcontent.GetTaggedPostsResponse{Post: retVal}, nil
 }

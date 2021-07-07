@@ -45,6 +45,18 @@ type UsersClient interface {
 	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error)
+	GetMutedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetMutedProfilesClient, error)
+	MuteProfile(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*MuteProfileResponse, error)
+	UnmuteProfile(ctx context.Context, in *UnmuteProfileRequest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error)
+	CheckIfMuted(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*BoolResponse, error)
+	GetBlockedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetBlockedProfilesClient, error)
+	BlockProfile(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BlockProfileResposne, error)
+	UnblockProfile(ctx context.Context, in *UnblockProfileRequest, opts ...grpc.CallOption) (*UnblockProfileResposne, error)
+	CheckIfBlocked(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BoolResponse, error)
+	GetCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetCloseFriendsClient, error)
+	GetProfilesForCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetProfilesForCloseFriendsClient, error)
+	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
+	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 }
 
 type usersClient struct {
@@ -413,6 +425,206 @@ func (c *usersClient) VerifyProfile(ctx context.Context, in *VerifyProfileReques
 	return out, nil
 }
 
+func (c *usersClient) GetMutedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetMutedProfilesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[5], "/Users/GetMutedProfiles", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetMutedProfilesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetMutedProfilesClient interface {
+	Recv() (*ProfileMBCF, error)
+	grpc.ClientStream
+}
+
+type usersGetMutedProfilesClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetMutedProfilesClient) Recv() (*ProfileMBCF, error) {
+	m := new(ProfileMBCF)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) MuteProfile(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*MuteProfileResponse, error) {
+	out := new(MuteProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/MuteProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UnmuteProfile(ctx context.Context, in *UnmuteProfileRequest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error) {
+	out := new(UnmuteProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/UnmuteProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) CheckIfMuted(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckIfMuted", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetBlockedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetBlockedProfilesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[6], "/Users/GetBlockedProfiles", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetBlockedProfilesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetBlockedProfilesClient interface {
+	Recv() (*ProfileMBCF, error)
+	grpc.ClientStream
+}
+
+type usersGetBlockedProfilesClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetBlockedProfilesClient) Recv() (*ProfileMBCF, error) {
+	m := new(ProfileMBCF)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) BlockProfile(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BlockProfileResposne, error) {
+	out := new(BlockProfileResposne)
+	err := c.cc.Invoke(ctx, "/Users/BlockProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) UnblockProfile(ctx context.Context, in *UnblockProfileRequest, opts ...grpc.CallOption) (*UnblockProfileResposne, error) {
+	out := new(UnblockProfileResposne)
+	err := c.cc.Invoke(ctx, "/Users/UnblockProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) CheckIfBlocked(ctx context.Context, in *BlockProfileRequest, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckIfBlocked", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetCloseFriendsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[7], "/Users/GetCloseFriends", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetCloseFriendsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetCloseFriendsClient interface {
+	Recv() (*ProfileMBCF, error)
+	grpc.ClientStream
+}
+
+type usersGetCloseFriendsClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetCloseFriendsClient) Recv() (*ProfileMBCF, error) {
+	m := new(ProfileMBCF)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) GetProfilesForCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetProfilesForCloseFriendsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[8], "/Users/GetProfilesForCloseFriends", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetProfilesForCloseFriendsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetProfilesForCloseFriendsClient interface {
+	Recv() (*ProfileMBCF, error)
+	grpc.ClientStream
+}
+
+type usersGetProfilesForCloseFriendsClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetProfilesForCloseFriendsClient) Recv() (*ProfileMBCF, error) {
+	m := new(ProfileMBCF)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *usersClient) AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error) {
+	out := new(CloseFriendResposne)
+	err := c.cc.Invoke(ctx, "/Users/AddCloseFriend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error) {
+	out := new(CloseFriendResposne)
+	err := c.cc.Invoke(ctx, "/Users/RemoveCloseFriend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -444,6 +656,18 @@ type UsersServer interface {
 	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error)
+	GetMutedProfiles(*Profile, Users_GetMutedProfilesServer) error
+	MuteProfile(context.Context, *MuteProfileRequest) (*MuteProfileResponse, error)
+	UnmuteProfile(context.Context, *UnmuteProfileRequest) (*UnmuteProfileResponse, error)
+	CheckIfMuted(context.Context, *MuteProfileRequest) (*BoolResponse, error)
+	GetBlockedProfiles(*Profile, Users_GetBlockedProfilesServer) error
+	BlockProfile(context.Context, *BlockProfileRequest) (*BlockProfileResposne, error)
+	UnblockProfile(context.Context, *UnblockProfileRequest) (*UnblockProfileResposne, error)
+	CheckIfBlocked(context.Context, *BlockProfileRequest) (*BoolResponse, error)
+	GetCloseFriends(*Profile, Users_GetCloseFriendsServer) error
+	GetProfilesForCloseFriends(*Profile, Users_GetProfilesForCloseFriendsServer) error
+	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
+	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -531,6 +755,42 @@ func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *Profl
 }
 func (UnimplementedUsersServer) VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyProfile not implemented")
+}
+func (UnimplementedUsersServer) GetMutedProfiles(*Profile, Users_GetMutedProfilesServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetMutedProfiles not implemented")
+}
+func (UnimplementedUsersServer) MuteProfile(context.Context, *MuteProfileRequest) (*MuteProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MuteProfile not implemented")
+}
+func (UnimplementedUsersServer) UnmuteProfile(context.Context, *UnmuteProfileRequest) (*UnmuteProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnmuteProfile not implemented")
+}
+func (UnimplementedUsersServer) CheckIfMuted(context.Context, *MuteProfileRequest) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckIfMuted not implemented")
+}
+func (UnimplementedUsersServer) GetBlockedProfiles(*Profile, Users_GetBlockedProfilesServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetBlockedProfiles not implemented")
+}
+func (UnimplementedUsersServer) BlockProfile(context.Context, *BlockProfileRequest) (*BlockProfileResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlockProfile not implemented")
+}
+func (UnimplementedUsersServer) UnblockProfile(context.Context, *UnblockProfileRequest) (*UnblockProfileResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnblockProfile not implemented")
+}
+func (UnimplementedUsersServer) CheckIfBlocked(context.Context, *BlockProfileRequest) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckIfBlocked not implemented")
+}
+func (UnimplementedUsersServer) GetCloseFriends(*Profile, Users_GetCloseFriendsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetCloseFriends not implemented")
+}
+func (UnimplementedUsersServer) GetProfilesForCloseFriends(*Profile, Users_GetProfilesForCloseFriendsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetProfilesForCloseFriends not implemented")
+}
+func (UnimplementedUsersServer) AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddCloseFriend not implemented")
+}
+func (UnimplementedUsersServer) RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveCloseFriend not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1046,6 +1306,234 @@ func _Users_VerifyProfile_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_GetMutedProfiles_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetMutedProfiles(m, &usersGetMutedProfilesServer{stream})
+}
+
+type Users_GetMutedProfilesServer interface {
+	Send(*ProfileMBCF) error
+	grpc.ServerStream
+}
+
+type usersGetMutedProfilesServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetMutedProfilesServer) Send(m *ProfileMBCF) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_MuteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MuteProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).MuteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/MuteProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).MuteProfile(ctx, req.(*MuteProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UnmuteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnmuteProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UnmuteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UnmuteProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UnmuteProfile(ctx, req.(*UnmuteProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_CheckIfMuted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MuteProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckIfMuted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckIfMuted",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckIfMuted(ctx, req.(*MuteProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetBlockedProfiles_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetBlockedProfiles(m, &usersGetBlockedProfilesServer{stream})
+}
+
+type Users_GetBlockedProfilesServer interface {
+	Send(*ProfileMBCF) error
+	grpc.ServerStream
+}
+
+type usersGetBlockedProfilesServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetBlockedProfilesServer) Send(m *ProfileMBCF) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_BlockProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).BlockProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/BlockProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).BlockProfile(ctx, req.(*BlockProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_UnblockProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnblockProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).UnblockProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/UnblockProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).UnblockProfile(ctx, req.(*UnblockProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_CheckIfBlocked_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckIfBlocked(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckIfBlocked",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckIfBlocked(ctx, req.(*BlockProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetCloseFriends_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetCloseFriends(m, &usersGetCloseFriendsServer{stream})
+}
+
+type Users_GetCloseFriendsServer interface {
+	Send(*ProfileMBCF) error
+	grpc.ServerStream
+}
+
+type usersGetCloseFriendsServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetCloseFriendsServer) Send(m *ProfileMBCF) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_GetProfilesForCloseFriends_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetProfilesForCloseFriends(m, &usersGetProfilesForCloseFriendsServer{stream})
+}
+
+type Users_GetProfilesForCloseFriendsServer interface {
+	Send(*ProfileMBCF) error
+	grpc.ServerStream
+}
+
+type usersGetProfilesForCloseFriendsServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetProfilesForCloseFriendsServer) Send(m *ProfileMBCF) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Users_AddCloseFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseFriendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).AddCloseFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/AddCloseFriend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).AddCloseFriend(ctx, req.(*CloseFriendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_RemoveCloseFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseFriendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).RemoveCloseFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/RemoveCloseFriend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).RemoveCloseFriend(ctx, req.(*CloseFriendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1141,6 +1629,38 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "VerifyProfile",
 			Handler:    _Users_VerifyProfile_Handler,
 		},
+		{
+			MethodName: "MuteProfile",
+			Handler:    _Users_MuteProfile_Handler,
+		},
+		{
+			MethodName: "UnmuteProfile",
+			Handler:    _Users_UnmuteProfile_Handler,
+		},
+		{
+			MethodName: "CheckIfMuted",
+			Handler:    _Users_CheckIfMuted_Handler,
+		},
+		{
+			MethodName: "BlockProfile",
+			Handler:    _Users_BlockProfile_Handler,
+		},
+		{
+			MethodName: "UnblockProfile",
+			Handler:    _Users_UnblockProfile_Handler,
+		},
+		{
+			MethodName: "CheckIfBlocked",
+			Handler:    _Users_CheckIfBlocked_Handler,
+		},
+		{
+			MethodName: "AddCloseFriend",
+			Handler:    _Users_AddCloseFriend_Handler,
+		},
+		{
+			MethodName: "RemoveCloseFriend",
+			Handler:    _Users_RemoveCloseFriend_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -1166,6 +1686,26 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetFollowingDetailed",
 			Handler:       _Users_GetFollowingDetailed_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetMutedProfiles",
+			Handler:       _Users_GetMutedProfiles_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetBlockedProfiles",
+			Handler:       _Users_GetBlockedProfiles_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetCloseFriends",
+			Handler:       _Users_GetCloseFriends_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetProfilesForCloseFriends",
+			Handler:       _Users_GetProfilesForCloseFriends_Handler,
 			ServerStreams: true,
 		},
 	},

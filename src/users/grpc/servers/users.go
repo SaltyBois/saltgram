@@ -67,7 +67,6 @@ func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) 
 func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameRequest) (*prusers.GetByUsernameResponse, error) {
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
-		u.l.Printf("[ERROR] username: %v\n", r.Username)
 		u.l.Errorf("failure getting user by username: %v\n", err)
 		return &prusers.GetByUsernameResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
@@ -133,12 +132,17 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
+	role := "user"
+	if r.Agent {
+		role = "agent"
+	}
+
 	user := data.User{
 		Email:          r.Email,
 		Username:       r.Username,
 		FullName:       r.FullName,
 		HashedPassword: r.Password,
-		Role:           "user", // TODO(Jovan): For now
+		Role:           role,
 	}
 
 	err = u.db.AddUser(&user)
@@ -305,21 +309,30 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		return &prusers.FollowRespose{Message: "Already following"}, nil
 	}
 
+	blocked, _ := u.db.CheckIfBlocked(profile, profileToFollow)
+	if blocked {
+		u.db.UnblockProfile(profile, profileToFollow)
+	}
+
 	if !profileToFollow.Public {
+		followRequest, _ := data.CheckForFollowingRequest(u.db, profileToFollow, profile)
+		if followRequest {
+			u.l.Printf("[WARNING] Follow request allready sent")
+			return &prusers.FollowRespose{}, nil
+		}
 		err = data.CreateFollowRequest(u.db, profileToFollow, profile)
 		if err != nil {
 			u.l.Printf("[ERROR] creating following request")
 			return &prusers.FollowRespose{}, err
 		}
 		return &prusers.FollowRespose{Message: "PENDING"}, nil
-
 	}
 
 	data.SetFollow(u.db, profile, profileToFollow)
 	return &prusers.FollowRespose{Message: "Following"}, nil
 }
 
-var ErrorNotFollowing = fmt.Errorf("Not following")
+var ErrorNotFollowing = fmt.Errorf("not following")
 
 func (u *Users) UnFollow(ctx context.Context, r *prusers.FollowRequest) (*prusers.FollowRespose, error) {
 	profile, err := u.db.GetProfileByUsername(r.Username)
@@ -342,7 +355,16 @@ func (u *Users) UnFollow(ctx context.Context, r *prusers.FollowRequest) (*pruser
 	if !isFollowing {
 		u.l.Printf("[ERROR] Is not following")
 		return &prusers.FollowRespose{Message: "Not following"}, ErrorNotFollowing
+	}
 
+	muted, _ := u.db.CheckIfMuted(profile, profileToUnfollow)
+	if muted {
+		u.db.UnmuteProfile(profile, profileToUnfollow)
+	}
+
+	closeFriend, _ := u.db.CheckIfCloseFriend(profile, profileToUnfollow)
+	if closeFriend {
+		u.db.RemoveCloseFriend(profile, profileToUnfollow)
 	}
 
 	data.Unfollow(u.db, profile, profileToUnfollow)
@@ -385,7 +407,10 @@ func (u *Users) GerFollowing(r *prusers.FollowerRequest, stream prusers.Users_Ge
 	}
 	for _, profile := range following {
 		err = stream.Send(&prusers.ProfileFollower{
-			Username: profile.Username,
+			Username:       profile.Username,
+			Taggable:       profile.Taggable,
+			ProfilePicture: profile.ProfilePictureURL,
+			UserId:         strconv.FormatUint(profile.UserID, 10),
 		})
 		if err != nil {
 			return err
@@ -491,7 +516,7 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 		su := users[i]
 		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
 			Username:              su.Username,
-			ProfilePictureAddress: "PLEASE ADD PROFILE PICTURE ADDRESS HERE!"})
+			ProfilePictureAddress: su.ProfilePictureURL})
 	}
 
 	return &prusers.SearchResponse{SearchedUser: searchedUsers}, nil
@@ -656,9 +681,9 @@ func (u *Users) CheckIfFollowing(ctx context.Context, r *prusers.ProflieFollowRe
 		return &prusers.BoolResponse{}, err
 	}
 	if following {
-		return &prusers.BoolResponse{Resposne: true}, nil
+		return &prusers.BoolResponse{Response: true}, nil
 	}
-	return &prusers.BoolResponse{Resposne: false}, nil
+	return &prusers.BoolResponse{Response: false}, nil
 
 }
 
@@ -680,8 +705,298 @@ func (u *Users) CheckForFollowingRequest(ctx context.Context, r *prusers.Proflie
 		return &prusers.BoolResponse{}, err
 	}
 	if pending {
-		return &prusers.BoolResponse{Resposne: true}, nil
+		return &prusers.BoolResponse{Response: true}, nil
 	}
-	return &prusers.BoolResponse{Resposne: false}, nil
+	return &prusers.BoolResponse{Response: false}, nil
 
+}
+
+func (u *Users) MuteProfile(ctx context.Context, r *prusers.MuteProfileRequest) (*prusers.MuteProfileResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.MuteProfileResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.MuteProfileResponse{}, err
+	}
+
+	err = u.db.MuteProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] muting profile: %v\n", err)
+		return &prusers.MuteProfileResponse{}, err
+	}
+	return &prusers.MuteProfileResponse{}, nil
+
+}
+
+func (u *Users) UnmuteProfile(ctx context.Context, r *prusers.UnmuteProfileRequest) (*prusers.UnmuteProfileResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnmuteProfileResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnmuteProfileResponse{}, err
+	}
+
+	err = u.db.UnmuteProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] unmuting profile: %v\n", err)
+		return &prusers.UnmuteProfileResponse{}, err
+	}
+	return &prusers.UnmuteProfileResponse{}, nil
+}
+
+func (u *Users) GetMutedProfiles(r *prusers.Profile, stream prusers.Users_GetMutedProfilesServer) error {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+
+	profiles, err := u.db.GetMutedProfiles(profile)
+	if err != nil {
+		u.l.Printf("[ERROR]  geting muted profiles %v\n", err)
+		return err
+	}
+	for _, profile := range profiles {
+
+		err = stream.Send(&prusers.ProfileMBCF{
+			Username:          profile.Username,
+			ProfilePictureURL: profile.ProfilePictureURL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u *Users) CheckIfMuted(ctx context.Context, r *prusers.MuteProfileRequest) (*prusers.BoolResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	muted, err := u.db.CheckIfMuted(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] checking if muted: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+	return &prusers.BoolResponse{Response: muted}, nil
+
+}
+
+func (u *Users) BlockProfile(ctx context.Context, r *prusers.BlockProfileRequest) (*prusers.BlockProfileResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BlockProfileResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BlockProfileResposne{}, err
+	}
+
+	err = u.db.BlockProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] blocking profile: %v\n", err)
+		return &prusers.BlockProfileResposne{}, err
+	}
+
+	following, _ := data.CheckIfFollowing(u.db, profile, userProfile)
+	if following {
+		data.Unfollow(u.db, profile, userProfile)
+	}
+	follower, _ := data.CheckIfFollowing(u.db, userProfile, profile)
+	if follower {
+		data.Unfollow(u.db, userProfile, profile)
+	}
+	followRequest, _ := data.CheckForFollowingRequest(u.db, userProfile, profile)
+	if followRequest {
+		data.FollowRequestRespond(u.db, userProfile, profile, false)
+	}
+	muted, _ := u.db.CheckIfMuted(userProfile, profile)
+	if muted {
+		u.db.UnmuteProfile(userProfile, profile)
+	}
+	closeFriend, _ := u.db.CheckIfCloseFriend(userProfile, profile)
+	if closeFriend {
+		u.db.RemoveCloseFriend(userProfile, profile)
+	}
+	return &prusers.BlockProfileResposne{}, nil
+}
+
+func (u *Users) UnblockProfile(ctx context.Context, r *prusers.UnblockProfileRequest) (*prusers.UnblockProfileResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnblockProfileResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.UnblockProfileResposne{}, err
+	}
+
+	err = u.db.UnblockProfile(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] unblocking profile: %v\n", err)
+		return &prusers.UnblockProfileResposne{}, err
+	}
+	return &prusers.UnblockProfileResposne{}, nil
+}
+
+func (u *Users) GetBlockedProfiles(r *prusers.Profile, stream prusers.Users_GetBlockedProfilesServer) error {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+
+	profiles, err := u.db.GetBlockedProfiles(profile)
+	if err != nil {
+		u.l.Printf("[ERROR]  geting blocked profiles %v\n", err)
+		return err
+	}
+	for _, profile := range profiles {
+
+		err = stream.Send(&prusers.ProfileMBCF{
+			Username:          profile.Username,
+			ProfilePictureURL: profile.ProfilePictureURL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u *Users) CheckIfBlocked(ctx context.Context, r *prusers.BlockProfileRequest) (*prusers.BoolResponse, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+
+	blocked, err := u.db.CheckIfBlocked(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] checking if blocked: %v\n", err)
+		return &prusers.BoolResponse{}, err
+	}
+	return &prusers.BoolResponse{Response: blocked}, nil
+
+}
+
+func (u *Users) AddCloseFriend(ctx context.Context, r *prusers.CloseFriendRequest) (*prusers.CloseFriendResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	err = u.db.AddCloseFriend(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] adding close friend: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	return &prusers.CloseFriendResposne{}, nil
+}
+
+func (u *Users) RemoveCloseFriend(ctx context.Context, r *prusers.CloseFriendRequest) (*prusers.CloseFriendResposne, error) {
+	userProfile, err := u.db.GetProfileByUsername(r.Logged)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+
+	profile, err := u.db.GetProfileByUsername(r.Profile)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	err = u.db.RemoveCloseFriend(userProfile, profile)
+	if err != nil {
+		u.l.Printf("[ERROR] removing close friend %v\n", err)
+		return &prusers.CloseFriendResposne{}, err
+	}
+	return &prusers.CloseFriendResposne{}, nil
+}
+
+func (u *Users) GetCloseFriends(r *prusers.Profile, stream prusers.Users_GetCloseFriendsServer) error {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+
+	profiles, err := u.db.GetCloseFriends(profile)
+	if err != nil {
+		u.l.Printf("[ERROR]  geting close friends %v\n", err)
+		return err
+	}
+	for _, profile := range profiles {
+
+		err = stream.Send(&prusers.ProfileMBCF{
+			Username:          profile.Username,
+			ProfilePictureURL: profile.ProfilePictureURL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u *Users) GetProfilesForCloseFriends(r *prusers.Profile, stream prusers.Users_GetProfilesForCloseFriendsServer) error {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+
+	profiles, err := u.db.GetProfilesForCloseFriends(profile)
+	if err != nil {
+		u.l.Printf("[ERROR]  geting profiles for close friends %v\n", err)
+		return err
+	}
+	for _, profile := range profiles {
+
+		err = stream.Send(&prusers.ProfileMBCF{
+			Username:          profile.Username,
+			ProfilePictureURL: profile.ProfilePictureURL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

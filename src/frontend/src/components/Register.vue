@@ -245,7 +245,8 @@ export default {
                 gender: this.gender,
                 dateOfBirth: realDate,
                 webSite: this.webSite,
-                privateProfile: this.privateProfile
+                privateProfile: this.privateProfile,
+                agent: this.agent,
             }
             this.axios.post("users/register", user)
                 .then(response => {
