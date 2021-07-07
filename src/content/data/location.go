@@ -1,8 +1,10 @@
 package data
 
 type Location struct {
-	Country string `json:"country" validate:"required"`
-	State   string `json:"state" validate:"required"`
-	ZipCode string `json:"zipcode" validate:"required"`
-	Street  string `json:"street" validate:"required"`
+	Country string `json:"country"`
+	State   string `json:"state"`
+	ZipCode string `json:"zipcode"`
+	City    string `json:"city"`
+	Street  string `json:"street"`
+	Name    string `json:"name"`
 }

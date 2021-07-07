@@ -39,13 +39,20 @@
         dense
         hide-details
         style="flex: 0 1 auto"/>
-        <v-text-field
+        <!--<v-text-field
         
         outlined
         label="TODO Add location"
         dense
         hide-details
-        style="flex: 0 1 auto"/>
+        style="flex: 0 1 auto"/>-->
+        <geosearch @selected="selectLocation"></geosearch>
+        <div v-if="selectedLocation">
+          <v-text-field 
+          v-model="location.name"
+          label="Name"
+          disabled/>
+        </div>
         <v-combobox
         v-model="tags"
         chips
@@ -64,6 +71,29 @@
           </template>
         </v-combobox>
         <v-spacer></v-spacer>
+         <v-text-field v-model="query" label="Search profiles" @focus="filter()" @keyup="filter()"/>
+        <v-list style="height:200px">
+        <v-list-item v-for="p in filteredProfiles" :key="p.username">
+          <template>
+              <div class="post-header-left-side">
+                <v-img  class="post-header-profile"
+                        v-if="p.profilePictureURL"
+                        :src="p.profilePictureURL"
+                        alt="Profile picture"/>
+                <v-img  class="post-header-profile"
+                        v-else
+                        :src="require('@/assets/profile_placeholder.png')"
+                        alt="Profile picture"/>
+                <b @click="$router.push('/user')" style="cursor: pointer">{{ p.username }}</b>
+              </div>
+              <div class="post-header-right-side">
+                <v-checkbox v-model="p.checked" @change="updateFinalList(p.userId)">
+                  
+                </v-checkbox>
+              </div>
+          </template>
+        </v-list-item>
+        </v-list>
         <v-checkbox
         v-model="closeFriends"
         label="Close friends"/>
@@ -86,18 +116,66 @@ export default {
       uploading: false,
       description: "",
       location: {
-				country: "RS",
-				state:   "Serbia",
-				zipCode: "21000",
-				street:  "Balzakova 69",
+				country: "",
+				state:   "",
+				zipCode: "",
+        city: "",
+				street:  "",
+        name: "",
       },
       tags: [],
       images: [],
       imageUrls: [],
+      taggableProfiles: [],
+      taggedProfiles: [],
+      filteredProfiles: [],
+      finalList: [],
+      query: '',
 
+      selectedLocation: false,
     }
   },
+   mounted() {
+          this.axios.get('users/taggableprofiles/get', {headers: this.getAHeader()})
+            .then(r => {
+                console.log(r.data);
+                this.taggableProfiles = r.data;
+            })
+            .catch(r => console.log(r));
+  },
   methods: {
+    filter() {
+      if(this.query === ''){
+        this.filteredProfiles = this.taggableProfiles;
+        return;
+      }
+
+      this.filteredProfiles = [];
+      this.taggableProfiles.forEach(el => {
+        if (el.username.includes(this.query)){
+          this.filteredProfiles.push(el);
+        } 
+      });
+    },
+    updateFinalList(userId) {
+      if(this.finalList.includes(userId)){
+        const index = this.finalList.indexOf(userId);
+        this.finalList.splice(index, 1);
+      } else {
+        this.finalList.push(userId);
+      }
+      console.log(this.finalList);
+    },
+
+     selectLocation: function(l) {
+      this.selectedLocation = true;
+      this.location.country = l.address.country_code;
+      this.location.state = l.address.country;
+      this.location.zipCode = l.address.postcode;
+      this.location.city = l.address.city;
+      this.location.street = l.address.road;
+      this.location.name = l.display_name.split(',')[0];
+    },
 
     uploadFiles: function() {
       this.uploading = true;
@@ -108,6 +186,10 @@ export default {
       this.tags.forEach(tag => {
         data.append('tags', tag);
       });
+      this.finalList.forEach(userTag => {
+        data.append('userTags', userTag);
+      });
+
       data.append('description', this.description)
       data.append('location', JSON.stringify(this.location))
       data.append('closeFriends', this.closeFriends)
@@ -150,6 +232,12 @@ export default {
         this.imageUrls.push(URL.createObjectURL(f));
       });
     },
+
+    select: function(r) {
+      this.selected = r;
+      this.results = [];
+      this.$emit('selected', r);
+    },
   }
 }
 </script>
@@ -189,7 +277,22 @@ export default {
 .post-form-body-right-side > * {
   padding-top: 10px;
 }
+.post-header-profile {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: black solid 1px;
+  margin: 10px;
+  cursor: pointer;
 
+
+  filter: brightness(1);
+
+  transition: .3s;
+  z-index: 0;
+
+}
 .content-shape {
   /*display: flex;*/
   width: min-content;
@@ -270,6 +373,22 @@ export default {
   justify-content: flex-start;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.post-header-left-side, .post-header-right-side, .post-interactions-left-side, .post-interactions-right-side {
+  direction: ltr;
+  flex-direction: row;
+  text-align: -webkit-center;
+  align-items: center;
+  float: left;
+  display: flex;
+  justify-content: center
+}
+
+.post-header-right-side, .post-interactions-right-side {
+  float: right;
+  width: 50px;
+  height: 50px;
 }
 
 </style>

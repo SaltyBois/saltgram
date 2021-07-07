@@ -28,6 +28,7 @@
                         @click="$router.push('/user')"
                         alt="Profile picture"/>
                 <b @click="$router.push('/user')" style="cursor: pointer">{{ userProp.username }}</b>
+                <div v-if="post.post.sharedMedia.media[0].location.name == ''" @click="$router.push('/location/' + post.post.sharedMedia.media[0].location.name)" style="margin-left:3px; cursor:pointer">&#183;   {{post.post.sharedMedia.media[0].location.name}}</div>
               </div>
               <div v-if="isUserLoggedIn" class="post-header-right-side">
                 <b style="font-size: 25px; padding-bottom: 5px; cursor: pointer" @click="$refs.postInfo.$data.showDialog = true">...</b>
@@ -60,6 +61,11 @@
                       {{this.description}}
                     </p>
                   </div>
+                  <div style="display:flex; overflow:auto; white-space:nowrap" >
+                    <p class="tag" v-for="tag in post.post.sharedMedia.media[0].tags" :key="tag.value" @click="$router.push('/tag/'+tag.value)" >
+                      #{{tag.value}}
+                    </p>
+                  </div>
                 </div>
                 <div class="post-comment-section">
                   <CommentOnPostView v-for="(item, index) in comments" :key="index" :comment="item"/>
@@ -71,20 +77,20 @@
                     <div class="post-interactions-left-side">
                       <div style="width: 50px; height: 50px; text-align: -webkit-center">
                         <i class="fa fa-thumbs-o-up " 
-                          @click="like()" 
+                          @click="like()"
                           aria-hidden="true" 
                           v-bind:class="userReactionStatus === 'LIKE' ? 'liked' : 'like'"/>
                       </div>
                       <div style="width: 50px; height: 50px; text-align: -webkit-center;">
                         <i class="fa fa-thumbs-o-up " 
-                          @click="dislike()" 
+                          @click="dislike()"
                           aria-hidden="true"
                           v-bind:class="userReactionStatus === 'DISLIKE' ? 'disliked' : 'dislike'"/>
                       </div>
                     </div>
                     <div class="post-interactions-right-side">
                       <div style="width: 50px; height: 50px; text-align: -webkit-center">
-                        <i class="fa fa-folder-open-o like" aria-hidden="true"/>
+                        <i class="fa fa-folder-open-o like" aria-hidden="true" @click="save()"/>
                       </div>
                     </div>
                   </div>
@@ -93,8 +99,23 @@
                     <p style="text-align: left; font-size: 12pt; margin-bottom: auto;">
                       <b>{{likes}}</b> Likes  <b>{{dislikes}}</b> Dislikes
                     </p>
+                    <div style="display:flex; overflow:auto; white-space:nowrap">
+                        <div v-for="tagged in post.taggedUsers" :key="tagged.username">
+                          <div class="tagged-user" @click="$router.push('/user/'+tagged.username)">
+                            <v-img  class="post-header-profile"
+                                    v-if="tagged.profilePictureURL"
+                                    :src="tagged.profilePictureURL"
+                                    alt="Profile picture"/>
+                            <v-img  class="post-header-profile"
+                                    v-else
+                                    :src="require('@/assets/profile_placeholder.png')"
+                                    alt="Profile picture"/>
+                            <b style="cursor: pointer" class="mt-3">{{ tagged.username }}</b>
+                          </div>
+                        </div>
+                    </div>
                     <p style="text-align: left; font-size: 10pt; margin-bottom: auto; color: #858585">
-                      Posted 1 hour ago
+                      {{ new Date(contentPlaceHolder[0].addedOn.substring(0, lastIndex).replace('CEST', '(CEST)')).toLocaleString('sr') }}
                     </p>
                   </div>                                    
                     <div v-if="isUserLoggedIn" style="float: left; height: available; display: flex; flex-direction: row; width: 80%; margin-bottom: 10px">
@@ -125,10 +146,6 @@ export default {
     }
   },
   props: {
-      mediaPath: {
-        required: false,
-        type: String
-      },
       post: { type: Object, required: true},
       userProp: { type: Object, required: true}
   },
@@ -144,6 +161,7 @@ export default {
       this.description = this.post.post.sharedMedia.media[0].description;
     },
     loadingComments() {
+           this.comments = []
            this.axios.get("content/comment/" + this.post.post.id)
            .then(r => {
               // console.log(r);
@@ -160,7 +178,7 @@ export default {
            .then(() => {
               // console.log(r);
               this.commentContent = '';
-              this.$emit('reload');
+              this.loadingComments();
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -173,7 +191,7 @@ export default {
             .then(() => {
                 // console.log(r);
                 this.userReactionStatus = 'LIKE';
-              this.$emit('reload');
+                this.loadingReactions()
               }).catch(err => {
                 console.log(err)
                 this.$router.push('/');
@@ -184,7 +202,7 @@ export default {
            .then(() => {
               // console.log(r);
               this.userReactionStatus = 'LIKE';
-              this.$emit('reload');
+              this.loadingReactions()
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -198,7 +216,7 @@ export default {
            .then(() => {
               // console.log(r);
               this.userReactionStatus = 'DISLIKE';
-              this.$emit('reload');
+              this.loadingReactions()
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
@@ -209,14 +227,28 @@ export default {
            .then(() => {
               // console.log(r);
               this.userReactionStatus = 'DISLIKE';
-              this.$emit('reload');
+             this.loadingReactions()
             }).catch(err => {
               console.log(err)
               this.$router.push('/');
             })
       }
     },
+    save() {
+      console.log("saving")
+        let postId = {id: this.post.post.id};
+        this.axios.post("content/save", postId, {headers: this.getAHeader()})
+           .then(() => {
+              // console.log(r);
+            }).catch(err => {
+              console.log(err)
+              this.$router.push('/');
+            })
+    },
     loadingReactions() {
+          this.reactions = [];
+          this.likes = 0;
+          this.dislikes = 0;
            this.axios.get("content/reaction/" + this.post.post.id)
            .then(r => {
               // console.log(r);
@@ -263,6 +295,7 @@ export default {
   },
   mounted() {
     // console.log(this.post)
+    this.lastIndex = this.post.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
     this.iteratorContent = 0
     this.loadingPost();
     this.loadingComments();
@@ -283,6 +316,7 @@ export default {
       likes: 0,
       dislikes: 0,
       reactionId: '',
+      lastIndex: 0,
     }
   }
 }
@@ -487,6 +521,39 @@ export default {
   border-radius: 16px;
 
   padding: 5px;
+}
+
+.tag {
+  border: rgb(15, 15, 202) solid 1px;
+  border-radius: 5px;
+  background: rgb(156, 240, 255);
+  width: auto;
+  transition: 0.3s;
+  cursor: pointer;
+  margin: 0 3px;
+  padding: 0 3px;
+}
+
+.tag:hover{
+  background: rgb(85, 228, 253);
+    transition: 0.3s;
+}
+
+.tagged-user{
+  border: rgb(0, 0, 0) solid 1px;
+  border-radius: 5px;
+  background: rgb(156, 240, 255);
+  width: auto;
+  transition: 0.3s;
+  cursor: pointer;
+  margin: 0 3px;
+  padding: 0 3px;
+  display: flex;
+}
+
+.tagged-user:hover{
+  background: rgb(85, 228, 253);
+    transition: 0.3s;
 }
 
 </style>

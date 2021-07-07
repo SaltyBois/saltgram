@@ -34,6 +34,23 @@ service Users {
     rpc VerifyProfile(VerifyProfileRequest) returns (VerifyProfileResponse);
 
     rpc DeleteProfile(Profile) returns (DeleteProfileResponse);
+    
+    rpc GetMutedProfiles(Profile) returns (stream ProfileMBCF);
+    rpc MuteProfile(MuteProfileRequest) returns (MuteProfileResponse);
+    rpc UnmuteProfile(UnmuteProfileRequest) returns (UnmuteProfileResponse);
+    rpc CheckIfMuted(MuteProfileRequest) returns (BoolResponse);
+
+    rpc GetBlockedProfiles(Profile) returns (stream ProfileMBCF);
+    rpc BlockProfile(BlockProfileRequest) returns (BlockProfileResposne);
+    rpc UnblockProfile(UnblockProfileRequest) returns (UnblockProfileResposne);
+    rpc CheckIfBlocked(BlockProfileRequest) returns (BoolResponse);
+
+    rpc GetCloseFriends(Profile) returns (stream ProfileMBCF);
+    rpc GetProfilesForCloseFriends(Profile) returns (stream ProfileMBCF);
+    rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
+    rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
+
+    
 }
 
 message VerifyProfileRequest {
@@ -231,6 +248,9 @@ message FollowersResponse {
 
 message ProfileFollower {
     string username = 1;
+    bool taggable = 2;
+    string profilePicture = 3;
+    string userId = 4;
 }
 
 message SearchRequest {
@@ -277,8 +297,45 @@ message ProfileFollowDetaild {
 }
 
 message BoolResponse {
-    bool resposne = 1;
+    bool response = 1;
 }
 
+message MuteProfileRequest{
+    string logged = 1;
+    string profile = 2;
+}
+message MuteProfileResponse {}
+
+message UnmuteProfileRequest{
+    string logged = 1;
+    string profile = 2;
+}
+message UnmuteProfileResponse {}
+
+message BlockProfileRequest {
+    string logged = 1;
+    string profile = 2;
+}
+message BlockProfileResposne {}
+
+message UnblockProfileRequest {
+    string logged = 1;
+    string profile = 2;
+}
+message UnblockProfileResposne {}
+
+message CloseFriendRequest {
+    string logged = 1;
+    string profile = 2;
+}
+message CloseFriendResposne {}
+
+<<<<<<< HEAD
 message DeleteProfileResponse {}
 
+=======
+message ProfileMBCF {
+    string username = 1;
+    string profilePictureURL = 2;
+}
+>>>>>>> develop

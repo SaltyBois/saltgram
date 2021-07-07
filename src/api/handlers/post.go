@@ -499,6 +499,23 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(Jovan): Tag value as ID or predefined tags
 	tags := []*prcontent.Tag{}
+	for _, t := range r.PostForm["tags"] {
+		tags = append(tags, &prcontent.Tag{
+			Value: t,
+		})
+	}
+	userTags := []*prcontent.UserTag{}
+	for _, t := range r.PostForm["userTags"] {
+		i, err := strconv.ParseUint(t, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse user tag id: %v", err)
+			http.Error(w, "Failed to parse user tag id", http.StatusBadRequest)
+			return
+		}
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: i,
+		})
+	}
 	// TODO(Jovan): Pass location as object
 	// location := r.PostForm["location"]
 	description := ""
@@ -508,10 +525,10 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 
 	// NOTE(Jovan): default
 	location := &prcontent.Location{
-		Country: "RS",
+		/*Country: "RS",
 		State:   "Serbia",
 		ZipCode: "21000",
-		Street:  "Balzakova 69",
+		Street:  "Balzakova 69",*/
 	}
 
 	if len(r.PostForm["location"]) > 0 {
@@ -540,6 +557,7 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 			Description: description,
 			Location:    location,
 			AddedOn:     time.Now().String(),
+			UserTags:    userTags,
 		}
 		stream, err := c.cc.AddStory(context.Background())
 		if err != nil {
@@ -621,6 +639,24 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	// TODO(Jovan): Tag value as ID or predefined tags
 	tags := []*prcontent.Tag{}
+	for _, t := range r.PostForm["tags"] {
+		tags = append(tags, &prcontent.Tag{
+			Value: t,
+		})
+	}
+
+	userTags := []*prcontent.UserTag{}
+	for _, t := range r.PostForm["userTags"] {
+		i, err := strconv.ParseUint(t, 10, 64)
+		if err != nil {
+			c.l.Errorf("failed to parse user tag id: %v", err)
+			http.Error(w, "Failed to parse user tag id", http.StatusBadRequest)
+			return
+		}
+		userTags = append(userTags, &prcontent.UserTag{
+			Id: i,
+		})
+	}
 	// TODO(Jovan): Pass location as object
 	// location := r.PostForm["location"]
 	description := ""
@@ -630,10 +666,10 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 
 	// NOTE(Jovan): default
 	location := &prcontent.Location{
-		Country: "RS",
+		/*Country: "RS",
 		State:   "Serbia",
 		ZipCode: "21000",
-		Street:  "Balzakova 69",
+		Street:  "Balzakova 69",*/
 	}
 
 	if len(r.PostForm["location"]) > 0 {
@@ -660,6 +696,7 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 			Description: description,
 			Location:    location,
 			AddedOn:     time.Now().String(),
+			UserTags:    userTags,
 		}
 		stream, err := c.cc.AddPost(context.Background())
 		if err != nil {
@@ -1148,6 +1185,247 @@ func (a *Admin) SendInappropriateContentReport(w http.ResponseWriter, r *http.Re
 
 	if err != nil {
 		a.l.Errorf("failed to add inappropriate: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (u *Users) MuteProfile(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.ProfileRequestDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.MuteProfile(context.Background(), &prusers.MuteProfileRequest{Logged: username, Profile: dto.Profile})
+	if err != nil {
+		u.l.Errorf("failed to mute profile: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (u *Users) UnmuteProfile(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.ProfileRequestDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.UnmuteProfile(context.Background(), &prusers.UnmuteProfileRequest{Logged: username, Profile: dto.Profile})
+	if err != nil {
+		u.l.Errorf("failed to unmute profile: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (u *Users) BlockProfile(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.ProfileRequestDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.BlockProfile(context.Background(), &prusers.BlockProfileRequest{Logged: username, Profile: dto.Profile})
+	if err != nil {
+		u.l.Errorf("failed to block profile: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (u *Users) UnblockProfile(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.ProfileRequestDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.UnblockProfile(context.Background(), &prusers.UnblockProfileRequest{Logged: username, Profile: dto.Profile})
+	if err != nil {
+		u.l.Errorf("failed to unblock profile: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (u *Users) AddCloseFriend(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.ProfileRequestDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.AddCloseFriend(context.Background(), &prusers.CloseFriendRequest{Logged: username, Profile: dto.Profile})
+	if err != nil {
+		u.l.Errorf("failed to add close friend: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (u *Users) RemoveCloseFriend(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		u.l.Println("faild to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := saltdata.ProfileRequestDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Printf("[ERROR] deserializing user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	err = dto.Validate()
+	if err != nil {
+		u.l.Printf("[ERROR] validating user data: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = u.uc.RemoveCloseFriend(context.Background(), &prusers.CloseFriendRequest{Logged: username, Profile: dto.Profile})
+	if err != nil {
+		u.l.Errorf("failed to remove close friend: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+}
+
+func (c *Content) SavePost(w http.ResponseWriter, r *http.Request) {
+
+	jws, err := getUserJWS(r)
+	if err != nil {
+		c.l.Errorf("JWS not found: %v\n", err)
+		http.Error(w, "JWS not found", http.StatusBadRequest)
+		return
+	}
+
+	token, err := jwt.ParseWithClaims(
+		jws,
+		&saltdata.AccessClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		},
+	)
+
+	if err != nil {
+		c.l.Errorf("failure parsing claims: %v\n", err)
+		http.Error(w, "Error parsing claims", http.StatusBadRequest)
+		return
+	}
+
+	claims, ok := token.Claims.(*saltdata.AccessClaims)
+
+	if !ok {
+		c.l.Error("failed to parse claims")
+		http.Error(w, "Error parsing claims: ", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := c.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: claims.Username})
+	if err != nil {
+		c.l.Errorf("failed fetching user: %v\n", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	dto := saltdata.PostDTO{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		c.l.Errorf("failure saving post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	id, err := strconv.ParseUint(dto.Id, 0, 64)
+	if err != nil {
+		c.l.Errorf("failed to convert id post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	_, err = c.cc.SavePost(context.Background(), &prcontent.SavePostRequest{UserId: user.Id, PostId: id})
+
+	if err != nil {
+		c.l.Errorf("failed to save post: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}

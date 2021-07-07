@@ -3,7 +3,7 @@
     <div class="reactions-main">
       <TopBar style="position: sticky; z-index: 2"/>
       <div id="reactions-header-div">
-        <h1 style="letter-spacing: 1px">Reactions</h1>
+        <h1 style="letter-spacing: 1px">Location {{$route.params.name}}</h1>
       </div>
       <v-layout class="user-media"
                 column>
@@ -18,7 +18,7 @@ import TopBar from "@/components/TopBar";
 import PostOnUserPage from "@/components/user_page_components/PostOnUserPage";
 
 export default {
-  name: "Reactions",
+  name: "Location",
   components: { TopBar, PostOnUserPage },
   data() {
     return {
@@ -27,27 +27,20 @@ export default {
     }
   },
   mounted() {
-    this.loadReactedContent();
+    this.loadLocationContent();
   },
   methods: {
-    loadReactedContent() {
+    loadLocationContent() {
       this.refreshToken(this.getAHeader())
-          .then(rr => {
-            this.$store.state.jws = rr.data;
-            let config = {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': 'Bearer ' + this.$store.state.jws,
-              },
-            };
-
-            this.axios.get('content/reaction/user', config)
+            .then(rr => {
+              this.$store.state.jws = rr.data;
+                this.axios.get('content/location/' + this.$route.params.name, {headers: this.getAHeader()})
                 .then(r => {
                   this.content = r.data
                   console.log(this.content)
                 })
                 .catch(r => console.log(r));
-          }).catch(() => this.$router.push('/'));
+        })
     }
   }
 }

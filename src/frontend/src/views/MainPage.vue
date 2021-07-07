@@ -17,24 +17,24 @@
                     style="background-color: transparent;"
                     column>
             <v-layout class="inner-story-layout"
-                      style=";background-color: transparent;">
+                      style="background-color: transparent;">
 
-              <MyNoStory/>
+              <MyNoStory v-if="!myStoriesExist" :user="loggedUser"/>
 
-              <MyCloseFriendStory/>
+              <MyCloseFriendStory v-if="myStoriesExist && myStories.closeFriends" :user="loggedUser" :stories="myStories"/>
 
-              <MyStory/>
+              <MyStory v-if="myStoriesExist && !myStories.closeFriends" :user="loggedUser" :stories="myStories" />
 
-              <MySeenStory/>
+<!--              <MySeenStory/>-->
+              <div v-for="(item, index) in pageStories" :key="index">
+                <Story v-if="!item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" />
 
-              <Story/>
+                <StoryCloseFriends v-else-if="item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement"/>
 
-              <StoryCloseFriends/>
+<!--                <StorySeen/>-->
 
-              <StorySeen/>
-
-              <StoryMuted/>
-
+<!--                <StoryMuted />-->
+              </div>
             </v-layout>
           </v-layout >
         </div>
@@ -42,18 +42,21 @@
         <div id="posts-div"
              style="background-color: transparent;">
 
-          <div style="margin-top: 5px">
-            <v-btn class="new-posts-button" width="150px">+ new posts</v-btn>
-          </div>
+<!--          <div style="margin-top: 5px">-->
+<!--            <v-btn class="new-posts-button" width="150px">+ new posts</v-btn>-->
+<!--          </div>-->
 
-          <PostOnMainPage v-for="index in 3" :key="index"/>
+          <PostOnMainPage v-for="(item, index) in pagePostsSorted"
+                          :user="item.user"
+                          :post-element="item.postElement"
+                          :key="index"/>
 
         </div>
       </div>
       <div id="suggestions-div"
            style="background-color: transparent;">
 
-        <UserProfileHead />
+        <UserProfileHead :user="loggedUser"/>
 
         <div id="suggestions-info"
              style="background-color: transparent">
@@ -105,18 +108,141 @@ export default {
     return {
       input: '',
       search: '',
+      followingUsers: [],
+      pagePosts: [],
+      pagePostsSorted: [],
+      pageStories: [],
+      myStories: {},
+      myStoriesExist: null,
+      postsInfo: {},
+      loggedUser: {},
     }
   },
   methods: {
-    insert(emoji) {
-      this.input += emoji
-    },
-    append(emoji) {
-      this.input += emoji
-    },
     scrollUp() {
       window.scrollTo(0, 0)
+    },
+    getLoggedUserInfo() {
+      this.axios.get('users', {headers: this.getAHeader()})
+          .then(r => {
+            this.loggedUser = r.data;
+            // console.log(this.loggedUser)
+            this.getFollowingUsers();
+          })
+          .catch(err => {
+            console.log(err)
+          })
+    },
+    getFollowingUsers: function() {
+      this.axios.get("users/following/detailed/" + this.loggedUser.username, {headers: this.getAHeader()})
+          .then(r => {
+            // console.log(r.data);
+            this.followingUsers = r.data;
+            // console.log(this.followingUsers)
+            this.myStories = {};
+            this.getUserPosts(this.loggedUser, 0)
+            this.getUserStories(this.loggedUser, -1)
+            if (this.followingUsers === null || this.followingUsers === 0) return;
+            for(let i = 0; i < this.followingUsers.length; ++i) {
+              let currentUser = this.followingUsers[i];
+              if (currentUser.following && !currentUser.pending) {
+                this.getUserPosts(currentUser, i);
+                this.getUserStories(currentUser, i);
+              }
+            }
+          })
+    },
+    getUserPosts: function (currentUser, i) {
+      // console.log('currentUser Username: ' + currentUser.username)
+      // console.log('currentUser ID: ' + currentUser.id)
+      this.axios.get("content/post/" + currentUser.id, {headers: this.getAHeader()})
+          .then(r => {
+            // console.log(r.data);
+            r.data.forEach(el => {
+              let postElement = {
+                user: currentUser,
+                postElement: el
+              }
+              this.pagePosts.push(postElement)
+            })
+            // console.log('i: ', i)
+            // console.log('this.followingUsers.length: ', this.followingUsers.length)
+            if (this.followingUsers !== null) {
+              if ( i + 1 === this.followingUsers.length) {
+                this.sortPosts()
+              }
+            }
+          }).catch(err => {
+            console.log(err)
+        // this.$router.push('/');
+      })
+    },
+    sortPosts() {
+      this.pagePosts.sort(function (a,b) {
+        let index1 = a.postElement.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+        let index2 = b.postElement.post.sharedMedia.media[0].addedOn.indexOf('CEST') + 4
+        let d1 = new Date(a.postElement.post.sharedMedia.media[0].addedOn.substring(0, index1).replace('CEST', '(CEST)'))
+        let d2 = new Date(b.postElement.post.sharedMedia.media[0].addedOn.substring(0, index2).replace('CEST', '(CEST)'))
+        if (d1 < d2) {
+          return 1;
+        }
+        if (d1 > d2) {
+          return -1;
+        }
+        // dates must be equal
+        return 0;
+      });
+      this.pagePostsSorted = this.pagePosts;
+      // console.log(this.pagePosts)
+    },
+    getUserStories(currentUser, i) {
+        // console.log(currentUser, i)
+      this.axios.get("content/story/" + currentUser.id, {headers: this.getAHeader()})
+          .then(r => {
+            console.log(r.data)
+            let validStories = []
+            const oneDay = 60 * 60 * 24 * 1000;
+            r.data.forEach(el1 => {
+              el1.stories.forEach(el2 => {
+                let index = el2.addedOn.indexOf('CEST') + 4
+                let storyDate = new Date(el2.addedOn.substring(0, index).replace('CEST', '(CEST)'))
+                // console.log(storyDate)
+                if ((Date.now() - storyDate) < oneDay) validStories.push(el1)
+              })
+            })
+
+            // console.log(validStories)
+
+            let storyElement = {
+              user: currentUser,
+              storyElement: validStories,
+              closeFriends: false,
+            }
+
+            storyElement.storyElement.forEach(el => {
+              if (el.closeFriends) {
+                storyElement.closeFriends = true;
+              }
+            })
+
+            if (i === -1) {
+              this.myStories = storyElement;
+              if (this.myStories.storyElement.length !== 0) this.myStoriesExist = true;
+              else this.myStoriesExist = false;
+              console.log('IDE GAS: ', this.myStories)
+              // console.log(this.myStoriesExist)
+            }
+            else this.pageStories.push(storyElement);
+
+          }).catch(err => {
+            console.log(err)
+            this.$router.push('/');
+      })
     }
+  },
+  mounted() {
+    this.getLoggedUserInfo()
+    // window.setTimeout(function () {this.sortPosts()}, 100)
   },
   directives: {
     focus: {

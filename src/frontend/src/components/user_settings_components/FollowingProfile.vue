@@ -1,18 +1,21 @@
 <template>
   <div class="profile">
     <div style="width: 70px">
-      <v-img  class="head"
-              src="https://i.pinimg.com/564x/4e/c4/f2/4ec4f2d69c9bc6b152abcb420252c3a8.jpg"
-              @click="$router.push('/user')"
+      <v-img  v-if="this.pictureProp"
+              class="head"
+              :src="this.pictureProp"
+              @click="$router.push('/user/' + usernameProp)"
               alt="Profile picture"/>
+       <v-img v-else class="head"
+          @click="$router.push('/user/' + usernameProp)"
+          :src="require('@/assets/profile_placeholder.png')"/>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-left; width: auto; padding-top: 5px; overflow-x: hidden">
-      <h3>@USERNAME</h3>
-      <h5>Ime i prezime</h5>
+      <h3>@{{usernameProp}}</h3>
     </div>
     <div style="margin: 0 3px; text-align: -webkit-center">
       <v-btn v-if="!clicked"
-             @click="clicked=!clicked"
+             @click="addCloseFriend()"
              depressed
              class="add-button">
         add
@@ -34,7 +37,33 @@ export default {
     return {
       clicked: false,
     }
-  }
+  },
+  props: {
+    usernameProp: {
+      type: String,
+      required: true
+    },
+    pictureProp: {
+      type: String,
+      required: true,
+    }
+  },
+  methods: {
+    addCloseFriend: function() {
+      let dto = {
+        profile: this.usernameProp,
+      }
+      this.axios.post('/users/add/closefrined', dto,  {headers: this.getAHeader()})
+      .then(r => {
+        console.log(r);
+        this.$emit('refresh');
+        this.clicked = !this.clicked;
+      })
+      .cathc(r =>{
+        console.log(r);
+      })
+    }
+  },
 }
 </script>
 

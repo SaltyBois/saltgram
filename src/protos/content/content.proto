@@ -11,7 +11,7 @@ service Content {
     rpc GetComments(GetCommentsRequest) returns(GetCommentsResponse);
 
     rpc GetReactions(GetReactionsRequest) returns(stream GetReactionsResponse);
-    rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
+    //rpc GetPostsByUserReaction(GetPostsRequest) returns(stream GetPostsResponse);
     rpc GetHighlights(GetHighlightsRequest) returns (GetHighlightsResponse);
     rpc GetPostPreviewURL(GetPostPreviewURLRequest) returns (GetPostPreviewURLResponse);
     
@@ -31,6 +31,15 @@ service Content {
     rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
     rpc DeleteSharedMedia(DeleteSharedMediaRequest) returns (DeleteSharedMediaResponse);
     rpc GetPostUserId(GetPostUserIdRequest) returns (GetPostUserIdResponse);
+
+    rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
+    rpc GetTagsByName(GetTagsByNameRequest) returns (GetTagsByNameResponse);
+    rpc GetPostsByUserReaction(GetPostsByUserReactionRequest) returns (GetPostsByUserReactionResponse);
+    rpc GetLocationNames(GetLocationNamesRequest) returns (GetLocationNamesResponse);
+    rpc SearchContentLocation(SearchContentLocationRequest) returns (SearchContentLocationResponse);
+    rpc SavePost(SavePostRequest) returns (SavePostResponse);
+    rpc GetSavedPosts(GetSavedPostsRequest) returns (GetSavedPostsResponse);
+    rpc GetTaggedPosts(GetTaggedPostsRequest) returns (GetTaggedPostsResponse);
 }
 
 message GetPostUserIdRequest {
@@ -145,6 +154,7 @@ message Media {
     string url = 8;
     uint64 id = 9;
     EMimeType mimeType = 10;
+    repeated UserTag userTags = 11;
 }
 
 message Tag {
@@ -152,11 +162,17 @@ message Tag {
     uint64 id = 2;
 }
 
+message UserTag {
+    uint64 id = 1;
+}
+
 message Location {
     string country = 1;
 	string state = 2;
     string zipCode = 3;
-	string street = 4;
+    string city = 4;
+	string street = 5;
+    string name = 6;
 }
 
 message SharedMedia {
@@ -172,8 +188,10 @@ message SharedMedia {
 
 message Post {
     string id = 1;
-    uint64 userId = 2;
+    string userId = 2;
     SharedMedia sharedMedia = 3;
+    string username = 4;
+    string profilePicture = 5;
 }
 
 message GetPostsResponse {
@@ -295,3 +313,66 @@ message PutReactionRequest {
 }
 
 message PutReactionResponse {}
+
+message SearchContentRequest {
+    string value = 1;
+}
+
+message SearchContentResponse {
+    repeated Post post = 1;
+}
+
+message GetTagsByNameRequest {
+    string query = 1;
+}
+
+message GetTagsByNameResponse {
+    repeated string name = 1;
+}
+
+message GetPostsByUserReactionRequest {
+    uint64 id = 1;
+}
+
+message GetPostsByUserReactionResponse {
+    repeated Post post = 1;
+}
+
+message GetLocationNamesRequest {
+    string query = 1;
+}
+
+message GetLocationNamesResponse {
+    repeated string name = 1;
+}
+
+message SearchContentLocationRequest {
+    string name = 1;
+}
+
+message SearchContentLocationResponse {
+    repeated Post post = 1;
+}
+
+message SavePostRequest {
+    uint64 userId = 1;
+    uint64 postId = 2;
+}
+
+message SavePostResponse {}
+
+message GetSavedPostsRequest {
+    uint64 userId = 1;
+}
+
+message GetSavedPostsResponse {
+    repeated Post post = 1;
+}
+
+message GetTaggedPostsRequest {
+    uint64 userId = 1;
+}
+
+message GetTaggedPostsResponse {
+    repeated Post post = 1;
+}
