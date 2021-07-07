@@ -330,12 +330,9 @@ message CloseFriendRequest {
 }
 message CloseFriendResposne {}
 
-<<<<<<< HEAD
 message DeleteProfileResponse {}
 
-=======
 message ProfileMBCF {
     string username = 1;
     string profilePictureURL = 2;
 }
->>>>>>> develop

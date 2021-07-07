@@ -45,9 +45,7 @@ type UsersClient interface {
 	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error)
-<<<<<<< HEAD
 	DeleteProfile(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*DeleteProfileResponse, error)
-=======
 	GetMutedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetMutedProfilesClient, error)
 	MuteProfile(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*MuteProfileResponse, error)
 	UnmuteProfile(ctx context.Context, in *UnmuteProfileRequest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error)
@@ -60,7 +58,6 @@ type UsersClient interface {
 	GetProfilesForCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetProfilesForCloseFriendsClient, error)
 	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
->>>>>>> develop
 }
 
 type usersClient struct {
@@ -429,11 +426,15 @@ func (c *usersClient) VerifyProfile(ctx context.Context, in *VerifyProfileReques
 	return out, nil
 }
 
-<<<<<<< HEAD
 func (c *usersClient) DeleteProfile(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*DeleteProfileResponse, error) {
 	out := new(DeleteProfileResponse)
 	err := c.cc.Invoke(ctx, "/Users/DeleteProfile", in, out, opts...)
-=======
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *usersClient) GetMutedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetMutedProfilesClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[5], "/Users/GetMutedProfiles", opts...)
 	if err != nil {
@@ -628,7 +629,6 @@ func (c *usersClient) AddCloseFriend(ctx context.Context, in *CloseFriendRequest
 func (c *usersClient) RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error) {
 	out := new(CloseFriendResposne)
 	err := c.cc.Invoke(ctx, "/Users/RemoveCloseFriend", in, out, opts...)
->>>>>>> develop
 	if err != nil {
 		return nil, err
 	}
@@ -666,9 +666,7 @@ type UsersServer interface {
 	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error)
-<<<<<<< HEAD
 	DeleteProfile(context.Context, *Profile) (*DeleteProfileResponse, error)
-=======
 	GetMutedProfiles(*Profile, Users_GetMutedProfilesServer) error
 	MuteProfile(context.Context, *MuteProfileRequest) (*MuteProfileResponse, error)
 	UnmuteProfile(context.Context, *UnmuteProfileRequest) (*UnmuteProfileResponse, error)
@@ -681,7 +679,6 @@ type UsersServer interface {
 	GetProfilesForCloseFriends(*Profile, Users_GetProfilesForCloseFriendsServer) error
 	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
->>>>>>> develop
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -770,10 +767,9 @@ func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *Profl
 func (UnimplementedUsersServer) VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyProfile not implemented")
 }
-<<<<<<< HEAD
 func (UnimplementedUsersServer) DeleteProfile(context.Context, *Profile) (*DeleteProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProfile not implemented")
-=======
+}
 func (UnimplementedUsersServer) GetMutedProfiles(*Profile, Users_GetMutedProfilesServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetMutedProfiles not implemented")
 }
@@ -809,7 +805,6 @@ func (UnimplementedUsersServer) AddCloseFriend(context.Context, *CloseFriendRequ
 }
 func (UnimplementedUsersServer) RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveCloseFriend not implemented")
->>>>>>> develop
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1325,10 +1320,24 @@ func _Users_VerifyProfile_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-<<<<<<< HEAD
 func _Users_DeleteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Profile)
-=======
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).DeleteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/DeleteProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).DeleteProfile(ctx, req.(*Profile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Users_GetMutedProfiles_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(Profile)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1541,21 +1550,10 @@ func _Users_AddCloseFriend_Handler(srv interface{}, ctx context.Context, dec fun
 
 func _Users_RemoveCloseFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CloseFriendRequest)
->>>>>>> develop
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-<<<<<<< HEAD
-		return srv.(UsersServer).DeleteProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Users/DeleteProfile",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).DeleteProfile(ctx, req.(*Profile))
-=======
 		return srv.(UsersServer).RemoveCloseFriend(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
@@ -1564,7 +1562,6 @@ func _Users_RemoveCloseFriend_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UsersServer).RemoveCloseFriend(ctx, req.(*CloseFriendRequest))
->>>>>>> develop
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1665,10 +1662,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Users_VerifyProfile_Handler,
 		},
 		{
-<<<<<<< HEAD
 			MethodName: "DeleteProfile",
 			Handler:    _Users_DeleteProfile_Handler,
-=======
+		},
+		{
 			MethodName: "MuteProfile",
 			Handler:    _Users_MuteProfile_Handler,
 		},
@@ -1699,7 +1696,6 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveCloseFriend",
 			Handler:    _Users_RemoveCloseFriend_Handler,
->>>>>>> develop
 		},
 	},
 	Streams: []grpc.StreamDesc{

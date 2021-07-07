@@ -40,10 +40,8 @@ type ContentClient interface {
 	AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error)
 	AddHighlight(ctx context.Context, in *AddHighlightRequest, opts ...grpc.CallOption) (*AddHighlightResponse, error)
 	PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error)
-<<<<<<< HEAD
 	DeleteSharedMedia(ctx context.Context, in *DeleteSharedMediaRequest, opts ...grpc.CallOption) (*DeleteSharedMediaResponse, error)
 	GetPostUserId(ctx context.Context, in *GetPostUserIdRequest, opts ...grpc.CallOption) (*GetPostUserIdResponse, error)
-=======
 	SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error)
 	GetTagsByName(ctx context.Context, in *GetTagsByNameRequest, opts ...grpc.CallOption) (*GetTagsByNameResponse, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsByUserReactionRequest, opts ...grpc.CallOption) (*GetPostsByUserReactionResponse, error)
@@ -52,7 +50,6 @@ type ContentClient interface {
 	SavePost(ctx context.Context, in *SavePostRequest, opts ...grpc.CallOption) (*SavePostResponse, error)
 	GetSavedPosts(ctx context.Context, in *GetSavedPostsRequest, opts ...grpc.CallOption) (*GetSavedPostsResponse, error)
 	GetTaggedPosts(ctx context.Context, in *GetTaggedPostsRequest, opts ...grpc.CallOption) (*GetTaggedPostsResponse, error)
->>>>>>> develop
 }
 
 type contentClient struct {
@@ -403,26 +400,33 @@ func (c *contentClient) PutReaction(ctx context.Context, in *PutReactionRequest,
 	return out, nil
 }
 
-<<<<<<< HEAD
 func (c *contentClient) DeleteSharedMedia(ctx context.Context, in *DeleteSharedMediaRequest, opts ...grpc.CallOption) (*DeleteSharedMediaResponse, error) {
 	out := new(DeleteSharedMediaResponse)
 	err := c.cc.Invoke(ctx, "/Content/DeleteSharedMedia", in, out, opts...)
-=======
-func (c *contentClient) SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error) {
-	out := new(SearchContentResponse)
-	err := c.cc.Invoke(ctx, "/Content/SearchContent", in, out, opts...)
->>>>>>> develop
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-<<<<<<< HEAD
 func (c *contentClient) GetPostUserId(ctx context.Context, in *GetPostUserIdRequest, opts ...grpc.CallOption) (*GetPostUserIdResponse, error) {
 	out := new(GetPostUserIdResponse)
 	err := c.cc.Invoke(ctx, "/Content/GetPostUserId", in, out, opts...)
-=======
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error) {
+	out := new(SearchContentResponse)
+	err := c.cc.Invoke(ctx, "/Content/SearchContent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) GetTagsByName(ctx context.Context, in *GetTagsByNameRequest, opts ...grpc.CallOption) (*GetTagsByNameResponse, error) {
 	out := new(GetTagsByNameResponse)
 	err := c.cc.Invoke(ctx, "/Content/GetTagsByName", in, out, opts...)
@@ -480,7 +484,6 @@ func (c *contentClient) GetSavedPosts(ctx context.Context, in *GetSavedPostsRequ
 func (c *contentClient) GetTaggedPosts(ctx context.Context, in *GetTaggedPostsRequest, opts ...grpc.CallOption) (*GetTaggedPostsResponse, error) {
 	out := new(GetTaggedPostsResponse)
 	err := c.cc.Invoke(ctx, "/Content/GetTaggedPosts", in, out, opts...)
->>>>>>> develop
 	if err != nil {
 		return nil, err
 	}
@@ -513,10 +516,8 @@ type ContentServer interface {
 	AddProfilePicture(Content_AddProfilePictureServer) error
 	AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error)
 	PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error)
-<<<<<<< HEAD
 	DeleteSharedMedia(context.Context, *DeleteSharedMediaRequest) (*DeleteSharedMediaResponse, error)
 	GetPostUserId(context.Context, *GetPostUserIdRequest) (*GetPostUserIdResponse, error)
-=======
 	SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error)
 	GetTagsByName(context.Context, *GetTagsByNameRequest) (*GetTagsByNameResponse, error)
 	GetPostsByUserReaction(context.Context, *GetPostsByUserReactionRequest) (*GetPostsByUserReactionResponse, error)
@@ -525,7 +526,6 @@ type ContentServer interface {
 	SavePost(context.Context, *SavePostRequest) (*SavePostResponse, error)
 	GetSavedPosts(context.Context, *GetSavedPostsRequest) (*GetSavedPostsResponse, error)
 	GetTaggedPosts(context.Context, *GetTaggedPostsRequest) (*GetTaggedPostsResponse, error)
->>>>>>> develop
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -590,13 +590,12 @@ func (UnimplementedContentServer) AddHighlight(context.Context, *AddHighlightReq
 func (UnimplementedContentServer) PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutReaction not implemented")
 }
-<<<<<<< HEAD
 func (UnimplementedContentServer) DeleteSharedMedia(context.Context, *DeleteSharedMediaRequest) (*DeleteSharedMediaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSharedMedia not implemented")
 }
 func (UnimplementedContentServer) GetPostUserId(context.Context, *GetPostUserIdRequest) (*GetPostUserIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPostUserId not implemented")
-=======
+}
 func (UnimplementedContentServer) SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchContent not implemented")
 }
@@ -620,7 +619,6 @@ func (UnimplementedContentServer) GetSavedPosts(context.Context, *GetSavedPostsR
 }
 func (UnimplementedContentServer) GetTaggedPosts(context.Context, *GetTaggedPostsRequest) (*GetTaggedPostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTaggedPosts not implemented")
->>>>>>> develop
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -1018,18 +1016,12 @@ func _Content_PutReaction_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-<<<<<<< HEAD
 func _Content_DeleteSharedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteSharedMediaRequest)
-=======
-func _Content_SearchContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchContentRequest)
->>>>>>> develop
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-<<<<<<< HEAD
 		return srv.(ContentServer).DeleteSharedMedia(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
@@ -1038,32 +1030,16 @@ func _Content_SearchContent_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ContentServer).DeleteSharedMedia(ctx, req.(*DeleteSharedMediaRequest))
-=======
-		return srv.(ContentServer).SearchContent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Content/SearchContent",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContentServer).SearchContent(ctx, req.(*SearchContentRequest))
->>>>>>> develop
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-<<<<<<< HEAD
 func _Content_GetPostUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPostUserIdRequest)
-=======
-func _Content_GetTagsByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTagsByNameRequest)
->>>>>>> develop
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-<<<<<<< HEAD
 		return srv.(ContentServer).GetPostUserId(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
@@ -1072,7 +1048,34 @@ func _Content_GetTagsByName_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ContentServer).GetPostUserId(ctx, req.(*GetPostUserIdRequest))
-=======
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_SearchContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).SearchContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/SearchContent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).SearchContent(ctx, req.(*SearchContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_GetTagsByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTagsByNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
 		return srv.(ContentServer).GetTagsByName(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
@@ -1189,7 +1192,6 @@ func _Content_GetTaggedPosts_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ContentServer).GetTaggedPosts(ctx, req.(*GetTaggedPostsRequest))
->>>>>>> develop
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1250,14 +1252,14 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Content_PutReaction_Handler,
 		},
 		{
-<<<<<<< HEAD
 			MethodName: "DeleteSharedMedia",
 			Handler:    _Content_DeleteSharedMedia_Handler,
 		},
 		{
 			MethodName: "GetPostUserId",
 			Handler:    _Content_GetPostUserId_Handler,
-=======
+		},
+		{
 			MethodName: "SearchContent",
 			Handler:    _Content_SearchContent_Handler,
 		},
@@ -1288,7 +1290,6 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTaggedPosts",
 			Handler:    _Content_GetTaggedPosts_Handler,
->>>>>>> develop
 		},
 	},
 	Streams: []grpc.StreamDesc{
