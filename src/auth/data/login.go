@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 )
 
@@ -12,9 +13,24 @@ type Refresh struct {
 	Token    string `json:"token" validate:"required"`
 }
 
+type RefreshClaims struct {
+	Username       string             `json:"username"`
+	StandardClaims jwt.StandardClaims `json:"standardClaims"`
+}
+
 func (r *Refresh) Validate() error {
 	validate := validator.New()
 	return validate.Struct(r)
+}
+
+var ErrorEmptyClaims = fmt.Errorf("empty credentials")
+
+func (rc RefreshClaims) Valid() error {
+	if len(rc.Username) <= 0 {
+		return ErrorEmptyClaims
+	}
+
+	return rc.StandardClaims.Valid()
 }
 
 func AddRefreshToken(db *DBConn, username, token string) error {
@@ -46,4 +62,9 @@ func (r *Refresh) Verify(db *DBConn) error {
 	// NOTE(Jovan): https://gorm.io/docs/security.html
 	rt := Refresh{}
 	return db.DB.Where("TOKEN = ?", r.Token).First(&rt).Error
+}
+
+func DeleteRefreshToken(db *DBConn, username string) error {
+	r := Refresh{}
+	return db.DB.Where("usermane = ?", username).Delete(&r).Error
 }

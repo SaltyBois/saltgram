@@ -6,6 +6,7 @@ import (
 	"os"
 	"saltgram/content/gdrive"
 	"saltgram/content/grpc/servers"
+	"saltgram/content/saga"
 	"saltgram/log"
 	"saltgram/pki"
 	"saltgram/protos/content/prcontent"
@@ -34,6 +35,9 @@ func main() {
 	db.MigradeData()
 
 	g := gdrive.NewGDrive(l.L)
+
+	rs := saga.NerRedisClient(l.L, db, g)
+	rs.Connection()
 
 	gContentServer := servers.NewContent(l.L, db, g)
 	grpcServer := s.NewServer()

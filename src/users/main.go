@@ -13,6 +13,7 @@ import (
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
 	"saltgram/users/grpc/servers"
+	"saltgram/users/saga"
 
 	"google.golang.org/grpc/reflection"
 )
@@ -52,7 +53,11 @@ func main() {
 	}
 	cc := prcontent.NewContentClient(cconn)
 
-	gUsersServer := servers.NewUsers(l.L, db, ac, ec, cc)
+	rc := saga.NerRedisClient(l.L, db, ec)
+	go rc.Start()
+	go rc.Connection()
+
+	gUsersServer := servers.NewUsers(l.L, db, ac, ec, cc, rc)
 	grpcServer := s.NewServer()
 	prusers.RegisterUsersServer(grpcServer, gUsersServer)
 	reflection.Register(grpcServer)

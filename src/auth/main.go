@@ -6,6 +6,7 @@ import (
 	"os"
 	"saltgram/auth/data"
 	"saltgram/auth/grpc/servers"
+	"saltgram/auth/saga"
 	"saltgram/internal"
 	"saltgram/log"
 	"saltgram/pki"
@@ -47,6 +48,10 @@ func main() {
 	defer usersConnection.Close()
 
 	usersClient := prusers.NewUsersClient(usersConnection)
+
+	redisclient := saga.NewRedisClient(l.L, db)
+	redisclient.Connection()
+
 	gAuthServer := servers.NewAuth(l.L, authEnforcer, db, usersClient)
 	prauth.RegisterAuthServer(grpcServer, gAuthServer)
 	reflection.Register(grpcServer)

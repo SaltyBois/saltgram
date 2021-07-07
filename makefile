@@ -18,7 +18,7 @@ protos:
 	cd $(MAINDIR) && protoc -I protos/ protos/*/*.proto --go_out=protos/ --go-grpc_out=protos/
 
 backend:
-	make -j 6 api auth users email content admin
+	make -j 6 users api auth  email content admin
 
 api:
 	cd $(APIDIR) && go run main.go
