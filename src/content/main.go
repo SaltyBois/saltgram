@@ -37,7 +37,7 @@ func main() {
 	g := gdrive.NewGDrive(l.L)
 
 	rs := saga.NerRedisClient(l.L, db, g)
-	rs.Connection()
+	go rs.Connection()
 
 	gContentServer := servers.NewContent(l.L, db, g)
 	grpcServer := s.NewServer()

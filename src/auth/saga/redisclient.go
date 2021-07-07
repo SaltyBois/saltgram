@@ -53,6 +53,7 @@ func (rc *redisClient) Connection() {
 			switch msg.Channel {
 			case AuthChannel:
 				if m.Action == ActionStart {
+					ok := true
 					refreshClaims := data.RefreshClaims{
 						Username: m.Username,
 						StandardClaims: jwt.StandardClaims{
@@ -65,14 +66,19 @@ func (rc *redisClient) Connection() {
 					jws, err := token.SignedString([]byte(os.Getenv("REF_SECRET_KEY")))
 					if err != nil {
 						rc.l.Errorf("failure signing refresh token")
-						sendToReplyChannel(client, &m, ActionError, UserService, AuthService, rc.l)
+						ok = false
 					}
 					err = data.AddRefreshToken(rc.db, m.Username, jws)
 					if err != nil {
 						rc.l.Errorf("adding refresh token: %v\n", err)
+						ok = false
+					}
+					if ok {
+						sendToReplyChannel(client, &m, ActionDone, ContentService, AuthService, rc.l)
+					} else {
 						sendToReplyChannel(client, &m, ActionError, UserService, AuthService, rc.l)
 					}
-					sendToReplyChannel(client, &m, ActionDone, ContentService, AuthService, rc.l)
+
 				}
 
 				if m.Action == ActionRollback {

@@ -65,6 +65,7 @@ func (rc *RedisClient) Connection() {
 			switch msg.Channel {
 			case UserChannel:
 				if m.Action == ActionStart {
+					ok := true
 					profile := data.Profile{
 						Username:        m.Username,
 						UserID:          m.UserId,
@@ -87,14 +88,18 @@ func (rc *RedisClient) Connection() {
 					err = rc.db.AddProfile(&profile)
 					if err != nil {
 						rc.l.Errorf("adding profile: %v\n", err)
+						ok = false
+					}
+					if ok {
+						go func() {
+							_, err := rc.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: m.Email})
+							if err != nil {
+								rc.l.Errorf("failure sending activation request: %v\n", err)
+							}
+						}()
+					} else {
 						sendToReplyChannel(client, &m, ActionError, ContentService, UserService, rc.l)
 					}
-					go func() {
-						_, err := rc.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: m.Email})
-						if err != nil {
-							rc.l.Errorf("failure sending activation request: %v\n", err)
-						}
-					}()
 				}
 				if m.Action == ActionRollback {
 					rc.db.DeleteUser(m.Username)

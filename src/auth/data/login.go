@@ -66,5 +66,5 @@ func (r *Refresh) Verify(db *DBConn) error {
 
 func DeleteRefreshToken(db *DBConn, username string) error {
 	r := Refresh{}
-	return db.DB.Where("usermane = ?", username).Delete(&r).Error
+	return db.DB.Where("username = ?", username).Delete(&r).Error
 }

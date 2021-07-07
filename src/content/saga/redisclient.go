@@ -53,16 +53,21 @@ func (rc *redisClient) Connection() {
 			switch msg.Channel {
 			case ContentChannel:
 				if m.Action == ActionStart {
+					ok := true
 					userId := strconv.FormatUint(m.UserId, 10)
 					profile, posts, stories, err := rc.g.CreateUserFolder(userId)
 					if err != nil {
 						rc.l.Errorf("failed to create user folders: %v", err)
+						ok = false
+					}
+					if ok {
+						m.ProfileFolderId = profile
+						m.PostsFolderId = posts
+						m.StoriesFolderId = stories
+						sendToReplyChannel(client, &m, ActionDone, UserService, ContentService, rc.l)
+					} else {
 						sendToReplyChannel(client, &m, ActionError, AuthService, ContentService, rc.l)
 					}
-					m.ProfileFolderId = profile
-					m.PostsFolderId = posts
-					m.StoriesFolderId = stories
-					sendToReplyChannel(client, &m, ActionDone, UserService, ContentService, rc.l)
 				}
 				if m.Action == ActionRollback {
 					rc.g.DeleteFile(m.ProfileFolderId)
