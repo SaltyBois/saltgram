@@ -48,6 +48,8 @@ type ContentClient interface {
 	SavePost(ctx context.Context, in *SavePostRequest, opts ...grpc.CallOption) (*SavePostResponse, error)
 	GetSavedPosts(ctx context.Context, in *GetSavedPostsRequest, opts ...grpc.CallOption) (*GetSavedPostsResponse, error)
 	GetTaggedPosts(ctx context.Context, in *GetTaggedPostsRequest, opts ...grpc.CallOption) (*GetTaggedPostsResponse, error)
+	GetCampaignByUser(ctx context.Context, in *GetCampaignByUserRequest, opts ...grpc.CallOption) (*GetCampaignByUserResponse, error)
+	AddInfluencerToCampaign(ctx context.Context, in *AddInfluencerToCampaignRequest, opts ...grpc.CallOption) (*AddInfluencerToCampaignResponse, error)
 }
 
 type contentClient struct {
@@ -470,6 +472,24 @@ func (c *contentClient) GetTaggedPosts(ctx context.Context, in *GetTaggedPostsRe
 	return out, nil
 }
 
+func (c *contentClient) GetCampaignByUser(ctx context.Context, in *GetCampaignByUserRequest, opts ...grpc.CallOption) (*GetCampaignByUserResponse, error) {
+	out := new(GetCampaignByUserResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetCampaignByUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) AddInfluencerToCampaign(ctx context.Context, in *AddInfluencerToCampaignRequest, opts ...grpc.CallOption) (*AddInfluencerToCampaignResponse, error) {
+	out := new(AddInfluencerToCampaignResponse)
+	err := c.cc.Invoke(ctx, "/Content/AddInfluencerToCampaign", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContentServer is the server API for Content service.
 // All implementations must embed UnimplementedContentServer
 // for forward compatibility
@@ -504,6 +524,8 @@ type ContentServer interface {
 	SavePost(context.Context, *SavePostRequest) (*SavePostResponse, error)
 	GetSavedPosts(context.Context, *GetSavedPostsRequest) (*GetSavedPostsResponse, error)
 	GetTaggedPosts(context.Context, *GetTaggedPostsRequest) (*GetTaggedPostsResponse, error)
+	GetCampaignByUser(context.Context, *GetCampaignByUserRequest) (*GetCampaignByUserResponse, error)
+	AddInfluencerToCampaign(context.Context, *AddInfluencerToCampaignRequest) (*AddInfluencerToCampaignResponse, error)
 	mustEmbedUnimplementedContentServer()
 }
 
@@ -591,6 +613,12 @@ func (UnimplementedContentServer) GetSavedPosts(context.Context, *GetSavedPostsR
 }
 func (UnimplementedContentServer) GetTaggedPosts(context.Context, *GetTaggedPostsRequest) (*GetTaggedPostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTaggedPosts not implemented")
+}
+func (UnimplementedContentServer) GetCampaignByUser(context.Context, *GetCampaignByUserRequest) (*GetCampaignByUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCampaignByUser not implemented")
+}
+func (UnimplementedContentServer) AddInfluencerToCampaign(context.Context, *AddInfluencerToCampaignRequest) (*AddInfluencerToCampaignResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddInfluencerToCampaign not implemented")
 }
 func (UnimplementedContentServer) mustEmbedUnimplementedContentServer() {}
 
@@ -1132,6 +1160,42 @@ func _Content_GetTaggedPosts_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_GetCampaignByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCampaignByUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetCampaignByUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetCampaignByUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetCampaignByUser(ctx, req.(*GetCampaignByUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_AddInfluencerToCampaign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddInfluencerToCampaignRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).AddInfluencerToCampaign(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/AddInfluencerToCampaign",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).AddInfluencerToCampaign(ctx, req.(*AddInfluencerToCampaignRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Content_ServiceDesc is the grpc.ServiceDesc for Content service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1218,6 +1282,14 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTaggedPosts",
 			Handler:    _Content_GetTaggedPosts_Handler,
+		},
+		{
+			MethodName: "GetCampaignByUser",
+			Handler:    _Content_GetCampaignByUser_Handler,
+		},
+		{
+			MethodName: "AddInfluencerToCampaign",
+			Handler:    _Content_AddInfluencerToCampaign_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

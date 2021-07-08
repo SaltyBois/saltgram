@@ -38,6 +38,29 @@ service Content {
     rpc SavePost(SavePostRequest) returns (SavePostResponse);
     rpc GetSavedPosts(GetSavedPostsRequest) returns (GetSavedPostsResponse);
     rpc GetTaggedPosts(GetTaggedPostsRequest) returns (GetTaggedPostsResponse);
+    rpc GetCampaignByUser(GetCampaignByUserRequest) returns (GetCampaignByUserResponse);
+    rpc AddInfluencerToCampaign(AddInfluencerToCampaignRequest) returns (AddInfluencerToCampaignResponse);
+}
+
+message AddInfluencerToCampaignRequest {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+}
+
+message AddInfluencerToCampaignResponse {}
+
+message GetCampaignByUserRequest {
+    uint64 userId = 1;
+}
+
+message GetCampaignByUserResponse {
+    repeated Campaign campaigns = 1;
+}
+
+message Campaign {
+    string website = 1;
+    string url = 2;
+    uint64 id = 3;
 }
 
 message GetPostPreviewURLRequest {

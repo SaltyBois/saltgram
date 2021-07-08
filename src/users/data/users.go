@@ -28,6 +28,13 @@ type User struct {
 	DeletedOn string `json:"-"`
 }
 
+type InfluencerRequest struct {
+	data.Identifiable
+	InfluencerID uint64 `gorm:"type:numeric" json:"influencerId"`
+	CampaignID uint64 `gorm:"type:numeric" json:"campaignId"`
+	Website string `json:"website"`
+}
+
 func (u *User) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
 	validate := validator.New()
@@ -46,6 +53,22 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func (db *DBConn) AddInfluencerRequest(ir *InfluencerRequest) error {
+	return db.DB.Create(ir).Error
+}
+
+func (db *DBConn) GetInfluencerRequests(influencerId uint64) (*[]InfluencerRequest, error) {
+	ir := []InfluencerRequest{}
+	err := db.DB.Find(&ir).Where("influencer_id = ?", influencerId).Error
+	return &ir, err
+}
+
+func (db *DBConn) RemoveInfluencerRequest(influencerId, campaignId uint64) error {
+	ir := InfluencerRequest{}
+	db.DB.Find(&ir).Where("influencer_id = ? AND campaign_id = ?", influencerId, campaignId)
+	return db.DB.Delete(&ir).Error
 }
 
 var ErrorNewPasswordSameAsOld = fmt.Errorf("new password same as old")

@@ -6,8 +6,6 @@ import (
 	"saltgram/protos/content/prcontent"
 	"strconv"
 
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -55,6 +53,13 @@ type SharedMedia struct {
 	CampaignStart    string    `json:"campaignStart"`
 	CampaignEnd      string    `json:"campaignEnd"`
 	CampaignAgeGroup EAgeGroup `json:"ageGroup"`
+	CampaignInfluencers []Influencer `gorm:"many2many:influencer_campaign;"`
+}
+
+type Influencer struct {
+	data.Identifiable
+	InfluencerID uint64 `gorm:"type:numeric"`
+
 }
 
 type CampaignChange struct {
@@ -183,16 +188,46 @@ func DataToPRMedia(d *Media) *prcontent.Media {
 	}
 }
 
+func (db *DBConn) GetCampaignsByUser(id uint64) (*[]SharedMedia, error) {
+	campaigns := []SharedMedia{}
+	posts, err := db.GetPostByUser(id)
+	if err != nil {
+		return nil, err
+	}
+	stories, err := db.GetStoryByUser(id)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range *posts {
+		if p.SharedMedia.IsCampaign {
+			campaigns = append(campaigns, p.SharedMedia)
+		}
+	}
+	for _, s := range stories {
+		if s.SharedMedia.IsCampaign {
+			campaigns = append(campaigns, s.SharedMedia)
+		}
+	}
+	return &campaigns, err
+}
+
 func (db *DBConn) GetSharedMediaByUser(id uint64) (*[]SharedMedia, error) {
 	sharedMedia := []SharedMedia{}
 	err := db.DB.Where("user_id = ?", id).Find(&sharedMedia).Error
 	return &sharedMedia, err
 }
 
-// TODO(Jovan): REMOVE
-func (m *Media) AfterCreate(tx *gorm.DB) error {
-	logrus.Info("created")
-	return nil
+func (db *DBConn) AddInfluencerToCampaign(campaignId, influencerId uint64) error {
+	sm, err := db.GetSharedMedia(campaignId)
+	if err != nil {
+		return err
+	}
+	in := Influencer{InfluencerID: influencerId}
+	err = db.DB.Create(&in).Error
+	if err != nil {
+		return err
+	}
+	return db.DB.Model(sm).Association("CampaignInfluencers").Append(&in)
 }
 
 func (db *DBConn) AddMediaToSharedMedia(sharedMediaId uint64, media *Media) error {
@@ -268,7 +303,7 @@ func (db *DBConn) AddStory(s *Story) error {
 
 func (db *DBConn) GetSharedMedia(id uint64) (*SharedMedia, error) {
 	sm := &SharedMedia{}
-	res := db.DB.Preload("Media").First(sm, id)
+	res := db.DB.Preload("Media").Preload("CampaignInfluencers").First(sm, id)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -288,12 +323,31 @@ func (db *DBConn) GetStoryByUser(id uint64) ([]*Story, error) {
 		Preload("SharedMedia.Media.Tags").
 		Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).
 		Where("user_id = ?", id).Find(&story).Error
+	if err != nil {
+		return nil, err
+	}
 	for i, s := range story {
 		if len(s.SharedMedia.Media) == 0 {
 			story = append(story[:i], story[i + 1:]...)
 		}
 	}
-	return story, err
+
+	cs := []Story{}
+	err = db.DB.Preload("SharedMedia").Preload("SharedMedia.Media.Tags").
+		Preload("SharedMedia.Media.TaggedUsers").
+		Model(&Story{}).Joins("INNER JOIN shared_media ON shared_media.id = stories.shared_media_id").
+		Joins("INNER JOIN influencer_campaign ic ON shared_media.id = ic.shared_media_id").
+		Joins("INNER JOIN influencers i ON i.id = ic.influencer_id").
+		Where("i.influencer_id = ?", id).Find(&cs).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, s := range cs {
+		if len(s.SharedMedia.Media) != 0 {
+			story = append(story, &s)
+		}
+	}
+	return story, nil
 }
 
 func (db *DBConn) GetStoriesByUserAsMedia(userId uint64) ([]*Media, error) {
@@ -320,9 +374,27 @@ func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 			AND CAST(campaign_end AS DATE) >= CURRENT_DATE)
 		OR NOT is_campaign`).
 	Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
+	if err != nil {
+		return nil, err
+	}
 	for i, p := range post {
 		if len(p.SharedMedia.Media) == 0 {
 			post = append(post[:i], post[i + 1:]...)
+		}
+	}
+	cp := []Post{}
+	err = db.DB.Preload("SharedMedia").Preload("SharedMedia.Media.Tags").
+	Preload("SharedMedia.Media.TaggedUsers").
+	Model(&Post{}).Joins("INNER JOIN shared_media ON shared_media.id = posts.shared_media_id").
+	Joins("INNER JOIN influencer_campaign ic ON shared_media.id = ic.shared_media_id").
+	Joins("INNER JOIN influencers i ON i.id = ic.influencer_id").
+	Where("i.influencer_id = ?", id).Find(&cp).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range cp {
+		if len(p.SharedMedia.Media) != 0 {
+			post = append(post, p)
 		}
 	}
 	return &post, err

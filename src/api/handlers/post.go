@@ -83,6 +83,84 @@ func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("200 - OK"))
 }
 
+func (u *Users) AcceptCampaign(w http.ResponseWriter, r *http.Request) {
+	user, err := getUserByJWS(r, u.uc)
+	if err != nil {
+		u.l.Errorf("failed to get user by jws: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		u.l.Errorf("failure parsing body: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	id, _ := strconv.ParseUint(string(body), 10, 64)
+
+	_, err = u.uc.AcceptInfluencer(context.Background(), &prusers.AcceptInfluencerRequest{
+		InfluencerId: user.Id,
+		CampaignId: id,
+	})
+
+	if err != nil {
+		u.l.Errorf("failed to accept influencer request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	u.l.Infof("Adding influencer: %v", user.Id)
+
+	_, err = u.cc.AddInfluencerToCampaign(context.Background(),&prcontent.AddInfluencerToCampaignRequest{
+		InfluencerId: user.Id,
+		CampaignId: id,
+	})
+
+	if err != nil {
+		u.l.Errorf("failed to add influencer to campaign: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Accepted"))
+}
+
+func (u *Users) SendInfluencerRequest(w http.ResponseWriter, r *http.Request) {
+	_, err := getUserByJWS(r, u.uc)
+	if err != nil {
+		u.l.Errorf("failed to get user by jws: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := struct {
+		InfluencerID string `json:"influencerId"`
+		CampaignID string `json:"campaignId"`
+		Website string `json:"website"`
+	}{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Errorf("failed to read influencer request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	influencerId, _ := strconv.ParseUint(dto.InfluencerID, 10, 64)
+	campaignId, _ := strconv.ParseUint(dto.CampaignID, 10, 64)
+	_, err = u.uc.InfluencerRequest(context.Background(), &prusers.InfluencerRequestRequest{
+		InfluencerId: influencerId,
+		CampaignId: campaignId,
+		Website: dto.Website,
+	})
+	if err != nil {
+		u.l.Errorf("failed to add influencer request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	w.Write([]byte("Requested"))
+}
+
 func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cr := ChangeRequest{}
 

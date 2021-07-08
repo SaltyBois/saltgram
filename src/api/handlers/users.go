@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
 
 	"github.com/dgrijalva/jwt-go"
@@ -15,10 +16,11 @@ import (
 type Users struct {
 	l  *logrus.Logger
 	uc prusers.UsersClient
+	cc prcontent.ContentClient
 }
 
-func NewUsers(l *logrus.Logger, uc prusers.UsersClient) *Users {
-	return &Users{l: l, uc: uc}
+func NewUsers(l *logrus.Logger, uc prusers.UsersClient, cc prcontent.ContentClient) *Users {
+	return &Users{l: l, uc: uc, cc: cc}
 }
 
 var ErrorJWSNotFound = fmt.Errorf("jws not found")

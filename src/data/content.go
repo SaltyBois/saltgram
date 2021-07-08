@@ -97,6 +97,21 @@ type ReactionPutDTO struct {
 	ReactionType string
 }
 
+type CampaignDTO struct {
+	Id string `json:"id"`
+	Website string `json:"website"`
+	URL string `json:"url"`
+}
+
+func PRToDTOCampaign(pr *prcontent.Campaign) *CampaignDTO {
+	id := strconv.FormatUint(pr.Id, 10)
+	return &CampaignDTO{
+		Id: id,
+		Website: pr.Website,
+		URL: pr.Url,
+	}
+}
+
 func PRToDTOStory(pr *prcontent.Story) *StoryDTO {
 	stories := []MediaDTO{}
 	for _, m := range pr.Media {

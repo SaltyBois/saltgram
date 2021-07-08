@@ -29,6 +29,32 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
+func (c *Content) AddInfluencerToCampaign(ctx context.Context, r *prcontent.AddInfluencerToCampaignRequest) (*prcontent.AddInfluencerToCampaignResponse, error) {
+	err := c.db.AddInfluencerToCampaign(r.CampaignId, r.InfluencerId)
+	if err != nil {
+		c.l.Errorf("failed to add influencer to campaign: %v", err)
+		return &prcontent.AddInfluencerToCampaignResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prcontent.AddInfluencerToCampaignResponse{}, nil
+}
+
+func (c *Content) GetCampaignByUser(ctx context.Context, r *prcontent.GetCampaignByUserRequest) (*prcontent.GetCampaignByUserResponse, error) {
+	campaigns, err := c.db.GetCampaignsByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failed to get campaigns: %v", err)
+		return &prcontent.GetCampaignByUserResponse{}, status.Error(codes.NotFound, "Not found")
+	}
+	prc := []*prcontent.Campaign{}
+	for _, c := range *campaigns {
+		prc = append(prc, &prcontent.Campaign{
+			Id: c.ID,
+			Url: c.Media[0].URL,
+			Website: c.CampaignWebsite,
+		})
+	}
+	return &prcontent.GetCampaignByUserResponse{Campaigns: prc}, nil
+}
+
 func (c *Content) GetPostPreviewURL(ctx context.Context, r *prcontent.GetPostPreviewURLRequest) (*prcontent.GetPostPreviewURLResponse, error) {
 	post, err := c.db.GetPost(r.PostId)
 	if err != nil {

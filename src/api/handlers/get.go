@@ -245,6 +245,7 @@ func (u *Users) GetProfile(w http.ResponseWriter, r *http.Request) {
 		Verified:          profile.Verified,
 		AccountType:       profile.AccountType,
 		IsThisMe:          isThisME,
+		PrivateProfile:    !profile.IsPublic,
 	}
 
 	saltdata.ToJSON(response, w)
@@ -363,6 +364,25 @@ func (u *Users) GetFollowingRequest(w http.ResponseWriter, r *http.Request) {
 		profiles = append(profiles, profile)
 	}
 	saltdata.ToJSON(profiles, w)
+}
+
+func (c *Content) GetCampaignsByUser(w http.ResponseWriter, r *http.Request) {
+	user, err := getUserByJWS(r, c.uc)
+	if err != nil {
+		c.l.Errorf("failed to get user by jws: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+	}
+	campaigns, err := c.cc.GetCampaignByUser(context.Background(), &prcontent.GetCampaignByUserRequest{UserId: user.Id})
+	if err != nil {
+		c.l.Errorf("failed to get campaigns: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	dto := []*data.CampaignDTO{}
+	for _, c := range campaigns.Campaigns {
+		dto = append(dto, saltdata.PRToDTOCampaign(c))
+	}
+	saltdata.ToJSON(dto, w)
 }
 
 func (c *Content) GetHighlights(w http.ResponseWriter, r *http.Request) {
@@ -502,6 +522,38 @@ func (s *Content) GetSharedMediaByUser(w http.ResponseWriter, r *http.Request) {
 		saltdata.ToJSON(sharedMedia, w)
 	}
 	w.Write([]byte("}"))
+}
+
+func (u *Users) IsInfluencer(w http.ResponseWriter, r *http.Request) {
+	user, err := getProfileByJWS(r, u.uc)
+	if err != nil {
+		u.l.Errorf("failed to get profile: %v", err)
+		http.Error(w, "Bad reuqest", http.StatusBadRequest)
+		return
+	}
+	if user.AccountType == "INFLUENCER" {
+		w.Write([]byte("true"))
+		return
+	}
+	http.Error(w, "Not influencer", http.StatusBadRequest)
+}
+
+func (u *Users) GetCampaignRequests(w http.ResponseWriter, r *http.Request) {
+	user, _ := getUserByJWS(r, u.uc)
+	res, _ := u.uc.GetInfluencerRequests(context.Background(), &prusers.GetInfluencerRequestsRequest{InfluencerId: user.Id})
+	dto := []struct{
+		InfluencerID string `json:"influencerId"`
+		CampaignID string `json:"campaignId"`
+		Website string `json:"website"`
+	}{}
+	for _, req := range res.Requests {
+		dto = append(dto, struct{InfluencerID string `json:"influencerId"`; CampaignID string `json:"campaignId"`; Website string `json:"website"`}{
+			InfluencerID: strconv.FormatUint(req.InfluencerId, 10),
+			CampaignID: strconv.FormatUint(req.CampaignId, 10),
+			Website: req.Website,
+		})
+	}
+	data.ToJSON(&dto, w)
 }
 
 func (u *Users) SearchUsers(w http.ResponseWriter, r *http.Request) {
