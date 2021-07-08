@@ -141,7 +141,7 @@ export default {
     }
   }
   
-  body  {
-    background:#e9e9ef;
-  }
+  // body  {
+  //   background:#e9e9ef;
+  // }
 </style>

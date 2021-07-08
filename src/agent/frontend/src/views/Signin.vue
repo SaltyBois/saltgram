@@ -4,7 +4,7 @@
         </main-navigation>
         <div id="signin-main">
         <div id="signin-container">
-            <v-form id="signin-form">
+            <v-form id="signin-form" v-model="isFormValid">
                 <p>Enter your SaltAgent credentials</p>
                 <v-text-field
                 dark
@@ -21,7 +21,7 @@
                 :rules="[rules.required, rules.password]"
                 />
                 <v-spacer></v-spacer>
-                <v-btn depressed color="accent">Sign in</v-btn>
+                <v-btn plain color="accent" :disabled="!isFormValid">Sign in</v-btn>
             </v-form>
             <div class="signup">
                 <p>Don't have an account? <router-link to="/signup">Sign up!</router-link></p>
@@ -34,6 +34,7 @@
 <script>
 export default {
     data: () => ({
+        isFormValid: false,
         username: '',
         password: '',
         rules: {

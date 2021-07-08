@@ -140,7 +140,7 @@
 		place-items: center;
 		color: var(--v-secondary-lighten4);
 		text-decoration: none;
-        text-transform: uppercase;
+        text-transform: capitalize;
 		text-align: center;
 		font-size: 1rem;
 		font-weight: 400;
