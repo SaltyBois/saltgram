@@ -237,6 +237,12 @@ func (a *Auth) Login(ctx context.Context, r *prauth.LoginRequest) (*prauth.Login
 		return &prauth.LoginResponse{}, err
 	}
 
+	_, err = a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: r.Username, Username: r.Username})
+	if err != nil {
+		a.l.Errorf("geting profile: %v", err)
+		return &prauth.LoginResponse{}, err
+	}
+
 	recaptcha := saltdata.ReCaptcha{
 		Action: r.ReCaptcha.Action,
 		Token:  r.ReCaptcha.Token,

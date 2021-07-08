@@ -58,6 +58,7 @@ type UsersClient interface {
 	GetProfilesForCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetProfilesForCloseFriendsClient, error)
 	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
+	CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error)
 }
 
 type usersClient struct {
@@ -635,6 +636,15 @@ func (c *usersClient) RemoveCloseFriend(ctx context.Context, in *CloseFriendRequ
 	return out, nil
 }
 
+func (c *usersClient) CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckActive", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -679,6 +689,7 @@ type UsersServer interface {
 	GetProfilesForCloseFriends(*Profile, Users_GetProfilesForCloseFriendsServer) error
 	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
+	CheckActive(context.Context, *Profile) (*BoolResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -805,6 +816,9 @@ func (UnimplementedUsersServer) AddCloseFriend(context.Context, *CloseFriendRequ
 }
 func (UnimplementedUsersServer) RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveCloseFriend not implemented")
+}
+func (UnimplementedUsersServer) CheckActive(context.Context, *Profile) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckActive not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1566,6 +1580,24 @@ func _Users_RemoveCloseFriend_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_CheckActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Profile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckActive",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckActive(ctx, req.(*Profile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1696,6 +1728,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveCloseFriend",
 			Handler:    _Users_RemoveCloseFriend_Handler,
+		},
+		{
+			MethodName: "CheckActive",
+			Handler:    _Users_CheckActive_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

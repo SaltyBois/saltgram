@@ -2030,3 +2030,21 @@ func (s *Content) GetTaggedPosts(w http.ResponseWriter, r *http.Request) {
 	}
 	saltdata.ToJSON(postsArray, w)
 }
+
+func (u *Users) CheckActive(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	username, er := vars["username"]
+	if !er {
+		u.l.Println("[ERROR] parsing URL, no username in URL")
+		http.Error(w, "Error parsing URL", http.StatusBadRequest)
+		return
+	}
+
+	active, err := u.uc.CheckActive(context.Background(), &prusers.Profile{Username: username})
+	if err != nil {
+		u.l.Errorf("[ERROR] checking profile for username %v \n", err)
+		return
+	}
+
+	saltdata.ToJSON(active.Response, w)
+}

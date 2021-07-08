@@ -50,7 +50,7 @@ service Users {
     rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
     rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
 
-    
+    rpc CheckActive(Profile) returns (BoolResponse);
 }
 
 message VerifyProfileRequest {

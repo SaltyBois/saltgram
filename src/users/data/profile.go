@@ -40,7 +40,7 @@ type Profile struct {
 	ProfilePictureURL string     `json:"profilePictureURL"`
 	AccountType       string     `json:"accountType"`
 	Verified          bool       `json:"verified"`
-	Active            bool       `json:"-"`
+	Active            bool       `json:"active"`
 }
 
 type FollowRequest struct {
@@ -373,4 +373,26 @@ func (db *DBConn) CheckIfCloseFriend(profile *Profile, friend *Profile) (bool, e
 	}
 	exists := count > 0
 	return exists, nil
+}
+
+func (db *DBConn) DeleteFromFollwing(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_following WHERE profile_id = ? OR following_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) DeleteFromMuted(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_muted WHERE profile_id = ? OR muted_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) DeleteFromBlocked(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_blocked WHERE profile_id = ? OR blocked_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) DeleteFromCloseFriends(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_closefriends WHERE profile_id = ? OR close_friend_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) CheckActive(username string) (bool, error) {
+	var active bool
+	err := db.DB.Table("profiles").Select("active").Where("username = ?", username).Find(&active).Error
+	return active, err
 }

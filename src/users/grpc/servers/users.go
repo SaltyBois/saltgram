@@ -502,7 +502,7 @@ func (u *Users) GetByUserId(ctx context.Context, r *prusers.GetByIdRequest) (*pr
 
 func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) (*prusers.SearchResponse, error) {
 	//users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
-	profiles, err := u.db.GetAllProfilesByUsernameSubstring(r.Query)
+	profiles, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
 		return &prusers.SearchResponse{}, err
@@ -1013,6 +1013,35 @@ func (u *Users) DeleteProfile(ctx context.Context, r *prusers.Profile) (*prusers
 		u.l.Printf("[ERROR] deleting profile: %v\n", err)
 		return &prusers.DeleteProfileResponse{}, err
 	}
+
+	err = u.db.DeleteFromFollwing(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form following %v", err)
+	}
+
+	err = u.db.DeleteFromMuted(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form muted %v", err)
+	}
+
+	err = u.db.DeleteFromBlocked(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form blocked %v", err)
+	}
+
+	err = u.db.DeleteFromCloseFriends(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form close friends %v", err)
+	}
+
 	return &prusers.DeleteProfileResponse{}, nil
 
+}
+
+func (u *Users) CheckActive(ctx context.Context, r *prusers.Profile) (*prusers.BoolResponse, error) {
+	active, err := u.db.CheckActive(r.Username)
+	if err != nil {
+		return &prusers.BoolResponse{}, err
+	}
+	return &prusers.BoolResponse{Response: active}, nil
 }
