@@ -3667,7 +3667,7 @@ var file_users_users_proto_rawDesc = []byte{
 	0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x2c, 0x0a, 0x11, 0x70, 0x72,
 	0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x74, 0x75, 0x72, 0x65, 0x55, 0x52, 0x4c, 0x18,
 	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x11, 0x70, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69,
-	0x63, 0x74, 0x75, 0x72, 0x65, 0x55, 0x52, 0x4c, 0x32, 0xb1, 0x12, 0x0a, 0x05, 0x55, 0x73, 0x65,
+	0x63, 0x74, 0x75, 0x72, 0x65, 0x55, 0x52, 0x4c, 0x32, 0xdf, 0x12, 0x0a, 0x05, 0x55, 0x73, 0x65,
 	0x72, 0x73, 0x12, 0x53, 0x0a, 0x14, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x66,
 	0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x74, 0x75, 0x72, 0x65, 0x12, 0x1c, 0x2e, 0x55, 0x70, 0x64,
 	0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x74, 0x75, 0x72,
@@ -3814,9 +3814,12 @@ var file_users_users_proto_rawDesc = []byte{
 	0x2e, 0x43, 0x6c, 0x6f, 0x73, 0x65, 0x46, 0x72, 0x69, 0x65, 0x6e, 0x64, 0x52, 0x65, 0x73, 0x70,
 	0x6f, 0x73, 0x6e, 0x65, 0x12, 0x26, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x63, 0x74,
 	0x69, 0x76, 0x65, 0x12, 0x08, 0x2e, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x1a, 0x0d, 0x2e,
-	0x42, 0x6f, 0x6f, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x11, 0x5a, 0x0f,
-	0x2e, 0x2f, 0x75, 0x73, 0x65, 0x72, 0x73, 0x2f, 0x70, 0x72, 0x75, 0x73, 0x65, 0x72, 0x73, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x42, 0x6f, 0x6f, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2c, 0x0a, 0x10,
+	0x47, 0x65, 0x74, 0x46, 0x6f, 0x6c, 0x6c, 0x6f, 0x77, 0x69, 0x6e, 0x67, 0x4d, 0x61, 0x69, 0x6e,
+	0x12, 0x08, 0x2e, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x1a, 0x0c, 0x2e, 0x50, 0x72, 0x6f,
+	0x66, 0x69, 0x6c, 0x65, 0x4d, 0x42, 0x43, 0x46, 0x30, 0x01, 0x42, 0x11, 0x5a, 0x0f, 0x2e, 0x2f,
+	0x75, 0x73, 0x65, 0x72, 0x73, 0x2f, 0x70, 0x72, 0x75, 0x73, 0x65, 0x72, 0x73, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3938,49 +3941,51 @@ var file_users_users_proto_depIdxs = []int32{
 	56, // 40: Users.AddCloseFriend:input_type -> CloseFriendRequest
 	56, // 41: Users.RemoveCloseFriend:input_type -> CloseFriendRequest
 	41, // 42: Users.CheckActive:input_type -> Profile
-	3,  // 43: Users.UpdateProfilePicture:output_type -> UpdateProfilePictureResponse
-	26, // 44: Users.CheckEmail:output_type -> CheckEmailResponse
-	24, // 45: Users.CheckPassword:output_type -> CheckPasswordResponse
-	20, // 46: Users.Register:output_type -> RegisterResponse
-	19, // 47: Users.VerifyEmail:output_type -> VerifyEmailResponse
-	17, // 48: Users.ChangePassword:output_type -> ChangeResponse
-	11, // 49: Users.ResetPassword:output_type -> UserResetResponse
-	7,  // 50: Users.UpdateUsername:output_type -> UsernameResponse
-	9,  // 51: Users.UpdateProfile:output_type -> UpdateResponse
-	34, // 52: Users.Follow:output_type -> FollowRespose
-	34, // 53: Users.UnFollow:output_type -> FollowRespose
-	30, // 54: Users.ChangeProfilePublic:output_type -> ChangePublicResponse
-	32, // 55: Users.ChangeProfileTaggable:output_type -> ChangeTaggableResponse
-	13, // 56: Users.GetByUsername:output_type -> GetByUsernameResponse
-	5,  // 57: Users.GetRole:output_type -> RoleResponse
-	28, // 58: Users.GetProfileByUsername:output_type -> ProfileResponse
-	37, // 59: Users.GetFollowers:output_type -> ProfileFollower
-	37, // 60: Users.GerFollowing:output_type -> ProfileFollower
-	15, // 61: Users.GetByUserId:output_type -> GetByIdResponse
-	40, // 62: Users.GetSearchedUsers:output_type -> SearchResponse
-	42, // 63: Users.GetFollowRequests:output_type -> FollowingRequest
-	44, // 64: Users.SetFollowRequestRespond:output_type -> FollowRequestSet
-	46, // 65: Users.GetFollowersDetailed:output_type -> ProfileFollowDetaild
-	46, // 66: Users.GetFollowingDetailed:output_type -> ProfileFollowDetaild
-	47, // 67: Users.CheckIfFollowing:output_type -> BoolResponse
-	47, // 68: Users.CheckForFollowingRequest:output_type -> BoolResponse
-	1,  // 69: Users.VerifyProfile:output_type -> VerifyProfileResponse
-	58, // 70: Users.DeleteProfile:output_type -> DeleteProfileResponse
-	59, // 71: Users.GetMutedProfiles:output_type -> ProfileMBCF
-	49, // 72: Users.MuteProfile:output_type -> MuteProfileResponse
-	51, // 73: Users.UnmuteProfile:output_type -> UnmuteProfileResponse
-	47, // 74: Users.CheckIfMuted:output_type -> BoolResponse
-	59, // 75: Users.GetBlockedProfiles:output_type -> ProfileMBCF
-	53, // 76: Users.BlockProfile:output_type -> BlockProfileResposne
-	55, // 77: Users.UnblockProfile:output_type -> UnblockProfileResposne
-	47, // 78: Users.CheckIfBlocked:output_type -> BoolResponse
-	59, // 79: Users.GetCloseFriends:output_type -> ProfileMBCF
-	59, // 80: Users.GetProfilesForCloseFriends:output_type -> ProfileMBCF
-	57, // 81: Users.AddCloseFriend:output_type -> CloseFriendResposne
-	57, // 82: Users.RemoveCloseFriend:output_type -> CloseFriendResposne
-	47, // 83: Users.CheckActive:output_type -> BoolResponse
-	43, // [43:84] is the sub-list for method output_type
-	2,  // [2:43] is the sub-list for method input_type
+	41, // 43: Users.GetFollowingMain:input_type -> Profile
+	3,  // 44: Users.UpdateProfilePicture:output_type -> UpdateProfilePictureResponse
+	26, // 45: Users.CheckEmail:output_type -> CheckEmailResponse
+	24, // 46: Users.CheckPassword:output_type -> CheckPasswordResponse
+	20, // 47: Users.Register:output_type -> RegisterResponse
+	19, // 48: Users.VerifyEmail:output_type -> VerifyEmailResponse
+	17, // 49: Users.ChangePassword:output_type -> ChangeResponse
+	11, // 50: Users.ResetPassword:output_type -> UserResetResponse
+	7,  // 51: Users.UpdateUsername:output_type -> UsernameResponse
+	9,  // 52: Users.UpdateProfile:output_type -> UpdateResponse
+	34, // 53: Users.Follow:output_type -> FollowRespose
+	34, // 54: Users.UnFollow:output_type -> FollowRespose
+	30, // 55: Users.ChangeProfilePublic:output_type -> ChangePublicResponse
+	32, // 56: Users.ChangeProfileTaggable:output_type -> ChangeTaggableResponse
+	13, // 57: Users.GetByUsername:output_type -> GetByUsernameResponse
+	5,  // 58: Users.GetRole:output_type -> RoleResponse
+	28, // 59: Users.GetProfileByUsername:output_type -> ProfileResponse
+	37, // 60: Users.GetFollowers:output_type -> ProfileFollower
+	37, // 61: Users.GerFollowing:output_type -> ProfileFollower
+	15, // 62: Users.GetByUserId:output_type -> GetByIdResponse
+	40, // 63: Users.GetSearchedUsers:output_type -> SearchResponse
+	42, // 64: Users.GetFollowRequests:output_type -> FollowingRequest
+	44, // 65: Users.SetFollowRequestRespond:output_type -> FollowRequestSet
+	46, // 66: Users.GetFollowersDetailed:output_type -> ProfileFollowDetaild
+	46, // 67: Users.GetFollowingDetailed:output_type -> ProfileFollowDetaild
+	47, // 68: Users.CheckIfFollowing:output_type -> BoolResponse
+	47, // 69: Users.CheckForFollowingRequest:output_type -> BoolResponse
+	1,  // 70: Users.VerifyProfile:output_type -> VerifyProfileResponse
+	58, // 71: Users.DeleteProfile:output_type -> DeleteProfileResponse
+	59, // 72: Users.GetMutedProfiles:output_type -> ProfileMBCF
+	49, // 73: Users.MuteProfile:output_type -> MuteProfileResponse
+	51, // 74: Users.UnmuteProfile:output_type -> UnmuteProfileResponse
+	47, // 75: Users.CheckIfMuted:output_type -> BoolResponse
+	59, // 76: Users.GetBlockedProfiles:output_type -> ProfileMBCF
+	53, // 77: Users.BlockProfile:output_type -> BlockProfileResposne
+	55, // 78: Users.UnblockProfile:output_type -> UnblockProfileResposne
+	47, // 79: Users.CheckIfBlocked:output_type -> BoolResponse
+	59, // 80: Users.GetCloseFriends:output_type -> ProfileMBCF
+	59, // 81: Users.GetProfilesForCloseFriends:output_type -> ProfileMBCF
+	57, // 82: Users.AddCloseFriend:output_type -> CloseFriendResposne
+	57, // 83: Users.RemoveCloseFriend:output_type -> CloseFriendResposne
+	47, // 84: Users.CheckActive:output_type -> BoolResponse
+	59, // 85: Users.GetFollowingMain:output_type -> ProfileMBCF
+	44, // [44:86] is the sub-list for method output_type
+	2,  // [2:44] is the sub-list for method input_type
 	2,  // [2:2] is the sub-list for extension type_name
 	2,  // [2:2] is the sub-list for extension extendee
 	0,  // [0:2] is the sub-list for field type_name

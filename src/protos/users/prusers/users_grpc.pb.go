@@ -59,6 +59,7 @@ type UsersClient interface {
 	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 	CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error)
+	GetFollowingMain(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowingMainClient, error)
 }
 
 type usersClient struct {
@@ -645,6 +646,38 @@ func (c *usersClient) CheckActive(ctx context.Context, in *Profile, opts ...grpc
 	return out, nil
 }
 
+func (c *usersClient) GetFollowingMain(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowingMainClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[9], "/Users/GetFollowingMain", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetFollowingMainClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetFollowingMainClient interface {
+	Recv() (*ProfileMBCF, error)
+	grpc.ClientStream
+}
+
+type usersGetFollowingMainClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetFollowingMainClient) Recv() (*ProfileMBCF, error) {
+	m := new(ProfileMBCF)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -690,6 +723,7 @@ type UsersServer interface {
 	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	CheckActive(context.Context, *Profile) (*BoolResponse, error)
+	GetFollowingMain(*Profile, Users_GetFollowingMainServer) error
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -819,6 +853,9 @@ func (UnimplementedUsersServer) RemoveCloseFriend(context.Context, *CloseFriendR
 }
 func (UnimplementedUsersServer) CheckActive(context.Context, *Profile) (*BoolResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckActive not implemented")
+}
+func (UnimplementedUsersServer) GetFollowingMain(*Profile, Users_GetFollowingMainServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetFollowingMain not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1598,6 +1635,27 @@ func _Users_CheckActive_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_GetFollowingMain_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetFollowingMain(m, &usersGetFollowingMainServer{stream})
+}
+
+type Users_GetFollowingMainServer interface {
+	Send(*ProfileMBCF) error
+	grpc.ServerStream
+}
+
+type usersGetFollowingMainServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetFollowingMainServer) Send(m *ProfileMBCF) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1778,6 +1836,11 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetProfilesForCloseFriends",
 			Handler:       _Users_GetProfilesForCloseFriends_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetFollowingMain",
+			Handler:       _Users_GetFollowingMain_Handler,
 			ServerStreams: true,
 		},
 	},

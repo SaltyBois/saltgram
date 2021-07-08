@@ -92,6 +92,7 @@ func main() {
 	usersRouter.HandleFunc("/get/closefriend/following", usersHandler.GetProfilesForCloseFriends).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/taggableprofiles/get", usersHandler.GetTaggableProfiles).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/check/{username}", usersHandler.CheckActive).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/following/main/", usersHandler.GetFollowingMain).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {

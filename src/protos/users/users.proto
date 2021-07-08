@@ -51,6 +51,8 @@ service Users {
     rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
 
     rpc CheckActive(Profile) returns (BoolResponse);
+
+    rpc GetFollowingMain(Profile) returns (stream ProfileMBCF);
 }
 
 message VerifyProfileRequest {

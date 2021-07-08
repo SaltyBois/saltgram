@@ -188,7 +188,6 @@ func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
 	if len(ids) == 0 {
 		return following, nil
 	}
-	//TODO(Marko) Check later
 	err = db.DB.Where("active = ?", true).Find(&following, ids).Error
 	if err != nil {
 		return nil, err
@@ -206,7 +205,6 @@ func GetFollowRequests(db *DBConn, profile *Profile) ([]Profile, error) {
 	if len(ids) == 0 {
 		return profiles, nil
 	}
-	//TODO(Marko) Check where later
 	err = db.DB.Where("active = ?", true).Find(&profiles, ids).Error
 	if err != nil {
 		return nil, err

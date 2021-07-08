@@ -1045,3 +1045,34 @@ func (u *Users) CheckActive(ctx context.Context, r *prusers.Profile) (*prusers.B
 	}
 	return &prusers.BoolResponse{Response: active}, nil
 }
+
+func (u *Users) GetFollowingMain(r *prusers.Profile, stream prusers.Users_GetFollowingMainServer) error {
+	userProfile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+
+	profiles, err := data.GetFollowing(u.db, userProfile)
+	if err != nil {
+		u.l.Printf("[ERROR]  fetching followers %v\n", err)
+		return err
+	}
+	for _, profile := range profiles {
+		muted, err := u.db.CheckIfMuted(userProfile, &profile)
+		if err != nil {
+			return err
+		}
+		if muted {
+			continue
+		}
+		err = stream.Send(&prusers.ProfileMBCF{
+			Username:          profile.Username,
+			ProfilePictureURL: profile.ProfilePictureURL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

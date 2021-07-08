@@ -134,7 +134,7 @@ export default {
           })
     },
     getFollowingUsers: function() {
-      this.axios.get("users/following/detailed/" + this.loggedUser.username, {headers: this.getAHeader()})
+      this.axios.get("users/following/main/", {headers: this.getAHeader()})
           .then(r => {
             // console.log(r.data);
             this.followingUsers = r.data;
@@ -142,13 +142,10 @@ export default {
             this.myStories = {};
             this.getUserPosts(this.loggedUser, 0)
             this.getUserStories(this.loggedUser, -1)
-            if (this.followingUsers === null || this.followingUsers === 0) return;
             for(let i = 0; i < this.followingUsers.length; ++i) {
               let currentUser = this.followingUsers[i];
-              if (currentUser.following && !currentUser.pending) {
-                this.getUserPosts(currentUser, i);
-                this.getUserStories(currentUser, i);
-              }
+              this.getUserPosts(currentUser, i);
+              this.getUserStories(currentUser, i);
             }
           })
     },
