@@ -28,4 +28,7 @@ export default {
 .v-input__icon--append .v-icon {
   color: var(--v-secondary-lighten4) !important;
 }
+.theme--dark.v-label.v-label--active {
+  color: var(--v-info-base) !important;
+}
 </style>
