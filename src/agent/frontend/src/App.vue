@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-main>
+      <hexpage-loader />
       <router-view/>
     </v-main>
   </v-app>
@@ -18,3 +19,13 @@ export default {
   },
 };
 </script>
+
+<style>
+.v-input {
+  font-family: monospace !important;
+}
+
+.v-input__icon--append .v-icon {
+  color: var(--v-secondary-lighten4) !important;
+}
+</style>

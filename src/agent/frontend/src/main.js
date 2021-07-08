@@ -6,10 +6,12 @@ import vuetify from './plugins/vuetify'
 import 'roboto-fontface/css/roboto/roboto-fontface.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 import HexPageLoader from './components/HexPageLoader.vue'
+import MainNavigation from './components/MainNavigation.vue'
 
 
 Vue.config.productionTip = false
 Vue.component('hexpage-loader', HexPageLoader);
+Vue.component('main-navigation', MainNavigation);
 
 new Vue({
   router,
