@@ -33,6 +33,8 @@ service Users {
 
     rpc VerifyProfile(VerifyProfileRequest) returns (VerifyProfileResponse);
 
+    rpc DeleteProfile(Profile) returns (DeleteProfileResponse);
+    
     rpc GetMutedProfiles(Profile) returns (stream ProfileMBCF);
     rpc MuteProfile(MuteProfileRequest) returns (MuteProfileResponse);
     rpc UnmuteProfile(UnmuteProfileRequest) returns (UnmuteProfileResponse);
@@ -48,7 +50,9 @@ service Users {
     rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
     rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
 
-    
+    rpc CheckActive(Profile) returns (BoolResponse);
+
+    rpc GetFollowingMain(Profile) returns (stream ProfileMBCF);
 }
 
 message VerifyProfileRequest {
@@ -327,6 +331,8 @@ message CloseFriendRequest {
     string profile = 2;
 }
 message CloseFriendResposne {}
+
+message DeleteProfileResponse {}
 
 message ProfileMBCF {
     string username = 1;

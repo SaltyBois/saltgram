@@ -87,6 +87,12 @@ type ProfileRequestDTO struct {
 	Profile string `json:"profile" validate:"required"`
 }
 
+type FollwingMainDTO struct {
+	Username          string `json:"username"`
+	Id                string `json:"id"`
+	ProfilePictureURL string `json:"profilePictureURL"`
+}
+
 func (p *ProflieDTO) Validate() error {
 	validate := validator.New()
 	return validate.Struct(p)

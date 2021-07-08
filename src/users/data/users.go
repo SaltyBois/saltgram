@@ -209,6 +209,7 @@ func (db *DBConn) GetUserById(id uint64) (*User, error) {
 	err := db.DB.Where("id = ?", id).First(&user).Error
 	return &user, err
 }
+
 //Moved to profile
 /*func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]User, error) {
 	var users []User

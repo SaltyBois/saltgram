@@ -333,6 +333,13 @@ func (db *DBConn) GetPostsByReaction(userId uint64) (*[]Post, error) {
 	return &post, err
 }
 
+func (db *DBConn) DeleteSharedMedia(id uint64) error {
+	db.DB.Where("post_id = ?", id).Delete(&Reaction{})
+	db.DB.Where("post_id = ?", id).Delete(&Comment{})
+	db.DB.Where("post_id = ?", id).Delete(&SavedPost{})
+	return db.DB.Delete(&Post{}, id).Error
+}
+
 func (db *DBConn) AddTag(t *Tag) (*Tag, error) {
 	tag := t
 	err := db.DB.Create(tag).Error
