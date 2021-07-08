@@ -63,8 +63,16 @@ func main() {
 	}
 	defer contentConnection.Close()
 	contentClient := prcontent.NewContentClient(contentConnection)
+
+	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing admin connection: %v\n", err)
+	}
+	defer adminConnection.Close()
+	adminClient := pradmin.NewAdminClient(adminConnection)
+
 	usersClient := prusers.NewUsersClient(usersConnection)
-	usersHandler := handlers.NewUsers(l.L, usersClient, contentClient)
+	usersHandler := handlers.NewUsers(l.L, usersClient, contentClient, adminClient)
 	usersRouter := s.S.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
@@ -145,12 +153,6 @@ func main() {
 	contentRouter.HandleFunc("/taggedposts", contentHandler.GetTaggedPosts).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/campaigns", contentHandler.GetCampaignsByUser).Methods(http.MethodGet)
 
-	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
-	if err != nil {
-		l.L.Fatalf("dialing admin connection: %v\n", err)
-	}
-	defer adminConnection.Close()
-	adminClient := pradmin.NewAdminClient(adminConnection)
 	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient, contentClient)
 	adminRouter := s.S.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
@@ -160,6 +162,8 @@ func main() {
 	// Better suited for user router?
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.GetPendingReports).Methods(http.MethodGet)
+	adminRouter.HandleFunc("/agent", adminHandler.GetAgentRequests).Methods(http.MethodGet)
+	adminRouter.HandleFunc("/agent", adminHandler.AcceptAgent).Methods(http.MethodPost)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{

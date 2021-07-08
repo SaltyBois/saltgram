@@ -29,6 +29,32 @@ func NewAdmin(l *logrus.Logger, db *data.DBConn, cc prcontent.ContentClient, uc 
 	}
 }
 
+func (a *Admin) RemoveAgentRegistration(ctx context.Context, r *pradmin.RemoveAgentRegistrationRequest) (*pradmin.RemoveAgentRegistrationResponse, error) {
+	err := a.db.RemoveAgentRegistrationRequest(r.Email)
+	return &pradmin.RemoveAgentRegistrationResponse{}, err
+}
+
+func (a *Admin) GetAgentRegistrations(ctx context.Context, r *pradmin.GetAgentRegistrationsRequest) (*pradmin.GetAgentRegistrationsResponse, error) {
+	reqs, err := a.db.GetAgentRegistrations()
+	if err != nil {
+		return &pradmin.GetAgentRegistrationsResponse{}, status.Error(codes.InvalidArgument, "Invalid argument")
+	}
+
+	resp := &pradmin.GetAgentRegistrationsResponse{Emails: []string{}}
+	for _, re := range *reqs {
+		resp.Emails = append(resp.Emails, re.AgentEmail)
+	}
+	return resp, nil
+}
+
+func (a *Admin) AddAgentRegistration(ctx context.Context, r *pradmin.AddAgentRegistrationRequest) (*pradmin.AddAgentRegistrationResponse, error) {
+	err := a.db.AddAgentRegistrationRequest(&data.AgentRegistrationRequest{AgentEmail: r.AgentEmail})
+	if err != nil {
+		return &pradmin.AddAgentRegistrationResponse{}, status.Error(codes.InvalidArgument, "Invalid argument")
+	}
+	return &pradmin.AddAgentRegistrationResponse{}, nil
+}
+
 func (a *Admin) GetPendingVerifications(ctx context.Context, r *pradmin.GetVerificationRequest) (*pradmin.GetVerificationResponse, error) {
 	verificationRequests, err := a.db.GetPendingVerificationRequests()
 	if err != nil {

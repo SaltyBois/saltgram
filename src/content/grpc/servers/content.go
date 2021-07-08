@@ -47,8 +47,8 @@ func (c *Content) GetCampaignByUser(ctx context.Context, r *prcontent.GetCampaig
 	prc := []*prcontent.Campaign{}
 	for _, c := range *campaigns {
 		prc = append(prc, &prcontent.Campaign{
-			Id: c.ID,
-			Url: c.Media[0].URL,
+			Id:      c.ID,
+			Url:     c.Media[0].URL,
 			Website: c.CampaignWebsite,
 		})
 	}
@@ -363,7 +363,7 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
 			},
-			IsCampaign: p.SharedMedia.IsCampaign,
+			IsCampaign:      p.SharedMedia.IsCampaign,
 			CampaignWebsite: p.SharedMedia.CampaignWebsite,
 		}
 		err = stream.Send(&prcontent.GetPostsResponse{

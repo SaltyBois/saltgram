@@ -31,8 +31,8 @@ type User struct {
 type InfluencerRequest struct {
 	data.Identifiable
 	InfluencerID uint64 `gorm:"type:numeric" json:"influencerId"`
-	CampaignID uint64 `gorm:"type:numeric" json:"campaignId"`
-	Website string `json:"website"`
+	CampaignID   uint64 `gorm:"type:numeric" json:"campaignId"`
+	Website      string `json:"website"`
 }
 
 func (u *User) Validate() error {
@@ -138,6 +138,15 @@ func VerifyEmail(db *DBConn, email string) error {
 	user.Activated = true
 	db.UpdateUser(user)
 	return nil
+}
+
+func ActivateUser(db *DBConn, userId uint64) error {
+	user, err := db.GetUserById(userId)
+	if err != nil {
+		return err
+	}
+	user.Activated = true
+	return db.UpdateUser(user)
 }
 
 func ChangePassword(db *DBConn, email, oldPlainPassword, newPlainPassword string) error {

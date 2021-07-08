@@ -47,19 +47,18 @@ type SharedMedia struct {
 	Media []*Media `json:"media"`
 	// NOTE(Jovan): Flag for whether to read campaign
 	// related fields
-	IsCampaign       bool      `json:"isCampaign"`
-	CampaignWebsite  string    `json:"campaignWebsite"`
-	CampaignOneTime  bool      `json:"oneTime"`
-	CampaignStart    string    `json:"campaignStart"`
-	CampaignEnd      string    `json:"campaignEnd"`
-	CampaignAgeGroup EAgeGroup `json:"ageGroup"`
+	IsCampaign          bool         `json:"isCampaign"`
+	CampaignWebsite     string       `json:"campaignWebsite"`
+	CampaignOneTime     bool         `json:"oneTime"`
+	CampaignStart       string       `json:"campaignStart"`
+	CampaignEnd         string       `json:"campaignEnd"`
+	CampaignAgeGroup    EAgeGroup    `json:"ageGroup"`
 	CampaignInfluencers []Influencer `gorm:"many2many:influencer_campaign;"`
 }
 
 type Influencer struct {
 	data.Identifiable
 	InfluencerID uint64 `gorm:"type:numeric"`
-
 }
 
 type CampaignChange struct {
@@ -137,11 +136,11 @@ func DataToPRStory(d *Story) *prcontent.Story {
 	}
 
 	return &prcontent.Story{
-		Id:           d.ID,
-		UserId:       d.UserID,
-		CloseFriends: d.CloseFriends,
-		Media:        media,
-		IsCampaign: d.SharedMedia.IsCampaign,
+		Id:              d.ID,
+		UserId:          d.UserID,
+		CloseFriends:    d.CloseFriends,
+		Media:           media,
+		IsCampaign:      d.SharedMedia.IsCampaign,
 		CampaignWebsite: d.SharedMedia.CampaignWebsite,
 	}
 }
@@ -328,7 +327,7 @@ func (db *DBConn) GetStoryByUser(id uint64) ([]*Story, error) {
 	}
 	for i, s := range story {
 		if len(s.SharedMedia.Media) == 0 {
-			story = append(story[:i], story[i + 1:]...)
+			story = append(story[:i], story[i+1:]...)
 		}
 	}
 
@@ -368,27 +367,27 @@ func (db *DBConn) GetStoriesByUserAsMedia(userId uint64) ([]*Media, error) {
 func (db *DBConn) GetPostByUser(id uint64) (*[]Post, error) {
 	post := []Post{}
 	err := db.DB.
-	Preload("SharedMedia",
-		`(is_campaign AND campaign_one_time AND campaign_start = CAST(CURRENT_DATE as VARCHAR))
+		Preload("SharedMedia",
+			`(is_campaign AND campaign_one_time AND campaign_start = CAST(CURRENT_DATE as VARCHAR))
 		OR (is_campaign AND not campaign_one_time AND CAST(campaign_start AS DATE) <= CURRENT_DATE
 			AND CAST(campaign_end AS DATE) >= CURRENT_DATE)
 		OR NOT is_campaign`).
-	Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
+		Preload("SharedMedia.Media.Tags").Preload("SharedMedia.Media.TaggedUsers").Preload(clause.Associations).Where("user_id = ?", id).Find(&post).Error
 	if err != nil {
 		return nil, err
 	}
 	for i, p := range post {
 		if len(p.SharedMedia.Media) == 0 {
-			post = append(post[:i], post[i + 1:]...)
+			post = append(post[:i], post[i+1:]...)
 		}
 	}
 	cp := []Post{}
 	err = db.DB.Preload("SharedMedia").Preload("SharedMedia.Media.Tags").
-	Preload("SharedMedia.Media.TaggedUsers").
-	Model(&Post{}).Joins("INNER JOIN shared_media ON shared_media.id = posts.shared_media_id").
-	Joins("INNER JOIN influencer_campaign ic ON shared_media.id = ic.shared_media_id").
-	Joins("INNER JOIN influencers i ON i.id = ic.influencer_id").
-	Where("i.influencer_id = ?", id).Find(&cp).Error
+		Preload("SharedMedia.Media.TaggedUsers").
+		Model(&Post{}).Joins("INNER JOIN shared_media ON shared_media.id = posts.shared_media_id").
+		Joins("INNER JOIN influencer_campaign ic ON shared_media.id = ic.shared_media_id").
+		Joins("INNER JOIN influencers i ON i.id = ic.influencer_id").
+		Where("i.influencer_id = ?", id).Find(&cp).Error
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	saltdata "saltgram/data"
+	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
 
@@ -17,10 +18,11 @@ type Users struct {
 	l  *logrus.Logger
 	uc prusers.UsersClient
 	cc prcontent.ContentClient
+	ac pradmin.AdminClient
 }
 
-func NewUsers(l *logrus.Logger, uc prusers.UsersClient, cc prcontent.ContentClient) *Users {
-	return &Users{l: l, uc: uc, cc: cc}
+func NewUsers(l *logrus.Logger, uc prusers.UsersClient, cc prcontent.ContentClient, ac pradmin.AdminClient) *Users {
+	return &Users{l: l, uc: uc, cc: cc, ac: ac}
 }
 
 var ErrorJWSNotFound = fmt.Errorf("jws not found")

@@ -541,16 +541,20 @@ func (u *Users) IsInfluencer(w http.ResponseWriter, r *http.Request) {
 func (u *Users) GetCampaignRequests(w http.ResponseWriter, r *http.Request) {
 	user, _ := getUserByJWS(r, u.uc)
 	res, _ := u.uc.GetInfluencerRequests(context.Background(), &prusers.GetInfluencerRequestsRequest{InfluencerId: user.Id})
-	dto := []struct{
+	dto := []struct {
 		InfluencerID string `json:"influencerId"`
-		CampaignID string `json:"campaignId"`
-		Website string `json:"website"`
+		CampaignID   string `json:"campaignId"`
+		Website      string `json:"website"`
 	}{}
 	for _, req := range res.Requests {
-		dto = append(dto, struct{InfluencerID string `json:"influencerId"`; CampaignID string `json:"campaignId"`; Website string `json:"website"`}{
+		dto = append(dto, struct {
+			InfluencerID string `json:"influencerId"`
+			CampaignID   string `json:"campaignId"`
+			Website      string `json:"website"`
+		}{
 			InfluencerID: strconv.FormatUint(req.InfluencerId, 10),
-			CampaignID: strconv.FormatUint(req.CampaignId, 10),
-			Website: req.Website,
+			CampaignID:   strconv.FormatUint(req.CampaignId, 10),
+			Website:      req.Website,
 		})
 	}
 	data.ToJSON(&dto, w)
@@ -1150,6 +1154,21 @@ func (u *Users) CheckFollowRequest(w http.ResponseWriter, r *http.Request) {
 
 	saltdata.ToJSON(resp.Response, w)
 }
+
+func (a *Admin) GetAgentRequests(w http.ResponseWriter, r *http.Request) {
+	resp, err := a.ac.GetAgentRegistrations(context.Background(), &pradmin.GetAgentRegistrationsRequest{})
+	if err != nil {
+		a.l.Errorf("failed fetching pending agent requests: %v", err)
+		http.Error(w, "Pending verifications error", http.StatusInternalServerError)
+		return
+	}
+
+	dto := []string{}
+	dto = append(dto, resp.Emails...)
+
+	saltdata.ToJSON(&dto, w)
+}
+
 func (a *Admin) GetPendingVerifications(w http.ResponseWriter, r *http.Request) {
 
 	verificationRequests, err := a.ac.GetPendingVerifications(context.Background(), &pradmin.GetVerificationRequest{})

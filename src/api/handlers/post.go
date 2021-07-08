@@ -102,7 +102,7 @@ func (u *Users) AcceptCampaign(w http.ResponseWriter, r *http.Request) {
 
 	_, err = u.uc.AcceptInfluencer(context.Background(), &prusers.AcceptInfluencerRequest{
 		InfluencerId: user.Id,
-		CampaignId: id,
+		CampaignId:   id,
 	})
 
 	if err != nil {
@@ -113,9 +113,9 @@ func (u *Users) AcceptCampaign(w http.ResponseWriter, r *http.Request) {
 
 	u.l.Infof("Adding influencer: %v", user.Id)
 
-	_, err = u.cc.AddInfluencerToCampaign(context.Background(),&prcontent.AddInfluencerToCampaignRequest{
+	_, err = u.cc.AddInfluencerToCampaign(context.Background(), &prcontent.AddInfluencerToCampaignRequest{
 		InfluencerId: user.Id,
-		CampaignId: id,
+		CampaignId:   id,
 	})
 
 	if err != nil {
@@ -137,8 +137,8 @@ func (u *Users) SendInfluencerRequest(w http.ResponseWriter, r *http.Request) {
 
 	dto := struct {
 		InfluencerID string `json:"influencerId"`
-		CampaignID string `json:"campaignId"`
-		Website string `json:"website"`
+		CampaignID   string `json:"campaignId"`
+		Website      string `json:"website"`
 	}{}
 	err = saltdata.FromJSON(&dto, r.Body)
 	if err != nil {
@@ -150,8 +150,8 @@ func (u *Users) SendInfluencerRequest(w http.ResponseWriter, r *http.Request) {
 	campaignId, _ := strconv.ParseUint(dto.CampaignID, 10, 64)
 	_, err = u.uc.InfluencerRequest(context.Background(), &prusers.InfluencerRequestRequest{
 		InfluencerId: influencerId,
-		CampaignId: campaignId,
-		Website: dto.Website,
+		CampaignId:   campaignId,
+		Website:      dto.Website,
 	})
 	if err != nil {
 		u.l.Errorf("failed to add influencer request: %v", err)
@@ -284,6 +284,16 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+
+	if dto.Agent {
+		_, err = u.ac.AddAgentRegistration(context.Background(), &pradmin.AddAgentRegistrationRequest{AgentEmail: dto.Email})
+		if err != nil {
+			u.l.Errorf("failed to add agent request: %v", err)
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+	}
+
 	u.l.Infof("User registered: %v\n", dto.Email)
 	w.Write([]byte("Activation email sent"))
 }
@@ -786,7 +796,6 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	isCampaign := false
 	if len(r.PostForm["campaign"]) > 0 {
 		err = json.Unmarshal([]byte(r.PostForm["campaign"][0]), &isCampaign)
@@ -815,12 +824,12 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 	campaignEnd := r.PostForm.Get("campaignEnd")
 
 	resp, err := c.cc.CreatePost(context.Background(), &prcontent.CreatePostRequest{
-		UserId: profile.UserId,
-		Campaign: isCampaign,
-		AgeGroup: ageGroup,
+		UserId:          profile.UserId,
+		Campaign:        isCampaign,
+		AgeGroup:        ageGroup,
 		CampaignOneTime: campaignOneTime,
-		CampaignStart: campaignStart,
-		CampaignEnd: campaignEnd,
+		CampaignStart:   campaignStart,
+		CampaignEnd:     campaignEnd,
 		CampaignWebsite: campaignWebsite,
 	})
 	if err != nil {
@@ -1186,6 +1195,40 @@ func (u *Users) FollowRespond(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func (a *Admin) AcceptAgent(w http.ResponseWriter, r *http.Request) {
+	_, err := getUserByJWS(r, a.uc)
+	if err != nil {
+		a.l.Errorf("failed fetching user: %v", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		a.l.Errorf("failed to get email: %v\n", err)
+		http.Error(w, "No email", http.StatusBadRequest)
+		return
+	}
+
+	email := string(body)
+
+	_, err = a.uc.VerifyEmail(context.Background(), &prusers.VerifyEmailRequest{Email: email})
+	if err != nil {
+		a.l.Errorf("failed to verify email: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.RemoveAgentRegistration(context.Background(), &pradmin.RemoveAgentRegistrationRequest{Email: email})
+	if err != nil {
+		a.l.Errorf("failed to remove agent request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Accepted"))
 }
 
 func (a *Admin) AddVerificationRequest(w http.ResponseWriter, r *http.Request) {

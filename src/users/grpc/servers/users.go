@@ -41,7 +41,7 @@ func (u *Users) AcceptInfluencer(ctx context.Context, r *prusers.AcceptInfluence
 	err := u.db.RemoveInfluencerRequest(r.InfluencerId, r.CampaignId)
 	if err != nil {
 		u.l.Errorf("failed to remove influencer request: %v", err)
-		return &prusers.AcceptInfluencerResponse{}, status.Error(codes.Internal, "Internal error")	
+		return &prusers.AcceptInfluencerResponse{}, status.Error(codes.Internal, "Internal error")
 	}
 	return &prusers.AcceptInfluencerResponse{}, nil
 }
@@ -57,8 +57,8 @@ func (u *Users) GetInfluencerRequests(ctx context.Context, r *prusers.GetInfluen
 	for _, req := range *reqs {
 		prreqs = append(prreqs, &prusers.Request{
 			InfluencerId: req.InfluencerID,
-			CampaignId: req.CampaignID,
-			Website: req.Website,
+			CampaignId:   req.CampaignID,
+			Website:      req.Website,
 		})
 	}
 	return &prusers.GetInfluencerRequestsResponse{Requests: prreqs}, nil
@@ -67,8 +67,8 @@ func (u *Users) GetInfluencerRequests(ctx context.Context, r *prusers.GetInfluen
 func (u *Users) InfluencerRequest(ctx context.Context, r *prusers.InfluencerRequestRequest) (*prusers.InfluencerRequestResponse, error) {
 	err := u.db.AddInfluencerRequest(&data.InfluencerRequest{
 		InfluencerID: r.InfluencerId,
-		CampaignID: r.CampaignId,
-		Website: r.Website,
+		CampaignID:   r.CampaignId,
+		Website:      r.Website,
 	})
 	if err != nil {
 		u.l.Errorf("failed to add influencer request", err)
@@ -234,12 +234,14 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
-	go func() {
-		_, err := u.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: r.Email})
-		if err != nil {
-			u.l.Errorf("failure sending activation request: %v\n", err)
-		}
-	}()
+	if role != "agent" {
+		go func() {
+			_, err := u.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: r.Email})
+			if err != nil {
+				u.l.Errorf("failure sending activation request: %v\n", err)
+			}
+		}()
+	}
 
 	return &prusers.RegisterResponse{}, nil
 }

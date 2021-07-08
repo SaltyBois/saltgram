@@ -30,6 +30,27 @@ type VerificationRequest struct {
 	Status   string `json:"status" validate:"required"`
 }
 
+type AgentRegistrationRequest struct {
+	data.Identifiable
+	AgentEmail string `json:"agentEmail"`
+}
+
+func (db *DBConn) GetAgentRegistrations() (*[]AgentRegistrationRequest, error) {
+	ar := []AgentRegistrationRequest{}
+	err := db.DB.Find(&ar).Error
+	return &ar, err
+}
+
+func (db *DBConn) AddAgentRegistrationRequest(ar *AgentRegistrationRequest) error {
+	return db.DB.Create(ar).Error
+}
+
+func (db *DBConn) RemoveAgentRegistrationRequest(email string) error {
+	ar := AgentRegistrationRequest{}
+	db.DB.First(&ar).Where("agent_email = ?", email)
+	return db.DB.Delete(&ar).Error
+}
+
 func (db *DBConn) AddVerificationRequest(verificationRequest *VerificationRequest) error {
 	return db.DB.Create(verificationRequest).Error
 }

@@ -25,11 +25,11 @@ type MediaDTO struct {
 }
 
 type StoryDTO struct {
-	UserID       string     `json:"userId"`
-	Stories      []MediaDTO `json:"stories"`
-	CloseFriends bool       `json:"closeFriends"`
-	IsCampaign bool `json:"isCampaign"`
-	CampaignWebsite string `json:"campaignWebsite"`
+	UserID          string     `json:"userId"`
+	Stories         []MediaDTO `json:"stories"`
+	CloseFriends    bool       `json:"closeFriends"`
+	IsCampaign      bool       `json:"isCampaign"`
+	CampaignWebsite string     `json:"campaignWebsite"`
 }
 
 type LocationDTO struct {
@@ -98,17 +98,17 @@ type ReactionPutDTO struct {
 }
 
 type CampaignDTO struct {
-	Id string `json:"id"`
+	Id      string `json:"id"`
 	Website string `json:"website"`
-	URL string `json:"url"`
+	URL     string `json:"url"`
 }
 
 func PRToDTOCampaign(pr *prcontent.Campaign) *CampaignDTO {
 	id := strconv.FormatUint(pr.Id, 10)
 	return &CampaignDTO{
-		Id: id,
+		Id:      id,
 		Website: pr.Website,
-		URL: pr.Url,
+		URL:     pr.Url,
 	}
 }
 
@@ -118,10 +118,10 @@ func PRToDTOStory(pr *prcontent.Story) *StoryDTO {
 		stories = append(stories, *PRToDTOMedia(m))
 	}
 	return &StoryDTO{
-		UserID:       strconv.FormatUint(pr.UserId, 10),
-		Stories:      stories,
-		CloseFriends: pr.CloseFriends,
-		IsCampaign: pr.IsCampaign,
+		UserID:          strconv.FormatUint(pr.UserId, 10),
+		Stories:         stories,
+		CloseFriends:    pr.CloseFriends,
+		IsCampaign:      pr.IsCampaign,
 		CampaignWebsite: pr.CampaignWebsite,
 	}
 }
