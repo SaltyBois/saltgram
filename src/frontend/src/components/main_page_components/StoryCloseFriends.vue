@@ -1,5 +1,6 @@
 <template>
   <div class="story-layout">
+    <StoryView ref="storyView" v-if="visible" :stories="realStories" :close-friends="closeFriends"/>
     <v-img  class="story-close-friends"
             v-if="user.profilePictureURL"
             :src="user.profilePictureURL"
@@ -13,11 +14,37 @@
 </template>
 
 <script>
+import StoryView from "@/components/StoryView";
+
 export default {
   name: "StoryCloseFriends",
+  components: {StoryView},
   props: {
     user: { type: Object, required: true},
-    stories: { type: Array, required: true}
+    stories: { type: Array, required: true},
+    closeFriends: { type: Boolean, required: false },
+  },
+  methods: {
+    toggle() {
+      this.$refs.storyView.toggleView();
+      this.$refs.storyView.$props.closeFriends = true;
+    }
+  },
+  data: function () {
+    return {
+      realStories: [],
+      visible: false,
+    }
+  },
+  mounted() {
+    console.log(this.stories)
+    this.stories.forEach(el => {
+      el.closeFriends = this.stories.closeFriends
+      this.realStories.push(el.stories[0])
+    })
+    console.log(this.realStories)
+    this.visible = true;
+    // console.log(this.stories)
   }
 }
 </script>

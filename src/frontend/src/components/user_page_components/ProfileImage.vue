@@ -51,7 +51,7 @@
                v-if="isBlocked && $store.state.jws"
                @click="blockProfile()">Block @{{username}}</v-btn>
         <v-btn class="other-buttons my-2"
-               v-if="!isBlocked && $store.state.jws"
+               v-if="!isBlocked && $store.state.jws && !isMyProfile"
                @click="unblockProfile()">Unblock @{{username}}</v-btn>
 
         <v-divider class="mt-5 mb-5"/>

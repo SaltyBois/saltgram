@@ -157,6 +157,7 @@ export default {
       for(let i = 0; i < this.post.post.sharedMedia.media.length; i++){
         this.contentPlaceHolder.push(this.post.post.sharedMedia.media[i]);
       }
+      // console.log(this.post.post.sharedMedia.media[0].location);
       // console.log(this.contentPlaceHolder);
       this.description = this.post.post.sharedMedia.media[0].description;
     },

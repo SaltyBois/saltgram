@@ -1,6 +1,6 @@
 <template>
   <div class="story-layout">
-    <StoryView ref="storyView" :stories="realStories"/>
+    <StoryView ref="storyView" v-if="visible" :stories="realStories" />
     <v-img  class="story"
             @click="toggle"
             v-if="user.profilePictureURL"
@@ -28,12 +28,14 @@ export default {
   },
   data: function () {
     return {
-      realStories: []
+      realStories: [],
+      visible: false,
     }
   },
   props: {
     user: { type: Object, required: true},
-    stories: { type: Array, required: true}
+    stories: { type: Array, required: true},
+    closeFriends: { type: Boolean, required: false },
   },
   mounted() {
     console.log(this.stories)
@@ -41,6 +43,7 @@ export default {
       el.closeFriends = this.stories.closeFriends
       this.realStories.push(el.stories[0])
     })
+    this.visible = true;
     console.log(this.realStories)
     // console.log(this.stories)
   }
