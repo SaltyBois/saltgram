@@ -37,6 +37,46 @@ func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premai
 	}
 }
 
+func (u *Users) AcceptInfluencer(ctx context.Context, r *prusers.AcceptInfluencerRequest) (*prusers.AcceptInfluencerResponse, error) {
+	err := u.db.RemoveInfluencerRequest(r.InfluencerId, r.CampaignId)
+	if err != nil {
+		u.l.Errorf("failed to remove influencer request: %v", err)
+		return &prusers.AcceptInfluencerResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prusers.AcceptInfluencerResponse{}, nil
+}
+
+func (u *Users) GetInfluencerRequests(ctx context.Context, r *prusers.GetInfluencerRequestsRequest) (*prusers.GetInfluencerRequestsResponse, error) {
+	reqs, err := u.db.GetInfluencerRequests(r.InfluencerId)
+	if err != nil {
+		u.l.Errorf("failed to get influencer requests: %v", err)
+		return &prusers.GetInfluencerRequestsResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+
+	prreqs := []*prusers.Request{}
+	for _, req := range *reqs {
+		prreqs = append(prreqs, &prusers.Request{
+			InfluencerId: req.InfluencerID,
+			CampaignId:   req.CampaignID,
+			Website:      req.Website,
+		})
+	}
+	return &prusers.GetInfluencerRequestsResponse{Requests: prreqs}, nil
+}
+
+func (u *Users) InfluencerRequest(ctx context.Context, r *prusers.InfluencerRequestRequest) (*prusers.InfluencerRequestResponse, error) {
+	err := u.db.AddInfluencerRequest(&data.InfluencerRequest{
+		InfluencerID: r.InfluencerId,
+		CampaignID:   r.CampaignId,
+		Website:      r.Website,
+	})
+	if err != nil {
+		u.l.Errorf("failed to add influencer request", err)
+		return &prusers.InfluencerRequestResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prusers.InfluencerRequestResponse{}, nil
+}
+
 func (u *Users) VerifyProfile(ctx context.Context, r *prusers.VerifyProfileRequest) (*prusers.VerifyProfileResponse, error) {
 	err := u.db.VerifyProfile(r.UserId, r.AccountType)
 	if err != nil {
@@ -67,7 +107,6 @@ func (u *Users) ResetPassword(ctx context.Context, r *prusers.UserResetRequest) 
 func (u *Users) GetByUsername(ctx context.Context, r *prusers.GetByUsernameRequest) (*prusers.GetByUsernameResponse, error) {
 	user, err := u.db.GetUserByUsername(r.Username)
 	if err != nil {
-		u.l.Printf("[ERROR] username: %v\n", r.Username)
 		u.l.Errorf("failure getting user by username: %v\n", err)
 		return &prusers.GetByUsernameResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
@@ -133,12 +172,17 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
+	role := "user"
+	if r.Agent {
+		role = "agent"
+	}
+
 	user := data.User{
 		Email:          r.Email,
 		Username:       r.Username,
 		FullName:       r.FullName,
 		HashedPassword: r.Password,
-		Role:           "user", // TODO(Jovan): For now
+		Role:           role,
 	}
 
 	err = u.db.AddUser(&user)
@@ -191,12 +235,14 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		return &prusers.RegisterResponse{}, status.Error(codes.Internal, "Internal server error")
 	}
 
-	go func() {
-		_, err := u.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: r.Email})
-		if err != nil {
-			u.l.Errorf("failure sending activation request: %v\n", err)
-		}
-	}()
+	if role != "agent" {
+		go func() {
+			_, err := u.ec.SendActivation(context.Background(), &premail.SendActivationRequest{Email: r.Email})
+			if err != nil {
+				u.l.Errorf("failure sending activation request: %v\n", err)
+			}
+		}()
+	}
 
 	return &prusers.RegisterResponse{}, nil
 }
@@ -266,7 +312,7 @@ func (u *Users) GetProfileByUsername(ctx context.Context, r *prusers.ProfileRequ
 		FullName:          user_profile.FullName,
 		Description:       profile.Description,
 		IsFollowing:       isFollowing,
-		IsPublic:          profile.Public,
+		IsPublic:          !profile.PrivateProfile,
 		PhoneNumber:       profile.PhoneNumber,
 		Gender:            profile.Gender,
 		DateOfBirth:       date,

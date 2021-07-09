@@ -42,6 +42,68 @@
             +
           </div>
         </div>
+        <div
+        v-if="campaign"
+        id="campaign-info">
+          <v-select
+          label="Age group"
+          :items="ageGroups"
+          v-model="ageGroup"></v-select>
+          <v-text-field v-model="website"
+          label="Website"
+          />
+          <v-checkbox v-model="oneTime"
+          label="One time"></v-checkbox>
+          <v-menu
+          v-model="dateMenu"
+          :close-on-content-click="false"
+          :nudge-right="40"
+          transition="scale-transition"
+          offset-y
+          min-width="auto"
+          >
+              <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                  label="Campaign start"
+                  v-model="campaignStart"
+                  prepend-icon="fa-calendar"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  :max="maxDate"
+              ></v-text-field>
+              </template>
+              <v-date-picker
+              v-model="campaignStart"
+              @input="dateMenu = false"
+              ></v-date-picker>
+          </v-menu>
+          <v-menu
+          v-if="!oneTime"
+          v-model="dateMenu2"
+          :close-on-content-click="false"
+          :nudge-right="40"
+          transition="scale-transition"
+          offset-y
+          min-width="auto"
+          >
+              <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                  label="Campaign end"
+                  v-model="campaignEnd"
+                  prepend-icon="fa-calendar"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                  :max="maxDate"
+              ></v-text-field>
+              </template>
+              <v-date-picker
+              v-model="campaignEnd"
+              @input="dateMenu = false"
+              ></v-date-picker>
+          </v-menu>
+        </div>
       </div>
       <div class="post-form-body-right-side">
         <h2>Upload info</h2>
@@ -108,6 +170,15 @@
           </template>
         </v-list-item>
         </v-list>
+        <div class="d-flex flex-row">
+          <v-checkbox
+          v-model="closeFriends"
+          label="Close friends"/>
+          <v-checkbox
+          v-if="role == 'agent'"
+          v-model="campaign"
+          label="Campaign"></v-checkbox>
+        </div>
         <v-spacer></v-spacer>
         <v-btn color="accent" :disabled="!images.length" @click="uploadFiles" :loading="uploading">Upload</v-btn>
       </div>
@@ -121,6 +192,16 @@ export default {
   name: "PostForm",
   data: function () {
     return {
+      website: '',
+      campaignStart: '',
+      campaignEnd: '',
+      oneTime: false,
+      dateMenu: false,
+      dateMenu2: false,
+      ageGroups: ['Pre 20s', '20s', '30s'],
+      ageGroup: '',
+      campaign: false,
+      role: 'user',
       uploading: false,
       description: "",
       location: {
@@ -144,6 +225,7 @@ export default {
     }
   },
   mounted() {
+          this.getRole();
           this.axios.get('users/taggableprofiles/get', {headers: this.getAHeader()})
             .then(r => {
                 console.log(r.data);
@@ -152,6 +234,16 @@ export default {
             .catch(r => console.log(r));
   },
   methods: {
+    getRole: function() {
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          this.axios.get('users/get/role', {headers: this.getAHeader()})
+            .then(r => {
+              this.role = r.data;
+            }).catch(() => this.$router.push('/'));
+        });
+    },
 
     filter() {
       if(this.query === ''){
@@ -200,6 +292,12 @@ export default {
       });
       data.append('description', this.description)
       data.append('location', JSON.stringify(this.location))
+      data.append('campaign', this.campaign)
+      data.append('ageGroup', this.ageGroup)
+      data.append('oneTime', this.oneTime)
+      data.append('campaignStart', this.campaignStart)
+      data.append('campaignEnd', this.campaignEnd)
+      data.append('website', this.website)
       this.refreshToken(this.getAHeader())
         .then(rr => {
           this.$store.state.jws = rr.data;

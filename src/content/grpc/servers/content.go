@@ -29,6 +29,32 @@ func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
 	}
 }
 
+func (c *Content) AddInfluencerToCampaign(ctx context.Context, r *prcontent.AddInfluencerToCampaignRequest) (*prcontent.AddInfluencerToCampaignResponse, error) {
+	err := c.db.AddInfluencerToCampaign(r.CampaignId, r.InfluencerId)
+	if err != nil {
+		c.l.Errorf("failed to add influencer to campaign: %v", err)
+		return &prcontent.AddInfluencerToCampaignResponse{}, status.Error(codes.Internal, "Internal error")
+	}
+	return &prcontent.AddInfluencerToCampaignResponse{}, nil
+}
+
+func (c *Content) GetCampaignByUser(ctx context.Context, r *prcontent.GetCampaignByUserRequest) (*prcontent.GetCampaignByUserResponse, error) {
+	campaigns, err := c.db.GetCampaignsByUser(r.UserId)
+	if err != nil {
+		c.l.Errorf("failed to get campaigns: %v", err)
+		return &prcontent.GetCampaignByUserResponse{}, status.Error(codes.NotFound, "Not found")
+	}
+	prc := []*prcontent.Campaign{}
+	for _, c := range *campaigns {
+		prc = append(prc, &prcontent.Campaign{
+			Id:      c.ID,
+			Url:     c.Media[0].URL,
+			Website: c.CampaignWebsite,
+		})
+	}
+	return &prcontent.GetCampaignByUserResponse{Campaigns: prc}, nil
+}
+
 func (c *Content) GetPostPreviewURL(ctx context.Context, r *prcontent.GetPostPreviewURLRequest) (*prcontent.GetPostPreviewURLResponse, error) {
 	post, err := c.db.GetPost(r.PostId)
 	if err != nil {
@@ -142,9 +168,28 @@ func (c *Content) AddHighlight(ctx context.Context, r *prcontent.AddHighlightReq
 }
 
 func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest) (*prcontent.CreatePostResponse, error) {
+	ageGroup := data.EAgeGroup_PRE20
+	switch r.AgeGroup {
+	case "Pre 20s":
+		ageGroup = data.EAgeGroup_PRE20
+	case "20s":
+		ageGroup = data.EAgeGroup_20
+	case "30s":
+		ageGroup = data.EAgeGroup_30
+	default:
+		ageGroup = data.EAgeGroup_PRE20
+	}
+	sm := data.SharedMedia{
+		IsCampaign:       r.Campaign,
+		CampaignAgeGroup: data.EAgeGroup(ageGroup),
+		CampaignOneTime:  r.CampaignOneTime,
+		CampaignWebsite:  r.CampaignWebsite,
+		CampaignStart:    r.CampaignStart,
+		CampaignEnd:      r.CampaignEnd,
+	}
 	post := &data.Post{
 		UserID:      r.UserId,
-		SharedMedia: data.SharedMedia{},
+		SharedMedia: sm,
 	}
 	err := c.db.AddPost(post)
 	if err != nil {
@@ -156,9 +201,28 @@ func (c *Content) CreatePost(ctx context.Context, r *prcontent.CreatePostRequest
 }
 
 func (c *Content) CreateStory(ctx context.Context, r *prcontent.CreateStoryRequest) (*prcontent.CreateStoryResponse, error) {
+	ageGroup := data.EAgeGroup_PRE20
+	switch r.AgeGroup {
+	case "Pre 20s":
+		ageGroup = data.EAgeGroup_PRE20
+	case "20s":
+		ageGroup = data.EAgeGroup_20
+	case "30s":
+		ageGroup = data.EAgeGroup_30
+	default:
+		ageGroup = data.EAgeGroup_PRE20
+	}
+	sm := data.SharedMedia{
+		IsCampaign:       r.Campaign,
+		CampaignAgeGroup: data.EAgeGroup(ageGroup),
+		CampaignOneTime:  r.CampaignOneTime,
+		CampaignWebsite:  r.CampaignWebsite,
+		CampaignStart:    r.CampaignStart,
+		CampaignEnd:      r.CampaignEnd,
+	}
 	story := &data.Story{
 		UserID:      r.UserId,
-		SharedMedia: data.SharedMedia{},
+		SharedMedia: sm,
 	}
 	err := c.db.AddStory(story)
 	if err != nil {
@@ -299,6 +363,8 @@ func (c *Content) GetPostsByUser(r *prcontent.GetPostsRequest, stream prcontent.
 			SharedMedia: &prcontent.SharedMedia{
 				Media: media,
 			},
+			IsCampaign:      p.SharedMedia.IsCampaign,
+			CampaignWebsite: p.SharedMedia.CampaignWebsite,
 		}
 		err = stream.Send(&prcontent.GetPostsResponse{
 			Post: post,

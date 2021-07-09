@@ -11,11 +11,16 @@ USERSDIR = src/users
 EMAILDIR = src/email
 CONTENTDIR = src/content
 ADMINDIR = src/admin
+AGENTDIR = agent/backend
+AGENTFRONT = agent/frontend
 
-.PHONY: node_modules test tidy protos api auth users content admin
+.PHONY: node_modules test tidy protos api auth users content admin agentback
 
 protos:
 	cd $(MAINDIR) && protoc -I protos/ protos/*/*.proto --go_out=protos/ --go-grpc_out=protos/
+
+agentback:
+	cd $(AGENTDIR) && go run main.go
 
 backend:
 	make -j 6 api auth users email content admin

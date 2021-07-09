@@ -46,10 +46,12 @@
                            playsinline
                            :controls="true"
                            :preload="true"
-                           :src="item.url"/>
+                           :src="item.url"
+                           @click="campaignWebsite"/>
                     <v-img v-else
                            contain
-                           :src="item.url"/>
+                           :src="item.url"
+                           @click="campaignWebsite"/>
                   </v-carousel-item>
                 </v-carousel>
               </v-layout>
@@ -150,6 +152,11 @@ export default {
       userProp: { type: Object, required: true}
   },
   methods: {
+    campaignWebsite: function() {
+      if(this.post.post.isCampaign) {
+        window.location.replace('https://' + this.post.post.campaignWebsite);
+      }
+    },
     toggleParrent() {
       this.show = !this.show
     },
