@@ -30,7 +30,7 @@
                      :src="story.url"
                      @click="campaignWebsite(story)"/>
               </v-carousel-item>
-              <div class="close-friends-div" v-if="story.closeFriends">
+              <div class="close-friends-div" v-if="closeFriends">
                 <h3>
                   CLOSE FRIENDS
                 </h3>
@@ -64,6 +64,10 @@ export default {
     stories: {
       type: Array,
       required: true
+    },
+    closeFriends: {
+      type: Boolean,
+      required: false,
     }
   },
   methods: {
@@ -95,6 +99,7 @@ export default {
     // this.countDownTimer()
   },
   mounted() {
+    // console.log(this.closeFriends)
     // console.log(this.stories)
         // console.log(this.stories);
 

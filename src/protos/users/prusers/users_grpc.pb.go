@@ -45,6 +45,7 @@ type UsersClient interface {
 	CheckIfFollowing(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	CheckForFollowingRequest(ctx context.Context, in *ProflieFollowRequest, opts ...grpc.CallOption) (*BoolResponse, error)
 	VerifyProfile(ctx context.Context, in *VerifyProfileRequest, opts ...grpc.CallOption) (*VerifyProfileResponse, error)
+	DeleteProfile(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*DeleteProfileResponse, error)
 	GetMutedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetMutedProfilesClient, error)
 	MuteProfile(ctx context.Context, in *MuteProfileRequest, opts ...grpc.CallOption) (*MuteProfileResponse, error)
 	UnmuteProfile(ctx context.Context, in *UnmuteProfileRequest, opts ...grpc.CallOption) (*UnmuteProfileResponse, error)
@@ -60,6 +61,8 @@ type UsersClient interface {
 	InfluencerRequest(ctx context.Context, in *InfluencerRequestRequest, opts ...grpc.CallOption) (*InfluencerRequestResponse, error)
 	GetInfluencerRequests(ctx context.Context, in *GetInfluencerRequestsRequest, opts ...grpc.CallOption) (*GetInfluencerRequestsResponse, error)
 	AcceptInfluencer(ctx context.Context, in *AcceptInfluencerRequest, opts ...grpc.CallOption) (*AcceptInfluencerResponse, error)
+	CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error)
+	GetFollowingMain(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowingMainClient, error)
 }
 
 type usersClient struct {
@@ -428,6 +431,15 @@ func (c *usersClient) VerifyProfile(ctx context.Context, in *VerifyProfileReques
 	return out, nil
 }
 
+func (c *usersClient) DeleteProfile(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*DeleteProfileResponse, error) {
+	out := new(DeleteProfileResponse)
+	err := c.cc.Invoke(ctx, "/Users/DeleteProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *usersClient) GetMutedProfiles(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetMutedProfilesClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[5], "/Users/GetMutedProfiles", opts...)
 	if err != nil {
@@ -655,6 +667,47 @@ func (c *usersClient) AcceptInfluencer(ctx context.Context, in *AcceptInfluencer
 	return out, nil
 }
 
+func (c *usersClient) CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error) {
+	out := new(BoolResponse)
+	err := c.cc.Invoke(ctx, "/Users/CheckActive", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetFollowingMain(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowingMainClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Users_ServiceDesc.Streams[9], "/Users/GetFollowingMain", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &usersGetFollowingMainClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Users_GetFollowingMainClient interface {
+	Recv() (*ProfileMBCF, error)
+	grpc.ClientStream
+}
+
+type usersGetFollowingMainClient struct {
+	grpc.ClientStream
+}
+
+func (x *usersGetFollowingMainClient) Recv() (*ProfileMBCF, error) {
+	m := new(ProfileMBCF)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -686,6 +739,7 @@ type UsersServer interface {
 	CheckIfFollowing(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	CheckForFollowingRequest(context.Context, *ProflieFollowRequest) (*BoolResponse, error)
 	VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error)
+	DeleteProfile(context.Context, *Profile) (*DeleteProfileResponse, error)
 	GetMutedProfiles(*Profile, Users_GetMutedProfilesServer) error
 	MuteProfile(context.Context, *MuteProfileRequest) (*MuteProfileResponse, error)
 	UnmuteProfile(context.Context, *UnmuteProfileRequest) (*UnmuteProfileResponse, error)
@@ -701,6 +755,8 @@ type UsersServer interface {
 	InfluencerRequest(context.Context, *InfluencerRequestRequest) (*InfluencerRequestResponse, error)
 	GetInfluencerRequests(context.Context, *GetInfluencerRequestsRequest) (*GetInfluencerRequestsResponse, error)
 	AcceptInfluencer(context.Context, *AcceptInfluencerRequest) (*AcceptInfluencerResponse, error)
+	CheckActive(context.Context, *Profile) (*BoolResponse, error)
+	GetFollowingMain(*Profile, Users_GetFollowingMainServer) error
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -789,6 +845,9 @@ func (UnimplementedUsersServer) CheckForFollowingRequest(context.Context, *Profl
 func (UnimplementedUsersServer) VerifyProfile(context.Context, *VerifyProfileRequest) (*VerifyProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyProfile not implemented")
 }
+func (UnimplementedUsersServer) DeleteProfile(context.Context, *Profile) (*DeleteProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteProfile not implemented")
+}
 func (UnimplementedUsersServer) GetMutedProfiles(*Profile, Users_GetMutedProfilesServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetMutedProfiles not implemented")
 }
@@ -833,6 +892,12 @@ func (UnimplementedUsersServer) GetInfluencerRequests(context.Context, *GetInflu
 }
 func (UnimplementedUsersServer) AcceptInfluencer(context.Context, *AcceptInfluencerRequest) (*AcceptInfluencerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AcceptInfluencer not implemented")
+}
+func (UnimplementedUsersServer) CheckActive(context.Context, *Profile) (*BoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckActive not implemented")
+}
+func (UnimplementedUsersServer) GetFollowingMain(*Profile, Users_GetFollowingMainServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetFollowingMain not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1348,6 +1413,24 @@ func _Users_VerifyProfile_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_DeleteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Profile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).DeleteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/DeleteProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).DeleteProfile(ctx, req.(*Profile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Users_GetMutedProfiles_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(Profile)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1630,6 +1713,45 @@ func _Users_AcceptInfluencer_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_CheckActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Profile)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).CheckActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/CheckActive",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).CheckActive(ctx, req.(*Profile))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetFollowingMain_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Profile)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(UsersServer).GetFollowingMain(m, &usersGetFollowingMainServer{stream})
+}
+
+type Users_GetFollowingMainServer interface {
+	Send(*ProfileMBCF) error
+	grpc.ServerStream
+}
+
+type usersGetFollowingMainServer struct {
+	grpc.ServerStream
+}
+
+func (x *usersGetFollowingMainServer) Send(m *ProfileMBCF) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1726,6 +1848,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Users_VerifyProfile_Handler,
 		},
 		{
+			MethodName: "DeleteProfile",
+			Handler:    _Users_DeleteProfile_Handler,
+		},
+		{
 			MethodName: "MuteProfile",
 			Handler:    _Users_MuteProfile_Handler,
 		},
@@ -1768,6 +1894,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AcceptInfluencer",
 			Handler:    _Users_AcceptInfluencer_Handler,
+		},
+		{
+			MethodName: "CheckActive",
+			Handler:    _Users_CheckActive_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -1814,6 +1944,11 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetProfilesForCloseFriends",
 			Handler:       _Users_GetProfilesForCloseFriends_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetFollowingMain",
+			Handler:       _Users_GetFollowingMain_Handler,
 			ServerStreams: true,
 		},
 	},

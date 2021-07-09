@@ -958,6 +958,34 @@ func (c *Content) PutReaction(ctx context.Context, r *prcontent.PutReactionReque
 	return &prcontent.PutReactionResponse{}, nil
 }
 
+func (c *Content) DeleteSharedMedia(ctx context.Context, r *prcontent.DeleteSharedMediaRequest) (*prcontent.DeleteSharedMediaResponse, error) {
+
+	err := c.db.DeleteSharedMedia(r.Id)
+	if err != nil {
+		c.l.Errorf("failure deleting shared media: %v\n", err)
+		return &prcontent.DeleteSharedMediaResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &prcontent.DeleteSharedMediaResponse{}, nil
+}
+
+func (c *Content) GetPostUserId(ctx context.Context, r *prcontent.GetPostUserIdRequest) (*prcontent.GetPostUserIdResponse, error) {
+
+	i, err := strconv.ParseUint(r.PostId, 10, 64)
+	if err != nil {
+		c.l.Errorf("failure converting id: %v\n", err)
+		return &prcontent.GetPostUserIdResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	post, err := c.db.GetPost(i)
+	if err != nil {
+		c.l.Errorf("failure getting post: %v\n", err)
+		return &prcontent.GetPostUserIdResponse{}, err
+	}
+
+	return &prcontent.GetPostUserIdResponse{UserId: post.UserID}, nil
+}
+
 func (c *Content) SearchContent(ctx context.Context, r *prcontent.SearchContentRequest) (*prcontent.SearchContentResponse, error) {
 	posts, err := c.db.GetPostsByTag(r.Value)
 	if err != nil {

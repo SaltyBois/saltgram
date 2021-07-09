@@ -3,7 +3,8 @@
     <portal-target name="drop-down-profile-menu" />
     <portal-target name="settings-menu"/>
     <TopBar style="position: sticky; z-index: 2"/>
-    <div id="user-header">
+    <UserNotFound v-if="!active" />
+    <div id="user-header" v-if="this.active">
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
@@ -49,7 +50,7 @@
       </div>
     </div>
 
-    <div v-if="!isContentVisible" class="private-account">
+    <div v-if="!isContentVisible && active" class="private-account">
       <i class="fa fa-lock" style="transform: scale(2.5)"/>
       <h3>This user is private</h3>
 
@@ -57,7 +58,7 @@
 
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
-              v-if="isContentVisible"
+              v-if="isContentVisible && active"
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
@@ -103,7 +104,7 @@
 
     <!--  TODO: LAYOUT FOR TOGGLING: POSTS, SAVED, TAGGED  -->
     <v-layout id="radio-button-layout"
-              v-if="isContentVisible">
+              v-if="isContentVisible && active">
       <v-radio-group row  v-model="radioButton">
         <v-radio label="Posts"  value="posts"/>
         <v-radio label="Saved"  value="saved"/>
@@ -114,7 +115,7 @@
 <!--        TODO: POSTS -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'posts' && isContentVisible"
+                v-if="radioButton === 'posts' && isContentVisible && active"
                 column>
                 <div v-for="(object, index) in usersPosts" :key="index">
                   <PostOnUserPage :post="object"
@@ -127,7 +128,7 @@
     <!--        TODO: SAVED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'saved' && isContentVisible"
+                v-if="radioButton === 'saved' && isContentVisible && active"
                 column>
                 <div v-for="(object, index) in savedPosts" :key="index">
                   <PostOnUserPage :post="object"
@@ -139,7 +140,7 @@
     <!--        TODO: TAGGED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'tagged' && isContentVisible"
+                v-if="radioButton === 'tagged' && isContentVisible && active"
                 column>
                 <div v-for="(object, index) in taggedPosts" :key="index">
                   <PostOnUserPage :post="object"
@@ -157,10 +158,11 @@ import ProfileHeader from "@/components/user_page_components/ProfileHeader";
 import NameAndDescription from "@/components/user_page_components/NameAndDescription";
 import StoryHighlight from "@/components/user_page_components/StoryHighlight";
 import PostOnUserPage from "@/components/user_page_components/PostOnUserPage";
+import UserNotFound from "@/components/user_page_components/UserNotFound";
 
 export default {
     components: {
-      TopBar, ProfileImage, ProfileHeader, NameAndDescription, StoryHighlight, PostOnUserPage
+      TopBar, ProfileImage, ProfileHeader, NameAndDescription, StoryHighlight, PostOnUserPage, UserNotFound
     },
     data: function() {
       return {
@@ -204,6 +206,7 @@ export default {
         loggedUser: { username: '' },
         taggedPosts: [],
         savedPosts: [],
+        active: true,
       }
     },
     computed: {
@@ -522,10 +525,19 @@ export default {
     },
     mounted() {
       this.getCampaigns();
+        this.axios.get("users/check/" + this.$route.params.username)
+        .then(r => {
+          this.active = r.data
+        })
+        .catch(r => {
+          this.active = false
+          console.log(r)
+        })
         this.axios.get("users/check/block/" + this.$route.params.username, {headers: this.getAHeader()})
           .then(r => {
             if (r.data) {
-              this.$router.push('/main/')
+              //this.$router.push('/main/')
+              this.active = false
             }
           })
        this.getUserInfo(); // TODO UNCOMMENT THIS

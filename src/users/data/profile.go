@@ -40,6 +40,7 @@ type Profile struct {
 	ProfilePictureURL string     `json:"profilePictureURL"`
 	AccountType       string     `json:"accountType"`
 	Verified          bool       `json:"verified"`
+	Active            bool       `json:"active"`
 }
 
 type FollowRequest struct {
@@ -90,7 +91,7 @@ var ErrProfileNotFound = fmt.Errorf("profile not found")
 
 func (db *DBConn) GetProfileByUserId(userId uint64) (*Profile, error) {
 	profile := Profile{}
-	res := db.DB.Where("user_id = ?", userId).First(&profile)
+	res := db.DB.Where("user_id = ? AND active = ?", userId, true).First(&profile)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -103,7 +104,7 @@ func (db *DBConn) GetProfileByUserId(userId uint64) (*Profile, error) {
 
 func (db *DBConn) GetProfileByUsername(username string) (*Profile, error) {
 	profile := Profile{}
-	err := db.DB.Where("username = ?", username).First(&profile).Error
+	err := db.DB.Where("username = ? AND active = ?", username, true).First(&profile).Error
 	return &profile, err
 }
 
@@ -187,7 +188,7 @@ func GetFollowing(db *DBConn, profile *Profile) ([]Profile, error) {
 	if len(ids) == 0 {
 		return following, nil
 	}
-	err = db.DB.Find(&following, ids).Error
+	err = db.DB.Where("active = ?", true).Find(&following, ids).Error
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +205,7 @@ func GetFollowRequests(db *DBConn, profile *Profile) ([]Profile, error) {
 	if len(ids) == 0 {
 		return profiles, nil
 	}
-	err = db.DB.Find(&profiles, ids).Error
+	err = db.DB.Where("active = ?", true).Find(&profiles, ids).Error
 	if err != nil {
 		return nil, err
 	}
@@ -370,4 +371,26 @@ func (db *DBConn) CheckIfCloseFriend(profile *Profile, friend *Profile) (bool, e
 	}
 	exists := count > 0
 	return exists, nil
+}
+
+func (db *DBConn) DeleteFromFollwing(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_following WHERE profile_id = ? OR following_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) DeleteFromMuted(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_muted WHERE profile_id = ? OR muted_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) DeleteFromBlocked(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_blocked WHERE profile_id = ? OR blocked_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) DeleteFromCloseFriends(profile *Profile) error {
+	return db.DB.Exec("DELETE FROM profile_closefriends WHERE profile_id = ? OR close_friend_id = ?", profile.ID, profile.ID).Error
+}
+
+func (db *DBConn) CheckActive(username string) (bool, error) {
+	var active bool
+	err := db.DB.Table("profiles").Select("active").Where("username = ?", username).Find(&active).Error
+	return active, err
 }

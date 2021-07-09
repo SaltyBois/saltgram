@@ -216,6 +216,7 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 		Messagable:      true,
 		Verified:        false,
 		AccountType:     "",
+		Active:          true,
 	}
 
 	err = u.db.AddProfile(&profile)
@@ -546,7 +547,8 @@ func (u *Users) GetByUserId(ctx context.Context, r *prusers.GetByIdRequest) (*pr
 }
 
 func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) (*prusers.SearchResponse, error) {
-	users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
+	//users, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
+	profiles, err := u.db.GetAllUsersByUsernameSubstring(r.Query)
 	if err != nil {
 		u.l.Printf("[ERROR] geting user: %v\n", err)
 		return &prusers.SearchResponse{}, err
@@ -554,8 +556,10 @@ func (u *Users) GetSearchedUsers(ctx context.Context, r *prusers.SearchRequest) 
 
 	searchedUsers := []*prusers.SearchedUser{}
 
-	for i := 0; i < len(users); i++ {
-		su := users[i]
+	//for i := 0; i < len(users); i++ {
+	for i := 0; i < len(profiles); i++ {
+		//su := users[i]
+		su := profiles[i]
 		searchedUsers = append(searchedUsers, &prusers.SearchedUser{
 			Username:              su.Username,
 			ProfilePictureAddress: su.ProfilePictureURL})
@@ -1032,6 +1036,82 @@ func (u *Users) GetProfilesForCloseFriends(r *prusers.Profile, stream prusers.Us
 	}
 	for _, profile := range profiles {
 
+		err = stream.Send(&prusers.ProfileMBCF{
+			Username:          profile.Username,
+			ProfilePictureURL: profile.ProfilePictureURL,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u *Users) DeleteProfile(ctx context.Context, r *prusers.Profile) (*prusers.DeleteProfileResponse, error) {
+	profile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.DeleteProfileResponse{}, err
+	}
+	profile.Active = false
+	err = u.db.UpdateProfile(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting profile: %v\n", err)
+		return &prusers.DeleteProfileResponse{}, err
+	}
+
+	err = u.db.DeleteFromFollwing(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form following %v", err)
+	}
+
+	err = u.db.DeleteFromMuted(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form muted %v", err)
+	}
+
+	err = u.db.DeleteFromBlocked(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form blocked %v", err)
+	}
+
+	err = u.db.DeleteFromCloseFriends(profile)
+	if err != nil {
+		u.l.Printf("[ERROR] deleting form close friends %v", err)
+	}
+
+	return &prusers.DeleteProfileResponse{}, nil
+
+}
+
+func (u *Users) CheckActive(ctx context.Context, r *prusers.Profile) (*prusers.BoolResponse, error) {
+	active, err := u.db.CheckActive(r.Username)
+	if err != nil {
+		return &prusers.BoolResponse{}, err
+	}
+	return &prusers.BoolResponse{Response: active}, nil
+}
+
+func (u *Users) GetFollowingMain(r *prusers.Profile, stream prusers.Users_GetFollowingMainServer) error {
+	userProfile, err := u.db.GetProfileByUsername(r.Username)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return err
+	}
+
+	profiles, err := data.GetFollowing(u.db, userProfile)
+	if err != nil {
+		u.l.Printf("[ERROR]  fetching followers %v\n", err)
+		return err
+	}
+	for _, profile := range profiles {
+		muted, err := u.db.CheckIfMuted(userProfile, &profile)
+		if err != nil {
+			return err
+		}
+		if muted {
+			continue
+		}
 		err = stream.Send(&prusers.ProfileMBCF{
 			Username:          profile.Username,
 			ProfilePictureURL: profile.ProfilePictureURL,

@@ -277,3 +277,107 @@ func (a *Admin) ReviewVerificationRequest(w http.ResponseWriter, r *http.Request
 		return
 	}
 }
+
+func (a *Admin) RejectInappropriateContentReport(w http.ResponseWriter, r *http.Request) {
+
+	dto := saltdata.ReviewReportDTO{}
+	err := saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		a.l.Errorf("failure rejecting inappropriate content report: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.RejectInappropriateContentReport(context.Background(), &pradmin.RejectInappropriateContentReportRequest{Id: dto.Id})
+
+	if err != nil {
+		a.l.Errorf("failed to reject inappropriate content report: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (a *Admin) RemoveInappropriateContent(w http.ResponseWriter, r *http.Request) {
+
+	dto := saltdata.ReviewReportDTO{}
+	err := saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		a.l.Errorf("failure rejecting inappropriate content report: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	i, err := strconv.ParseUint(dto.SharedMediaId, 10, 64)
+
+	if err != nil {
+		a.l.Errorf("failed to convert id string: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.cc.DeleteSharedMedia(context.Background(), &prcontent.DeleteSharedMediaRequest{Id: i})
+
+	if err != nil {
+		a.l.Errorf("failed to reject inappropriate content report: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.AcceptInappropriateContentReport(context.Background(), &pradmin.AcceptInappropriateContentReportRequest{Id: dto.Id})
+
+	if err != nil {
+		a.l.Errorf("failed to reject inappropriate content report: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+}
+
+func (a *Admin) RemoveProfile(w http.ResponseWriter, r *http.Request) {
+
+	dto := saltdata.ReviewReportDTO{}
+	err := saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		a.l.Errorf("failure rejecting inappropriate content report: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.AcceptInappropriateContentReport(context.Background(), &pradmin.AcceptInappropriateContentReportRequest{Id: dto.Id})
+
+	if err != nil {
+		a.l.Errorf("failed to reject inappropriate content report: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := a.cc.GetPostUserId(context.Background(), &prcontent.GetPostUserIdRequest{PostId: dto.SharedMediaId})
+
+	if err != nil {
+		a.l.Errorf("failed to get user id by post: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: resp.UserId})
+
+	if err != nil {
+		a.l.Errorf("failed fetching user %v\n", err)
+		http.Error(w, "User getting error", http.StatusInternalServerError)
+		return
+	}
+
+	/*profile, err := a.uc.GetProfileByUsername(context.Background(), &prusers.ProfileRequest{User: user.Username, Username: user.Username})
+	if err != nil {
+		a.l.Errorf("failed fetching profile %v\n", err)
+		http.Error(w, "Profile getting error", http.StatusInternalServerError)
+		return
+	}*/
+
+	_, err = a.uc.DeleteProfile(context.Background(), &prusers.Profile{Username: user.Username})
+	if err != nil {
+		a.l.Errorf("failed deleting profile %v\n", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+}

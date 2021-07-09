@@ -67,4 +67,15 @@ func (db *DBConn) SeedAdmin() {
 		db.l.Fatalf("Hashing admin password failed")
 	}
 	db.DB.Create(user)
+	profile := &Profile{
+		UserID: user.ID,
+		User: *user,
+		Username: user.Username,
+		Public: false,
+		Taggable: false,
+		Messagable: false,
+		PrivateProfile: true,
+		Active: true,
+	}
+	db.DB.Create(profile)
 }

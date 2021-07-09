@@ -40,6 +40,8 @@ type ContentClient interface {
 	AddProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Content_AddProfilePictureClient, error)
 	AddHighlight(ctx context.Context, in *AddHighlightRequest, opts ...grpc.CallOption) (*AddHighlightResponse, error)
 	PutReaction(ctx context.Context, in *PutReactionRequest, opts ...grpc.CallOption) (*PutReactionResponse, error)
+	DeleteSharedMedia(ctx context.Context, in *DeleteSharedMediaRequest, opts ...grpc.CallOption) (*DeleteSharedMediaResponse, error)
+	GetPostUserId(ctx context.Context, in *GetPostUserIdRequest, opts ...grpc.CallOption) (*GetPostUserIdResponse, error)
 	SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error)
 	GetTagsByName(ctx context.Context, in *GetTagsByNameRequest, opts ...grpc.CallOption) (*GetTagsByNameResponse, error)
 	GetPostsByUserReaction(ctx context.Context, in *GetPostsByUserReactionRequest, opts ...grpc.CallOption) (*GetPostsByUserReactionResponse, error)
@@ -400,6 +402,24 @@ func (c *contentClient) PutReaction(ctx context.Context, in *PutReactionRequest,
 	return out, nil
 }
 
+func (c *contentClient) DeleteSharedMedia(ctx context.Context, in *DeleteSharedMediaRequest, opts ...grpc.CallOption) (*DeleteSharedMediaResponse, error) {
+	out := new(DeleteSharedMediaResponse)
+	err := c.cc.Invoke(ctx, "/Content/DeleteSharedMedia", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentClient) GetPostUserId(ctx context.Context, in *GetPostUserIdRequest, opts ...grpc.CallOption) (*GetPostUserIdResponse, error) {
+	out := new(GetPostUserIdResponse)
+	err := c.cc.Invoke(ctx, "/Content/GetPostUserId", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentClient) SearchContent(ctx context.Context, in *SearchContentRequest, opts ...grpc.CallOption) (*SearchContentResponse, error) {
 	out := new(SearchContentResponse)
 	err := c.cc.Invoke(ctx, "/Content/SearchContent", in, out, opts...)
@@ -516,6 +536,8 @@ type ContentServer interface {
 	AddProfilePicture(Content_AddProfilePictureServer) error
 	AddHighlight(context.Context, *AddHighlightRequest) (*AddHighlightResponse, error)
 	PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error)
+	DeleteSharedMedia(context.Context, *DeleteSharedMediaRequest) (*DeleteSharedMediaResponse, error)
+	GetPostUserId(context.Context, *GetPostUserIdRequest) (*GetPostUserIdResponse, error)
 	SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error)
 	GetTagsByName(context.Context, *GetTagsByNameRequest) (*GetTagsByNameResponse, error)
 	GetPostsByUserReaction(context.Context, *GetPostsByUserReactionRequest) (*GetPostsByUserReactionResponse, error)
@@ -589,6 +611,12 @@ func (UnimplementedContentServer) AddHighlight(context.Context, *AddHighlightReq
 }
 func (UnimplementedContentServer) PutReaction(context.Context, *PutReactionRequest) (*PutReactionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutReaction not implemented")
+}
+func (UnimplementedContentServer) DeleteSharedMedia(context.Context, *DeleteSharedMediaRequest) (*DeleteSharedMediaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSharedMedia not implemented")
+}
+func (UnimplementedContentServer) GetPostUserId(context.Context, *GetPostUserIdRequest) (*GetPostUserIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPostUserId not implemented")
 }
 func (UnimplementedContentServer) SearchContent(context.Context, *SearchContentRequest) (*SearchContentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchContent not implemented")
@@ -1016,6 +1044,42 @@ func _Content_PutReaction_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Content_DeleteSharedMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSharedMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).DeleteSharedMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/DeleteSharedMedia",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).DeleteSharedMedia(ctx, req.(*DeleteSharedMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Content_GetPostUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPostUserIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServer).GetPostUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Content/GetPostUserId",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServer).GetPostUserId(ctx, req.(*GetPostUserIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Content_SearchContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchContentRequest)
 	if err := dec(in); err != nil {
@@ -1250,6 +1314,14 @@ var Content_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PutReaction",
 			Handler:    _Content_PutReaction_Handler,
+		},
+		{
+			MethodName: "DeleteSharedMedia",
+			Handler:    _Content_DeleteSharedMedia_Handler,
+		},
+		{
+			MethodName: "GetPostUserId",
+			Handler:    _Content_GetPostUserId_Handler,
 		},
 		{
 			MethodName: "SearchContent",
