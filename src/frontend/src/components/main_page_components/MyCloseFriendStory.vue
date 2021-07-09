@@ -1,6 +1,6 @@
 <template>
   <div class="story-layout">
-    <StoryView ref="storyView" :stories="realStories"/>
+    <StoryView ref="storyView" :stories="realStories" :close-friends="true"/>
     <v-img  class="story-close-friends"
             @click="toggle"
             v-if="user.profilePictureURL"

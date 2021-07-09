@@ -27,9 +27,9 @@
 
 <!--              <MySeenStory/>-->
               <div v-for="(item, index) in pageStories" :key="index">
-                <Story v-if="!item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" />
+                <Story v-if="!item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" :close-friends="item.closeFriends"/>
 
-                <StoryCloseFriends v-else-if="item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement"/>
+                <StoryCloseFriends v-else-if="item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" :close-friends="item.closeFriends"/>
 
 <!--                <StorySeen/>-->
 
@@ -126,7 +126,6 @@ export default {
       this.axios.get('users', {headers: this.getAHeader()})
           .then(r => {
             this.loggedUser = r.data;
-            // console.log(this.loggedUser)
             this.getFollowingUsers();
           })
           .catch(err => {
@@ -196,7 +195,7 @@ export default {
         // console.log(currentUser, i)
       this.axios.get("content/story/" + currentUser.id, {headers: this.getAHeader()})
           .then(r => {
-            console.log(r.data)
+            // console.log(r.data)
             let validStories = []
             const oneDay = 60 * 60 * 24 * 1000;
             r.data.forEach(el1 => {
@@ -226,10 +225,13 @@ export default {
               this.myStories = storyElement;
               if (this.myStories.storyElement.length !== 0) this.myStoriesExist = true;
               else this.myStoriesExist = false;
-              console.log('IDE GAS: ', this.myStories)
+              // console.log('IDE GAS: ', this.myStories)
               // console.log(this.myStoriesExist)
             }
-            else this.pageStories.push(storyElement);
+            else {
+              // console.log(storyElement)
+              this.pageStories.push(storyElement);
+            }
 
           }).catch(err => {
             console.log(err)
