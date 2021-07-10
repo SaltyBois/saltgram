@@ -7,6 +7,7 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
+	"saltgram/protos/notifications/prnotifications"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
 	"strconv"
@@ -25,15 +26,17 @@ type Users struct {
 	ac prauth.AuthClient
 	ec premail.EmailClient
 	cc prcontent.ContentClient
+	nc prnotifications.NotificationsClient
 }
 
-func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient, cc prcontent.ContentClient) *Users {
+func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient, cc prcontent.ContentClient, nc prnotifications.NotificationsClient) *Users {
 	return &Users{
 		l:  l,
 		db: db,
 		ac: ac,
 		ec: ec,
 		cc: cc,
+		nc: nc,
 	}
 }
 
@@ -322,7 +325,16 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 			u.l.Printf("[ERROR] creating following request")
 			return &prusers.FollowRespose{}, err
 		}
+		_, err = u.nc.CreateFollowRequestNotification(context.Background(), &prnotifications.RequestUsername{UserId: profileToFollow.UserID, ReferredId: profile.UserID, ReferredUsername: profile.Username})
+		if err != nil {
+			u.l.Errorf("creating notification %v\n", err)
+		}
 		return &prusers.FollowRespose{Message: "PENDING"}, nil
+	}
+
+	_, err = u.nc.CreateFollowNotification(context.Background(), &prnotifications.RequestUsername{UserId: profile.UserID, ReferredId: profileToFollow.UserID, ReferredUsername: profileToFollow.Username})
+	if err != nil {
+		u.l.Errorf("creating notification %v\n", err)
 	}
 
 	data.SetFollow(u.db, profile, profileToFollow)
@@ -554,6 +566,10 @@ func (u *Users) SetFollowRequestRespond(ctx context.Context, r *prusers.FollowRe
 	if err != nil {
 		u.l.Printf("[ERROR] following: %v\n", err)
 		return &prusers.FollowRequestSet{}, err
+	}
+	_, err = u.nc.CreateFollowNotification(context.Background(), &prnotifications.RequestUsername{UserId: UserProfile.UserID, ReferredId: profile_request.UserID, ReferredUsername: profile_request.Username})
+	if err != nil {
+		u.l.Errorf("creating notification %v\n", err)
 	}
 
 	return &prusers.FollowRequestSet{}, nil
@@ -1075,4 +1091,14 @@ func (u *Users) GetFollowingMain(r *prusers.Profile, stream prusers.Users_GetFol
 		}
 	}
 	return nil
+}
+
+func (u *Users) GetProfileByUserId(ctx context.Context, r *prusers.GetByIdRequest) (*prusers.ProfileMBCF, error) {
+	profile, err := u.db.GetProfileByUserId(r.Id)
+	if err != nil {
+		u.l.Printf("[ERROR] geting profile: %v\n", err)
+		return &prusers.ProfileMBCF{}, err
+	}
+
+	return &prusers.ProfileMBCF{Username: profile.Username, ProfilePictureURL: profile.ProfilePictureURL}, nil
 }

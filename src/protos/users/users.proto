@@ -53,6 +53,8 @@ service Users {
     rpc CheckActive(Profile) returns (BoolResponse);
 
     rpc GetFollowingMain(Profile) returns (stream ProfileMBCF);
+
+    rpc GetProfileByUserId(GetByIdRequest) returns (ProfileMBCF);
 }
 
 message VerifyProfileRequest {

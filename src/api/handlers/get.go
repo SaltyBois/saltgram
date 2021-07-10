@@ -10,6 +10,7 @@ import (
 	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
+	"saltgram/protos/notifications/prnotifications"
 	"saltgram/protos/users/prusers"
 	"strconv"
 
@@ -2091,4 +2092,59 @@ func (u *Users) GetFollowingMain(w http.ResponseWriter, r *http.Request) {
 		profiles = append(profiles, dto)
 	}
 	saltdata.ToJSON(profiles, w)
+}
+
+func (n *Notification) GetUnseenNotification(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		n.l.Println("failed to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	count, err := n.nc.GetUnseenNotificationsCount(context.Background(), &prnotifications.NProfile{Username: username})
+	if err != nil {
+		n.l.Println("[ERROR] fetching notifications")
+		http.Error(w, "Error fetching notifications", http.StatusInternalServerError)
+		return
+	}
+
+	saltdata.ToJSON(count.Count, w)
+}
+
+func (n *Notification) GetNotifications(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		n.l.Println("failed to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	
+	stream, err := n.nc.GetNotifications(context.Background(), &prnotifications.NProfile{Username: username})
+	if err != nil {
+		n.l.Println("[ERROR] fetching notifications")
+		http.Error(w, "Error fetching notifications", http.StatusInternalServerError)
+		return
+	}
+	var notifications []data.Notification
+
+	for {
+		notification, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			n.l.Println("[ERROR] fetching notifications")
+			http.Error(w, "Error couldn't fetch notifications", http.StatusInternalServerError)
+			return
+		}
+		notifications = append(notifications, data.Notification{
+			Username: notification.Username,
+			ReferredUsername: notification.ReferredUsername,
+			ReferredProfilePictureURL: notification.ReferredUserProfilePictureURL,
+			Type: notification.Type,
+			Seen: notification.Seen,
+		})
+	}
+
+	saltdata.ToJSON(notifications, w)
 }

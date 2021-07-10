@@ -1,0 +1,41 @@
+syntax = "proto3";
+option go_package = "./notifications/prnotifications";
+
+service Notifications {
+    rpc CreateLikeNotification(Request) returns (Respond);
+    rpc CreateCommentNotification(Request) returns (Respond);
+    rpc CreateFollowNotification(RequestUsername) returns (Respond);
+    rpc CreateFollowRequestNotification(RequestUsername) returns (Respond);
+    rpc GetNotifications(NProfile) returns (stream Notification);
+    rpc NotificationSeen(NProfile) returns (Respond);
+    rpc GetUnseenNotificationsCount(NProfile) returns (NotificationCount);
+}
+
+message NProfile {
+    string username = 1;
+}
+
+message Notification {
+    string username = 1;
+    string referredUsername = 2;
+    string referredUserProfilePictureURL = 3;
+    string type = 4;
+    bool seen = 5;
+}
+
+message Request {
+    uint64 userId  = 1;
+    uint64 referredId  = 2;
+}
+
+message RequestUsername {
+    uint64 userId  = 1;
+    uint64 referredId  = 2;
+    string referredUsername = 3;
+}
+
+message Respond {}
+
+message NotificationCount {
+    int64 count = 1;
+}

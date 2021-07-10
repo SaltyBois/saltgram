@@ -60,6 +60,7 @@ type UsersClient interface {
 	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 	CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error)
 	GetFollowingMain(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowingMainClient, error)
+	GetProfileByUserId(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*ProfileMBCF, error)
 }
 
 type usersClient struct {
@@ -678,6 +679,15 @@ func (x *usersGetFollowingMainClient) Recv() (*ProfileMBCF, error) {
 	return m, nil
 }
 
+func (c *usersClient) GetProfileByUserId(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*ProfileMBCF, error) {
+	out := new(ProfileMBCF)
+	err := c.cc.Invoke(ctx, "/Users/GetProfileByUserId", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -724,6 +734,7 @@ type UsersServer interface {
 	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	CheckActive(context.Context, *Profile) (*BoolResponse, error)
 	GetFollowingMain(*Profile, Users_GetFollowingMainServer) error
+	GetProfileByUserId(context.Context, *GetByIdRequest) (*ProfileMBCF, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -856,6 +867,9 @@ func (UnimplementedUsersServer) CheckActive(context.Context, *Profile) (*BoolRes
 }
 func (UnimplementedUsersServer) GetFollowingMain(*Profile, Users_GetFollowingMainServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetFollowingMain not implemented")
+}
+func (UnimplementedUsersServer) GetProfileByUserId(context.Context, *GetByIdRequest) (*ProfileMBCF, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfileByUserId not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -1656,6 +1670,24 @@ func (x *usersGetFollowingMainServer) Send(m *ProfileMBCF) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Users_GetProfileByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetProfileByUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/GetProfileByUserId",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetProfileByUserId(ctx, req.(*GetByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1790,6 +1822,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckActive",
 			Handler:    _Users_CheckActive_Handler,
+		},
+		{
+			MethodName: "GetProfileByUserId",
+			Handler:    _Users_GetProfileByUserId_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -11,6 +11,7 @@ USERSDIR = src/users
 EMAILDIR = src/email
 CONTENTDIR = src/content
 ADMINDIR = src/admin
+NOTIFDIR = src/notification
 
 .PHONY: node_modules test tidy protos api auth users content admin
 
@@ -18,7 +19,7 @@ protos:
 	cd $(MAINDIR) && protoc -I protos/ protos/*/*.proto --go_out=protos/ --go-grpc_out=protos/
 
 backend:
-	make -j 6 api auth users email content admin
+	make -j 7 api auth users email content admin notification
 
 api:
 	cd $(APIDIR) && go run main.go
@@ -37,6 +38,9 @@ content:
 	
 admin:
 	cd $(ADMINDIR) && go run main.go
+
+notification:
+	cd $(NOTIFDIR) && go run main.go
 
 frontend:
 	cd $(FRONTDIR) && npm run build

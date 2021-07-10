@@ -41,6 +41,9 @@ export default {
       this.login = !this.login;
     },
   },
+  mounted() {
+    this.$store.state.jws = "";
+  },
 }
 </script>
 
