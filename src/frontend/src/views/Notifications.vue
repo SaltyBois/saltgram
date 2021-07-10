@@ -36,15 +36,23 @@
 
       <div class="notifications-body-div" v-if="NotificationCategory === 0">
 
-        <CommentTagNotification/>
+        <FollowNotification v-for="(item, index) in this.FollowNotification" 
+          :key="index"
+          :username-prop="item.referredUsername"
+          :picture-prop="item.profilePictureURL"
+          />
 
-        <FollowNotification/>
+        <PostCommentNotification v-for="(item, index) in this.commentNotifications" 
+          :key="index"
+          :username-prop="item.referredUsername"
+          :picture-prop="item.profilePictureURL"
+          />
 
-        <PostCommentNotification/>
-
-        <PostLikeNotification/>
-
-        <PostTagNotification v-for="index in 5" :key="index"/>
+        <PostLikeNotification v-for="(item, index) in this.likeNotifications" 
+          :key="index"
+          :username-prop="item.referredUsername"
+          :picture-prop="item.profilePictureURL"
+          />
 
       </div>
 
@@ -87,6 +95,10 @@ export default {
       privateProfile: false,
       NotificationCategory: 0,
       followingRequests: [],
+      notifications: [],
+      likeNotifications: [],
+      commentNotifications: [],
+      FollowNotification: [],
     }
   },
   methods: {
@@ -133,10 +145,28 @@ export default {
       .then(r => {
         this.followingRequests = r.data;
         console.log(r.data);
+        this.getNotifications();
       }).catch(err => {
         console.log(err);
       })
     },
+    getNotifications: function() {
+      this.axios.get("notification/", {headers: this.getAHeader()})
+      .then(r => {
+          console.log(r)
+          this.notifications = r.data
+          this.notifications.forEach(element => {
+            if(element.type == "LIKE") {
+              this.likeNotifications.push(element);
+            } else if(element.type == "COMMENT") {
+              this.commentNotifications.push(element)
+            } else if(element.type == "FOLLOW") {
+              this.FollowNotification.push(element);
+            }
+          })
+          console.log(this.likeNotifications);
+      });
+    }
   },
   mounted() {
     this.isInfluencer();

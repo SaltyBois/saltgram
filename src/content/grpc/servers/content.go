@@ -7,6 +7,7 @@ import (
 	"saltgram/content/data"
 	"saltgram/content/gdrive"
 	"saltgram/protos/content/prcontent"
+	"saltgram/protos/notifications/prnotifications"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
@@ -19,13 +20,15 @@ type Content struct {
 	l  *logrus.Logger
 	db *data.DBConn
 	g  *gdrive.GDrive
+	nc prnotifications.NotificationsClient
 }
 
-func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive) *Content {
+func NewContent(l *logrus.Logger, db *data.DBConn, g *gdrive.GDrive, nc prnotifications.NotificationsClient) *Content {
 	return &Content{
 		l:  l,
 		db: db,
 		g:  g,
+		nc: nc,
 	}
 }
 
@@ -819,6 +822,16 @@ func (c *Content) AddComment(ctx context.Context, r *prcontent.AddCommentRequest
 		return &prcontent.AddCommentResponse{}, status.Error(codes.InvalidArgument, "Bad request")
 	}
 
+	post, err := c.db.GetPostByID(r.PostId)
+	if err != nil {
+		c.l.Errorf("Failed geting post: %v\n", err)
+		return &prcontent.AddCommentResponse{}, nil
+	}
+	_, err = c.nc.CreateCommentNotification(context.Background(), &prnotifications.NRequest{UserId: post.UserID, ReferredId: r.UserId})
+	if err != nil {
+		c.l.Errorf("Failed creating notification: %v\n", err)
+	}
+
 	return &prcontent.AddCommentResponse{}, nil
 }
 
@@ -834,6 +847,18 @@ func (c *Content) AddReaction(ctx context.Context, r *prcontent.AddReactionReque
 	if err != nil {
 		c.l.Errorf("Failed adding reaction: %v\n", err)
 		return &prcontent.AddReactionResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	if r.ReactionType == data.LIKE {
+		post, err := c.db.GetPostByID(r.PostId)
+		if err != nil {
+			c.l.Errorf("Failed geting post: %v\n", err)
+			return &prcontent.AddReactionResponse{}, nil
+		}
+		_, err = c.nc.CreateLikeNotification(context.Background(), &prnotifications.NRequest{UserId: post.UserID, ReferredId: r.UserId})
+		if err != nil {
+			c.l.Errorf("Failed creating notification: %v\n", err)
+		}
 	}
 
 	return &prcontent.AddReactionResponse{}, nil

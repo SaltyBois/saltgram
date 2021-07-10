@@ -620,3 +620,9 @@ func (db *DBConn) GetTaggedPostsByUser(userId uint64) (*[]Post, error) {
 	posts, err := db.GetPostsBySharedMediaId(ids)
 	return posts, err
 }
+
+func (db *DBConn) GetPostByID(postId uint64) (*Post, error) {
+	post := Post{}
+	err := db.DB.Where("id = ?", postId).First(&post).Error
+	return &post, err
+}

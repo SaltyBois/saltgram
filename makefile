@@ -11,6 +11,7 @@ USERSDIR = src/users
 EMAILDIR = src/email
 CONTENTDIR = src/content
 ADMINDIR = src/admin
+NOTIFDIR = src/notification
 AGENTDIR = agent/backend
 AGENTFRONT = agent/frontend
 
@@ -23,7 +24,7 @@ agentback:
 	cd $(AGENTDIR) && go run main.go
 
 backend:
-	make -j 6 api auth users email content admin
+	make -j 7 api auth users email content admin notification
 
 api:
 	cd $(APIDIR) && go run main.go
@@ -42,6 +43,9 @@ content:
 	
 admin:
 	cd $(ADMINDIR) && go run main.go
+
+notification:
+	cd $(NOTIFDIR) && go run main.go
 
 frontend:
 	cd $(FRONTDIR) && npm run build
@@ -79,6 +83,7 @@ kill:
 	npx kill-port $(SALT_CONTENT_PORT)
 	npx kill-port $(SALT_PKI_PORT) &
 	npx kill-port $(SALT_ADMIN_PORT) &
+	npx kill-port $(SALT_NOTIF_PORT) &
 	exit
 	
 

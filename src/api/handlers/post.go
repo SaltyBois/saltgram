@@ -11,6 +11,7 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
+	"saltgram/protos/notifications/prnotifications"
 	"saltgram/protos/users/prusers"
 	"strconv"
 	"time"
@@ -1612,6 +1613,22 @@ func (c *Content) SavePost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.l.Errorf("failed to save post: %v\n", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+}
+
+func (n *Notification) NotificationSeen(w http.ResponseWriter, r *http.Request) {
+	username, err := getUsernameByJWS(r)
+	if err != nil {
+		n.l.Println("failed to parse jws %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = n.nc.NotificationSeen(context.Background(), &prnotifications.NProfile{Username: username})
+	if err != nil {
+		n.l.Errorf("failed to update notifications: %v\n", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 }

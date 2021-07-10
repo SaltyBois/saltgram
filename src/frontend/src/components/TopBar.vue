@@ -36,7 +36,7 @@
           <i class="fa fa-plus-square icons" />
         </v-btn>
         <v-btn  id="right-side-button2"
-                @click="$router.push('/notifications'); numberOfNewNotifications = 0"
+                @click="goToNotif()"
                 depressed>
           <i v-bind:class="numberOfNewNotifications !== 0 ? 'fa fa-heart icons heart' : 'fa fa-heart icons'"/>
           <div v-if="numberOfNewNotifications" class="number-of-notifications"><b>{{numberOfNewNotifications}}</b></div>
@@ -113,6 +113,7 @@
   </div>
 </template>
 
+
 <script>
 import SearchPanel from "@/components/topbar_components/SearchPanel";
 var debounce = require('lodash.debounce');
@@ -149,6 +150,8 @@ export default {
     if (this.$router.currentRoute.path.includes('/notifications')) this.numberOfNewNotifications = 0;
     if (this.$router.currentRoute.path.includes('/inbox')) this.numberOfNewChats = 0;
     this.loadingJWSOnMounted();
+    this.subscribe();
+    this.getNotificationCount();
   },
   created() {
     this.debouncedSearch = debounce(function () {this.getQuery()}, 500);
@@ -162,9 +165,48 @@ export default {
     }
   },
   methods: {
+    getNotificationCount: function() {
+      this.axios.get("notification/get/unseen/count", {headers: this.getAHeader()})
+        .then(r => {
+          this.numberOfNewNotifications = r.data
+        })
+        .catch(r => {
+          this.numberOfNewNotifications = 0
+          console.log(r)
+        })
+        console.log('not');
+    },
+    
     logout: function() {
       this.$store.state.jws = "";
       this.$router.push('/');
+    },
+
+    goToNotif: function() {
+      this.axios.post('/notification/seen',{}, {headers: this.getAHeader()})
+      .then(r => {
+        this.getNotificationCount();
+        console.log(r);
+      })
+      this.$router.push('/notifications'); 
+    },
+    
+    subscribe: function() {
+      var self = this;
+      var channel = this.$pusher.subscribe('my-channel');
+      channel.bind('my-event', function(data) {
+        console.log('notification')
+        console.log(JSON.stringify(data));
+        self.axios.get("notification/get/unseen/count", {headers: self.getAHeader()})
+        .then(r => {
+          self.numberOfNewNotifications = r.data
+        })
+        .catch(r => {
+          self.numberOfNewNotifications = 0
+          console.log(r)
+        })
+      });
+    
     },
     navigate() {
       if (this.isUserLogged) this.$router.push('/main');

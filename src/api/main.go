@@ -14,6 +14,7 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
+	"saltgram/protos/notifications/prnotifications"
 	"saltgram/protos/users/prusers"
 	"time"
 
@@ -169,6 +170,18 @@ func main() {
 	adminRouter.HandleFunc("/rejectinappropriatecontent", adminHandler.RejectInappropriateContentReport).Methods(http.MethodPut)
 	adminRouter.HandleFunc("/removeinappropriatecontent", adminHandler.RemoveInappropriateContent).Methods(http.MethodPut)
 	adminRouter.HandleFunc("/removeprofile", adminHandler.RemoveProfile).Methods(http.MethodPut)
+
+	notificationConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_NOTIF_ADDR", "localhost"), os.Getenv("SALT_NOTIF_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing notification connection: %v\n", err)
+	}
+	defer notificationConnection.Close()
+	notificationClient := prnotifications.NewNotificationsClient(notificationConnection)
+	notificationHandler := handlers.NewNotification(l.L, notificationClient, usersClient)
+	notificationRouter := s.S.PathPrefix("/notification").Subrouter()
+	notificationRouter.HandleFunc("/get/unseen/count", notificationHandler.GetUnseenNotification).Methods(http.MethodGet)
+	notificationRouter.HandleFunc("/", notificationHandler.GetNotifications).Methods(http.MethodGet)
+	notificationRouter.HandleFunc("/seen", notificationHandler.NotificationSeen).Methods(http.MethodPost)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{
