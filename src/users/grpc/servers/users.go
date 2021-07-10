@@ -360,7 +360,7 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		u.db.UnblockProfile(profile, profileToFollow)
 	}
 
-	if !profileToFollow.Public {
+	if profileToFollow.PrivateProfile {
 		followRequest, _ := data.CheckForFollowingRequest(u.db, profileToFollow, profile)
 		if followRequest {
 			u.l.Printf("[WARNING] Follow request allready sent")
@@ -378,7 +378,7 @@ func (u *Users) Follow(ctx context.Context, r *prusers.FollowRequest) (*prusers.
 		return &prusers.FollowRespose{Message: "PENDING"}, nil
 	}
 
-	_, err = u.nc.CreateFollowNotification(context.Background(), &prnotifications.RequestUsername{UserId: profile.UserID, ReferredId: profileToFollow.UserID, ReferredUsername: profileToFollow.Username})
+	_, err = u.nc.CreateFollowNotification(context.Background(), &prnotifications.RequestUsername{UserId: profileToFollow.UserID, ReferredId: profile.UserID, ReferredUsername: profile.Username})
 	if err != nil {
 		u.l.Errorf("creating notification %v\n", err)
 	}

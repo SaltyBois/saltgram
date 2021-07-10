@@ -2,10 +2,12 @@
   <div class="story-layout">
     <StoryView ref="storyView" v-if="visible" :stories="realStories" :close-friends="closeFriends"/>
     <v-img  class="story-close-friends"
+            @click="toggle"
             v-if="user.profilePictureURL"
             :src="user.profilePictureURL"
             alt="Profile picture"/>
     <v-img  class="story-close-friends"
+            @click="toggle"
             v-else
             :src="require('@/assets/profile_placeholder.png')"
             alt="Profile picture"/>
