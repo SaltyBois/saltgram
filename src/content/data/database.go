@@ -57,4 +57,6 @@ func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&Verification{})
 	db.DB.AutoMigrate(&Tag{})
 	db.DB.AutoMigrate(&SavedPost{})
+	db.DB.AutoMigrate(&CampaignChange{})
+	db.DB.AutoMigrate(&Influencer{})
 }

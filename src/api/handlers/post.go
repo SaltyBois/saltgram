@@ -84,6 +84,84 @@ func (e *Email) ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("200 - OK"))
 }
 
+func (u *Users) AcceptCampaign(w http.ResponseWriter, r *http.Request) {
+	user, err := getUserByJWS(r, u.uc)
+	if err != nil {
+		u.l.Errorf("failed to get user by jws: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		u.l.Errorf("failure parsing body: %v\n", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	id, _ := strconv.ParseUint(string(body), 10, 64)
+
+	_, err = u.uc.AcceptInfluencer(context.Background(), &prusers.AcceptInfluencerRequest{
+		InfluencerId: user.Id,
+		CampaignId:   id,
+	})
+
+	if err != nil {
+		u.l.Errorf("failed to accept influencer request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	u.l.Infof("Adding influencer: %v", user.Id)
+
+	_, err = u.cc.AddInfluencerToCampaign(context.Background(), &prcontent.AddInfluencerToCampaignRequest{
+		InfluencerId: user.Id,
+		CampaignId:   id,
+	})
+
+	if err != nil {
+		u.l.Errorf("failed to add influencer to campaign: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Accepted"))
+}
+
+func (u *Users) SendInfluencerRequest(w http.ResponseWriter, r *http.Request) {
+	_, err := getUserByJWS(r, u.uc)
+	if err != nil {
+		u.l.Errorf("failed to get user by jws: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	dto := struct {
+		InfluencerID string `json:"influencerId"`
+		CampaignID   string `json:"campaignId"`
+		Website      string `json:"website"`
+	}{}
+	err = saltdata.FromJSON(&dto, r.Body)
+	if err != nil {
+		u.l.Errorf("failed to read influencer request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	influencerId, _ := strconv.ParseUint(dto.InfluencerID, 10, 64)
+	campaignId, _ := strconv.ParseUint(dto.CampaignID, 10, 64)
+	_, err = u.uc.InfluencerRequest(context.Background(), &prusers.InfluencerRequestRequest{
+		InfluencerId: influencerId,
+		CampaignId:   campaignId,
+		Website:      dto.Website,
+	})
+	if err != nil {
+		u.l.Errorf("failed to add influencer request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	w.Write([]byte("Requested"))
+}
+
 func (u *Users) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cr := ChangeRequest{}
 
@@ -199,6 +277,7 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 		DateOfBirth:    dto.DateOfBirth.Unix(),
 		WebSite:        dto.WebSite,
 		PrivateProfile: dto.PrivateProfile,
+		Agent:          dto.Agent,
 	})
 
 	if err != nil {
@@ -206,6 +285,16 @@ func (u *Users) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+
+	if dto.Agent {
+		_, err = u.ac.AddAgentRegistration(context.Background(), &pradmin.AddAgentRegistrationRequest{AgentEmail: dto.Email})
+		if err != nil {
+			u.l.Errorf("failed to add agent request: %v", err)
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+	}
+
 	u.l.Infof("User registered: %v\n", dto.Email)
 	w.Write([]byte("Activation email sent"))
 }
@@ -499,7 +588,6 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(Jovan): Tag value as ID or predefined tags
 	tags := []*prcontent.Tag{}
 	for _, t := range r.PostForm["tags"] {
 		tags = append(tags, &prcontent.Tag{
@@ -518,20 +606,12 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 			Id: i,
 		})
 	}
-	// TODO(Jovan): Pass location as object
-	// location := r.PostForm["location"]
 	description := ""
 	if len(r.PostForm["description"]) > 0 {
 		description = r.PostForm["description"][0]
 	}
 
-	// NOTE(Jovan): default
-	location := &prcontent.Location{
-		/*Country: "RS",
-		State:   "Serbia",
-		ZipCode: "21000",
-		Street:  "Balzakova 69",*/
-	}
+	location := &prcontent.Location{}
 
 	if len(r.PostForm["location"]) > 0 {
 		err = json.Unmarshal([]byte(r.PostForm["location"][0]), &location)
@@ -542,7 +622,42 @@ func (c *Content) AddStory(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp, err := c.cc.CreateStory(context.Background(), &prcontent.CreateStoryRequest{UserId: profile.UserId})
+	isCampaign := false
+	if len(r.PostForm["campaign"]) > 0 {
+		err = json.Unmarshal([]byte(r.PostForm["campaign"][0]), &isCampaign)
+		if err != nil {
+			c.l.Errorf("failed to unmarshal campaign bool: %v", err)
+			http.Error(w, "Failed to parse campaign bool", http.StatusBadRequest)
+			return
+		}
+	}
+	ageGroup := "Pre 20s"
+	if len(r.PostForm["ageGroup"]) > 0 {
+		ageGroup = r.PostForm["ageGroup"][0]
+	}
+	campaignWebsite := r.PostForm.Get("website")
+
+	campaignOneTime := false
+	if len(r.PostForm["oneTime"]) > 0 {
+		err = json.Unmarshal([]byte(r.PostForm["oneTime"][0]), &campaignOneTime)
+		if err != nil {
+			c.l.Errorf("failed to unmarshal oneTime bool: %v", err)
+			http.Error(w, "Failed to parse oneTime bool", http.StatusBadRequest)
+			return
+		}
+	}
+	campaignStart := r.PostForm.Get("campaignStart")
+	campaignEnd := r.PostForm.Get("campaignEnd")
+
+	resp, err := c.cc.CreateStory(context.Background(), &prcontent.CreateStoryRequest{
+		UserId:          profile.UserId,
+		Campaign:        isCampaign,
+		AgeGroup:        ageGroup,
+		CampaignOneTime: campaignOneTime,
+		CampaignStart:   campaignStart,
+		CampaignEnd:     campaignEnd,
+		CampaignWebsite: campaignWebsite,
+	})
 	if err != nil {
 		c.l.Errorf("failed to create shared media: %v", err)
 		http.Error(w, "Failed to create shared media", http.StatusInternalServerError)
@@ -683,7 +798,42 @@ func (c *Content) AddPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp, err := c.cc.CreatePost(context.Background(), &prcontent.CreatePostRequest{UserId: profile.UserId})
+	isCampaign := false
+	if len(r.PostForm["campaign"]) > 0 {
+		err = json.Unmarshal([]byte(r.PostForm["campaign"][0]), &isCampaign)
+		if err != nil {
+			c.l.Errorf("failed to unmarshal campaign bool: %v", err)
+			http.Error(w, "Failed to parse campaign bool", http.StatusBadRequest)
+			return
+		}
+	}
+	ageGroup := "Pre 20s"
+	if len(r.PostForm["ageGroup"]) > 0 {
+		ageGroup = r.PostForm["ageGroup"][0]
+	}
+	campaignWebsite := r.PostForm.Get("website")
+
+	campaignOneTime := false
+	if len(r.PostForm["oneTime"]) > 0 {
+		err = json.Unmarshal([]byte(r.PostForm["oneTime"][0]), &campaignOneTime)
+		if err != nil {
+			c.l.Errorf("failed to unmarshal oneTime bool: %v", err)
+			http.Error(w, "Failed to parse oneTime bool", http.StatusBadRequest)
+			return
+		}
+	}
+	campaignStart := r.PostForm.Get("campaignStart")
+	campaignEnd := r.PostForm.Get("campaignEnd")
+
+	resp, err := c.cc.CreatePost(context.Background(), &prcontent.CreatePostRequest{
+		UserId:          profile.UserId,
+		Campaign:        isCampaign,
+		AgeGroup:        ageGroup,
+		CampaignOneTime: campaignOneTime,
+		CampaignStart:   campaignStart,
+		CampaignEnd:     campaignEnd,
+		CampaignWebsite: campaignWebsite,
+	})
 	if err != nil {
 		c.l.Errorf("failed to create shared media: %v", err)
 		http.Error(w, "Failed to create shared media", http.StatusInternalServerError)
@@ -1047,6 +1197,40 @@ func (u *Users) FollowRespond(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func (a *Admin) AcceptAgent(w http.ResponseWriter, r *http.Request) {
+	_, err := getUserByJWS(r, a.uc)
+	if err != nil {
+		a.l.Errorf("failed fetching user: %v", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		a.l.Errorf("failed to get email: %v\n", err)
+		http.Error(w, "No email", http.StatusBadRequest)
+		return
+	}
+
+	email := string(body)
+
+	_, err = a.uc.VerifyEmail(context.Background(), &prusers.VerifyEmailRequest{Email: email})
+	if err != nil {
+		a.l.Errorf("failed to verify email: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	_, err = a.ac.RemoveAgentRegistration(context.Background(), &pradmin.RemoveAgentRegistrationRequest{Email: email})
+	if err != nil {
+		a.l.Errorf("failed to remove agent request: %v", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Accepted"))
 }
 
 func (a *Admin) AddVerificationRequest(w http.ResponseWriter, r *http.Request) {

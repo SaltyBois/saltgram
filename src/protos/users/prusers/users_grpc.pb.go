@@ -58,6 +58,9 @@ type UsersClient interface {
 	GetProfilesForCloseFriends(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetProfilesForCloseFriendsClient, error)
 	AddCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
 	RemoveCloseFriend(ctx context.Context, in *CloseFriendRequest, opts ...grpc.CallOption) (*CloseFriendResposne, error)
+	InfluencerRequest(ctx context.Context, in *InfluencerRequestRequest, opts ...grpc.CallOption) (*InfluencerRequestResponse, error)
+	GetInfluencerRequests(ctx context.Context, in *GetInfluencerRequestsRequest, opts ...grpc.CallOption) (*GetInfluencerRequestsResponse, error)
+	AcceptInfluencer(ctx context.Context, in *AcceptInfluencerRequest, opts ...grpc.CallOption) (*AcceptInfluencerResponse, error)
 	CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error)
 	GetFollowingMain(ctx context.Context, in *Profile, opts ...grpc.CallOption) (Users_GetFollowingMainClient, error)
 	GetProfileByUserId(ctx context.Context, in *GetByIdRequest, opts ...grpc.CallOption) (*ProfileMBCF, error)
@@ -638,6 +641,33 @@ func (c *usersClient) RemoveCloseFriend(ctx context.Context, in *CloseFriendRequ
 	return out, nil
 }
 
+func (c *usersClient) InfluencerRequest(ctx context.Context, in *InfluencerRequestRequest, opts ...grpc.CallOption) (*InfluencerRequestResponse, error) {
+	out := new(InfluencerRequestResponse)
+	err := c.cc.Invoke(ctx, "/Users/InfluencerRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetInfluencerRequests(ctx context.Context, in *GetInfluencerRequestsRequest, opts ...grpc.CallOption) (*GetInfluencerRequestsResponse, error) {
+	out := new(GetInfluencerRequestsResponse)
+	err := c.cc.Invoke(ctx, "/Users/GetInfluencerRequests", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) AcceptInfluencer(ctx context.Context, in *AcceptInfluencerRequest, opts ...grpc.CallOption) (*AcceptInfluencerResponse, error) {
+	out := new(AcceptInfluencerResponse)
+	err := c.cc.Invoke(ctx, "/Users/AcceptInfluencer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *usersClient) CheckActive(ctx context.Context, in *Profile, opts ...grpc.CallOption) (*BoolResponse, error) {
 	out := new(BoolResponse)
 	err := c.cc.Invoke(ctx, "/Users/CheckActive", in, out, opts...)
@@ -732,6 +762,9 @@ type UsersServer interface {
 	GetProfilesForCloseFriends(*Profile, Users_GetProfilesForCloseFriendsServer) error
 	AddCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
 	RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error)
+	InfluencerRequest(context.Context, *InfluencerRequestRequest) (*InfluencerRequestResponse, error)
+	GetInfluencerRequests(context.Context, *GetInfluencerRequestsRequest) (*GetInfluencerRequestsResponse, error)
+	AcceptInfluencer(context.Context, *AcceptInfluencerRequest) (*AcceptInfluencerResponse, error)
 	CheckActive(context.Context, *Profile) (*BoolResponse, error)
 	GetFollowingMain(*Profile, Users_GetFollowingMainServer) error
 	GetProfileByUserId(context.Context, *GetByIdRequest) (*ProfileMBCF, error)
@@ -861,6 +894,15 @@ func (UnimplementedUsersServer) AddCloseFriend(context.Context, *CloseFriendRequ
 }
 func (UnimplementedUsersServer) RemoveCloseFriend(context.Context, *CloseFriendRequest) (*CloseFriendResposne, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveCloseFriend not implemented")
+}
+func (UnimplementedUsersServer) InfluencerRequest(context.Context, *InfluencerRequestRequest) (*InfluencerRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InfluencerRequest not implemented")
+}
+func (UnimplementedUsersServer) GetInfluencerRequests(context.Context, *GetInfluencerRequestsRequest) (*GetInfluencerRequestsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInfluencerRequests not implemented")
+}
+func (UnimplementedUsersServer) AcceptInfluencer(context.Context, *AcceptInfluencerRequest) (*AcceptInfluencerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AcceptInfluencer not implemented")
 }
 func (UnimplementedUsersServer) CheckActive(context.Context, *Profile) (*BoolResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckActive not implemented")
@@ -1631,6 +1673,60 @@ func _Users_RemoveCloseFriend_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_InfluencerRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InfluencerRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).InfluencerRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/InfluencerRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).InfluencerRequest(ctx, req.(*InfluencerRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_GetInfluencerRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInfluencerRequestsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetInfluencerRequests(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/GetInfluencerRequests",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetInfluencerRequests(ctx, req.(*GetInfluencerRequestsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_AcceptInfluencer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AcceptInfluencerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).AcceptInfluencer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Users/AcceptInfluencer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).AcceptInfluencer(ctx, req.(*AcceptInfluencerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Users_CheckActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Profile)
 	if err := dec(in); err != nil {
@@ -1818,6 +1914,18 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveCloseFriend",
 			Handler:    _Users_RemoveCloseFriend_Handler,
+		},
+		{
+			MethodName: "InfluencerRequest",
+			Handler:    _Users_InfluencerRequest_Handler,
+		},
+		{
+			MethodName: "GetInfluencerRequests",
+			Handler:    _Users_GetInfluencerRequests_Handler,
+		},
+		{
+			MethodName: "AcceptInfluencer",
+			Handler:    _Users_AcceptInfluencer_Handler,
 		},
 		{
 			MethodName: "CheckActive",

@@ -2,12 +2,12 @@ syntax = "proto3";
 option go_package = "./notifications/prnotifications";
 
 service Notifications {
-    rpc CreateLikeNotification(Request) returns (Respond);
-    rpc CreateCommentNotification(Request) returns (Respond);
-    rpc CreateFollowNotification(RequestUsername) returns (Respond);
-    rpc CreateFollowRequestNotification(RequestUsername) returns (Respond);
+    rpc CreateLikeNotification(NRequest) returns (NRespond);
+    rpc CreateCommentNotification(NRequest) returns (NRespond);
+    rpc CreateFollowNotification(RequestUsername) returns (NRespond);
+    rpc CreateFollowRequestNotification(RequestUsername) returns (NRespond);
     rpc GetNotifications(NProfile) returns (stream Notification);
-    rpc NotificationSeen(NProfile) returns (Respond);
+    rpc NotificationSeen(NProfile) returns (NRespond);
     rpc GetUnseenNotificationsCount(NProfile) returns (NotificationCount);
 }
 
@@ -23,7 +23,7 @@ message Notification {
     bool seen = 5;
 }
 
-message Request {
+message NRequest {
     uint64 userId  = 1;
     uint64 referredId  = 2;
 }
@@ -34,7 +34,7 @@ message RequestUsername {
     string referredUsername = 3;
 }
 
-message Respond {}
+message NRespond {}
 
 message NotificationCount {
     int64 count = 1;

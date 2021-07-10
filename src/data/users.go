@@ -12,7 +12,7 @@ type UserDTO struct {
 	FullName          string    `json:"fullName" validate:"required"`
 	Username          string    `json:"username" validate:"required"`
 	Password          string    `json:"password" validate:"required"`
-	Description       string    `json:"description" validate:"required"`
+	Description       string    `json:"description"`
 	ReCaptcha         ReCaptcha `json:"reCaptcha" validate:"required"`
 	PhoneNumber       string    `json:"phoneNumber" validate:"required"`
 	Gender            string    `json:"gender" validate:"required"`
@@ -20,6 +20,7 @@ type UserDTO struct {
 	WebSite           string    `json:"webSite"`
 	PrivateProfile    bool      `json:"privateProfile"`
 	ProfilePictureURL string    `json:"profilePictureURL"`
+	Agent             bool      `json:"agent"`
 }
 
 type ProflieDTO struct {

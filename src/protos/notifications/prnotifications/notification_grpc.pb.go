@@ -18,12 +18,12 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NotificationsClient interface {
-	CreateLikeNotification(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Respond, error)
-	CreateCommentNotification(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Respond, error)
-	CreateFollowNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*Respond, error)
-	CreateFollowRequestNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*Respond, error)
+	CreateLikeNotification(ctx context.Context, in *NRequest, opts ...grpc.CallOption) (*NRespond, error)
+	CreateCommentNotification(ctx context.Context, in *NRequest, opts ...grpc.CallOption) (*NRespond, error)
+	CreateFollowNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*NRespond, error)
+	CreateFollowRequestNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*NRespond, error)
 	GetNotifications(ctx context.Context, in *NProfile, opts ...grpc.CallOption) (Notifications_GetNotificationsClient, error)
-	NotificationSeen(ctx context.Context, in *NProfile, opts ...grpc.CallOption) (*Respond, error)
+	NotificationSeen(ctx context.Context, in *NProfile, opts ...grpc.CallOption) (*NRespond, error)
 	GetUnseenNotificationsCount(ctx context.Context, in *NProfile, opts ...grpc.CallOption) (*NotificationCount, error)
 }
 
@@ -35,8 +35,8 @@ func NewNotificationsClient(cc grpc.ClientConnInterface) NotificationsClient {
 	return &notificationsClient{cc}
 }
 
-func (c *notificationsClient) CreateLikeNotification(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Respond, error) {
-	out := new(Respond)
+func (c *notificationsClient) CreateLikeNotification(ctx context.Context, in *NRequest, opts ...grpc.CallOption) (*NRespond, error) {
+	out := new(NRespond)
 	err := c.cc.Invoke(ctx, "/Notifications/CreateLikeNotification", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -44,8 +44,8 @@ func (c *notificationsClient) CreateLikeNotification(ctx context.Context, in *Re
 	return out, nil
 }
 
-func (c *notificationsClient) CreateCommentNotification(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Respond, error) {
-	out := new(Respond)
+func (c *notificationsClient) CreateCommentNotification(ctx context.Context, in *NRequest, opts ...grpc.CallOption) (*NRespond, error) {
+	out := new(NRespond)
 	err := c.cc.Invoke(ctx, "/Notifications/CreateCommentNotification", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -53,8 +53,8 @@ func (c *notificationsClient) CreateCommentNotification(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *notificationsClient) CreateFollowNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*Respond, error) {
-	out := new(Respond)
+func (c *notificationsClient) CreateFollowNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*NRespond, error) {
+	out := new(NRespond)
 	err := c.cc.Invoke(ctx, "/Notifications/CreateFollowNotification", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (c *notificationsClient) CreateFollowNotification(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *notificationsClient) CreateFollowRequestNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*Respond, error) {
-	out := new(Respond)
+func (c *notificationsClient) CreateFollowRequestNotification(ctx context.Context, in *RequestUsername, opts ...grpc.CallOption) (*NRespond, error) {
+	out := new(NRespond)
 	err := c.cc.Invoke(ctx, "/Notifications/CreateFollowRequestNotification", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -103,8 +103,8 @@ func (x *notificationsGetNotificationsClient) Recv() (*Notification, error) {
 	return m, nil
 }
 
-func (c *notificationsClient) NotificationSeen(ctx context.Context, in *NProfile, opts ...grpc.CallOption) (*Respond, error) {
-	out := new(Respond)
+func (c *notificationsClient) NotificationSeen(ctx context.Context, in *NProfile, opts ...grpc.CallOption) (*NRespond, error) {
+	out := new(NRespond)
 	err := c.cc.Invoke(ctx, "/Notifications/NotificationSeen", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -125,12 +125,12 @@ func (c *notificationsClient) GetUnseenNotificationsCount(ctx context.Context, i
 // All implementations must embed UnimplementedNotificationsServer
 // for forward compatibility
 type NotificationsServer interface {
-	CreateLikeNotification(context.Context, *Request) (*Respond, error)
-	CreateCommentNotification(context.Context, *Request) (*Respond, error)
-	CreateFollowNotification(context.Context, *RequestUsername) (*Respond, error)
-	CreateFollowRequestNotification(context.Context, *RequestUsername) (*Respond, error)
+	CreateLikeNotification(context.Context, *NRequest) (*NRespond, error)
+	CreateCommentNotification(context.Context, *NRequest) (*NRespond, error)
+	CreateFollowNotification(context.Context, *RequestUsername) (*NRespond, error)
+	CreateFollowRequestNotification(context.Context, *RequestUsername) (*NRespond, error)
 	GetNotifications(*NProfile, Notifications_GetNotificationsServer) error
-	NotificationSeen(context.Context, *NProfile) (*Respond, error)
+	NotificationSeen(context.Context, *NProfile) (*NRespond, error)
 	GetUnseenNotificationsCount(context.Context, *NProfile) (*NotificationCount, error)
 	mustEmbedUnimplementedNotificationsServer()
 }
@@ -139,22 +139,22 @@ type NotificationsServer interface {
 type UnimplementedNotificationsServer struct {
 }
 
-func (UnimplementedNotificationsServer) CreateLikeNotification(context.Context, *Request) (*Respond, error) {
+func (UnimplementedNotificationsServer) CreateLikeNotification(context.Context, *NRequest) (*NRespond, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLikeNotification not implemented")
 }
-func (UnimplementedNotificationsServer) CreateCommentNotification(context.Context, *Request) (*Respond, error) {
+func (UnimplementedNotificationsServer) CreateCommentNotification(context.Context, *NRequest) (*NRespond, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCommentNotification not implemented")
 }
-func (UnimplementedNotificationsServer) CreateFollowNotification(context.Context, *RequestUsername) (*Respond, error) {
+func (UnimplementedNotificationsServer) CreateFollowNotification(context.Context, *RequestUsername) (*NRespond, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateFollowNotification not implemented")
 }
-func (UnimplementedNotificationsServer) CreateFollowRequestNotification(context.Context, *RequestUsername) (*Respond, error) {
+func (UnimplementedNotificationsServer) CreateFollowRequestNotification(context.Context, *RequestUsername) (*NRespond, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateFollowRequestNotification not implemented")
 }
 func (UnimplementedNotificationsServer) GetNotifications(*NProfile, Notifications_GetNotificationsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetNotifications not implemented")
 }
-func (UnimplementedNotificationsServer) NotificationSeen(context.Context, *NProfile) (*Respond, error) {
+func (UnimplementedNotificationsServer) NotificationSeen(context.Context, *NProfile) (*NRespond, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NotificationSeen not implemented")
 }
 func (UnimplementedNotificationsServer) GetUnseenNotificationsCount(context.Context, *NProfile) (*NotificationCount, error) {
@@ -174,7 +174,7 @@ func RegisterNotificationsServer(s grpc.ServiceRegistrar, srv NotificationsServe
 }
 
 func _Notifications_CreateLikeNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(NRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -186,13 +186,13 @@ func _Notifications_CreateLikeNotification_Handler(srv interface{}, ctx context.
 		FullMethod: "/Notifications/CreateLikeNotification",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NotificationsServer).CreateLikeNotification(ctx, req.(*Request))
+		return srv.(NotificationsServer).CreateLikeNotification(ctx, req.(*NRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Notifications_CreateCommentNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(NRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func _Notifications_CreateCommentNotification_Handler(srv interface{}, ctx conte
 		FullMethod: "/Notifications/CreateCommentNotification",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NotificationsServer).CreateCommentNotification(ctx, req.(*Request))
+		return srv.(NotificationsServer).CreateCommentNotification(ctx, req.(*NRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -27,7 +27,7 @@ func NewNotification(l *logrus.Logger, db *data.DBConn, uc prusers.UsersClient, 
 	}
 }
 
-func (n *Notification) CreateLikeNotification(ctx context.Context, r *prnotifications.Request) (*prnotifications.Respond, error) {
+func (n *Notification) CreateLikeNotification(ctx context.Context, r *prnotifications.NRequest) (*prnotifications.NRespond, error) {
 	notification := data.Notification{
 		UserID:         r.UserId,
 		ReferredUserId: r.ReferredId,
@@ -36,21 +36,21 @@ func (n *Notification) CreateLikeNotification(ctx context.Context, r *prnotifica
 	}
 	err := n.db.CreateNotification(&notification)
 	if err != nil {
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 
 	user, err := n.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: r.ReferredId})
 	if err != nil {
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 
 	message := "@" + user.Username + " liked your post"
 	n.p.PushNotification(message)
 
-	return &prnotifications.Respond{}, nil
+	return &prnotifications.NRespond{}, nil
 }
 
-func (n *Notification) CreateCommentNotification(ctx context.Context, r *prnotifications.Request) (*prnotifications.Respond, error) {
+func (n *Notification) CreateCommentNotification(ctx context.Context, r *prnotifications.NRequest) (*prnotifications.NRespond, error) {
 	notification := data.Notification{
 		UserID:         r.UserId,
 		ReferredUserId: r.ReferredId,
@@ -59,21 +59,21 @@ func (n *Notification) CreateCommentNotification(ctx context.Context, r *prnotif
 	}
 	err := n.db.CreateNotification(&notification)
 	if err != nil {
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 
 	user, err := n.uc.GetByUserId(context.Background(), &prusers.GetByIdRequest{Id: r.ReferredId})
 	if err != nil {
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 
 	message := "@" + user.Username + " has commented your post"
 	n.p.PushNotification(message)
 
-	return &prnotifications.Respond{}, nil
+	return &prnotifications.NRespond{}, nil
 }
 
-func (n *Notification) CreateFollowNotification(ctx context.Context, r *prnotifications.RequestUsername) (*prnotifications.Respond, error) {
+func (n *Notification) CreateFollowNotification(ctx context.Context, r *prnotifications.RequestUsername) (*prnotifications.NRespond, error) {
 	notification := data.Notification{
 		UserID:         r.UserId,
 		ReferredUserId: r.ReferredId,
@@ -82,16 +82,16 @@ func (n *Notification) CreateFollowNotification(ctx context.Context, r *prnotifi
 	}
 	err := n.db.CreateNotification(&notification)
 	if err != nil {
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 
 	message := "@" + r.ReferredUsername + " started following you"
 	n.p.PushNotification(message)
 
-	return &prnotifications.Respond{}, nil
+	return &prnotifications.NRespond{}, nil
 }
 
-func (n *Notification) CreateFollowRequestNotification(ctx context.Context, r *prnotifications.RequestUsername) (*prnotifications.Respond, error) {
+func (n *Notification) CreateFollowRequestNotification(ctx context.Context, r *prnotifications.RequestUsername) (*prnotifications.NRespond, error) {
 	notification := data.Notification{
 		UserID:         r.UserId,
 		ReferredUserId: r.ReferredId,
@@ -100,13 +100,13 @@ func (n *Notification) CreateFollowRequestNotification(ctx context.Context, r *p
 	}
 	err := n.db.CreateNotification(&notification)
 	if err != nil {
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 
 	message := "@" + r.ReferredUsername + " send you a following request you"
 	n.p.PushNotification(message)
 
-	return &prnotifications.Respond{}, nil
+	return &prnotifications.NRespond{}, nil
 }
 
 func (n *Notification) GetUnseenNotificationsCount(ctx context.Context, r *prnotifications.NProfile) (*prnotifications.NotificationCount, error) {
@@ -124,19 +124,19 @@ func (n *Notification) GetUnseenNotificationsCount(ctx context.Context, r *prnot
 	return &prnotifications.NotificationCount{Count: count}, nil
 }
 
-func (n *Notification) NotificationSeen(ctx context.Context, r *prnotifications.NProfile) (*prnotifications.Respond, error) {
+func (n *Notification) NotificationSeen(ctx context.Context, r *prnotifications.NProfile) (*prnotifications.NRespond, error) {
 	user, err := n.uc.GetByUsername(context.Background(), &prusers.GetByUsernameRequest{Username: r.Username})
 	if err != nil {
 		n.l.Errorf("failure getting user: %v\n", err)
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 	err = n.db.NotificationSeen(user.Id)
 	if err != nil {
 		n.l.Errorf("failure updating notifications: %v\n", err)
-		return &prnotifications.Respond{}, err
+		return &prnotifications.NRespond{}, err
 	}
 
-	return &prnotifications.Respond{}, nil
+	return &prnotifications.NRespond{}, nil
 }
 
 func (n *Notification) GetNotifications(r *prnotifications.NProfile, stream prnotifications.Notifications_GetNotificationsServer) error {

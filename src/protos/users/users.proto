@@ -49,6 +49,9 @@ service Users {
     rpc GetProfilesForCloseFriends(Profile) returns (stream ProfileMBCF);
     rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
     rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
+    rpc InfluencerRequest(InfluencerRequestRequest) returns (InfluencerRequestResponse);
+    rpc GetInfluencerRequests(GetInfluencerRequestsRequest) returns (GetInfluencerRequestsResponse);
+    rpc AcceptInfluencer(AcceptInfluencerRequest) returns (AcceptInfluencerResponse);
 
     rpc CheckActive(Profile) returns (BoolResponse);
 
@@ -56,6 +59,35 @@ service Users {
 
     rpc GetProfileByUserId(GetByIdRequest) returns (ProfileMBCF);
 }
+
+message AcceptInfluencerRequest {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+}
+
+message AcceptInfluencerResponse {}
+
+message GetInfluencerRequestsRequest {
+    uint64 influencerId = 1;
+}
+
+message GetInfluencerRequestsResponse {
+    repeated Request requests = 1;
+}
+
+message Request {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+    string website = 3;
+}
+
+message InfluencerRequestRequest {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+    string website = 3;
+}
+
+message InfluencerRequestResponse{}
 
 message VerifyProfileRequest {
     uint64 userId = 1;
@@ -169,6 +201,7 @@ message RegisterRequest {
     int64 dateOfBirth = 9;
     string webSite = 10;
     bool privateProfile = 11;
+    bool agent = 12;
 }
 
 message CheckPasswordRequest {
