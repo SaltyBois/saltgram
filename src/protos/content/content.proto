@@ -29,6 +29,8 @@ service Content {
     rpc AddHighlight(AddHighlightRequest) returns (AddHighlightResponse);
 
     rpc PutReaction(PutReactionRequest) returns (PutReactionResponse);
+    rpc DeleteSharedMedia(DeleteSharedMediaRequest) returns (DeleteSharedMediaResponse);
+    rpc GetPostUserId(GetPostUserIdRequest) returns (GetPostUserIdResponse);
 
     rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
     rpc GetTagsByName(GetTagsByNameRequest) returns (GetTagsByNameResponse);
@@ -38,7 +40,44 @@ service Content {
     rpc SavePost(SavePostRequest) returns (SavePostResponse);
     rpc GetSavedPosts(GetSavedPostsRequest) returns (GetSavedPostsResponse);
     rpc GetTaggedPosts(GetTaggedPostsRequest) returns (GetTaggedPostsResponse);
+    rpc GetCampaignByUser(GetCampaignByUserRequest) returns (GetCampaignByUserResponse);
+    rpc AddInfluencerToCampaign(AddInfluencerToCampaignRequest) returns (AddInfluencerToCampaignResponse);
 }
+
+message AddInfluencerToCampaignRequest {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+}
+
+message AddInfluencerToCampaignResponse {}
+
+message GetCampaignByUserRequest {
+    uint64 userId = 1;
+}
+
+message GetCampaignByUserResponse {
+    repeated Campaign campaigns = 1;
+}
+
+message Campaign {
+    string website = 1;
+    string url = 2;
+    uint64 id = 3;
+}
+
+message GetPostUserIdRequest {
+    string postId = 1;
+}
+
+message GetPostUserIdResponse {
+    uint64 userId = 1;
+}
+
+message DeleteSharedMediaRequest {
+    uint64 id = 1;
+}
+
+message DeleteSharedMediaResponse {}
 
 message GetPostPreviewURLRequest {
     uint64 postId = 1;
@@ -77,6 +116,12 @@ message Highlight {
 
 message CreatePostRequest {
     uint64 userId = 1;
+    bool campaign = 2;
+    string ageGroup = 3;
+    bool campaignOneTime = 4;
+    string campaignStart = 5;
+    string campaignEnd = 6;
+    string campaignWebsite = 7;
 }
 message CreatePostResponse {
     uint64 postId = 1;
@@ -91,6 +136,12 @@ message AddHighlightResponse{}
 
 message CreateStoryRequest {
     uint64 userId = 1;
+    bool campaign = 2;
+    string ageGroup = 3;
+    bool campaignOneTime = 4;
+    string campaignStart = 5;
+    string campaignEnd = 6;
+    string campaignWebsite = 7;
 }
 message CreateStoryResponse {
     uint64 storyId = 1;
@@ -176,6 +227,8 @@ message Post {
     SharedMedia sharedMedia = 3;
     string username = 4;
     string profilePicture = 5;
+    bool isCampaign = 6;
+    string campaignWebsite = 7;
 }
 
 message GetPostsResponse {
@@ -187,6 +240,8 @@ message Story {
     uint64 userId = 2;
     repeated Media media = 3;
     bool closeFriends = 4;
+    bool isCampaign = 5;
+    string campaignWebsite = 6;
 }
 
 message GetStoriesIndividualResponse {

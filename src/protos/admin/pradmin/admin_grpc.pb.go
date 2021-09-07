@@ -23,6 +23,12 @@ type AdminClient interface {
 	ReviewVerificationReq(ctx context.Context, in *ReviewVerificatonRequest, opts ...grpc.CallOption) (*ReviewVerificatonResponse, error)
 	SendInappropriateContentReport(ctx context.Context, in *InappropriateContentReportRequest, opts ...grpc.CallOption) (*InappropriateContentReportResponse, error)
 	GetPendingInappropriateContentReport(ctx context.Context, in *GetInappropriateContentReportRequest, opts ...grpc.CallOption) (*GetInappropriateContentReportResponse, error)
+	AddAgentRegistration(ctx context.Context, in *AddAgentRegistrationRequest, opts ...grpc.CallOption) (*AddAgentRegistrationResponse, error)
+	GetAgentRegistrations(ctx context.Context, in *GetAgentRegistrationsRequest, opts ...grpc.CallOption) (*GetAgentRegistrationsResponse, error)
+	RemoveAgentRegistration(ctx context.Context, in *RemoveAgentRegistrationRequest, opts ...grpc.CallOption) (*RemoveAgentRegistrationResponse, error)
+	RejectInappropriateContentReport(ctx context.Context, in *RejectInappropriateContentReportRequest, opts ...grpc.CallOption) (*RejectInappropriateContentReportResponse, error)
+	AcceptInappropriateContentReport(ctx context.Context, in *AcceptInappropriateContentReportRequest, opts ...grpc.CallOption) (*AcceptInappropriateContentReportResponse, error)
+	RemoveContent(ctx context.Context, in *RemoveContentRequest, opts ...grpc.CallOption) (*RemoveContentResponse, error)
 }
 
 type adminClient struct {
@@ -78,6 +84,60 @@ func (c *adminClient) GetPendingInappropriateContentReport(ctx context.Context, 
 	return out, nil
 }
 
+func (c *adminClient) AddAgentRegistration(ctx context.Context, in *AddAgentRegistrationRequest, opts ...grpc.CallOption) (*AddAgentRegistrationResponse, error) {
+	out := new(AddAgentRegistrationResponse)
+	err := c.cc.Invoke(ctx, "/Admin/AddAgentRegistration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) GetAgentRegistrations(ctx context.Context, in *GetAgentRegistrationsRequest, opts ...grpc.CallOption) (*GetAgentRegistrationsResponse, error) {
+	out := new(GetAgentRegistrationsResponse)
+	err := c.cc.Invoke(ctx, "/Admin/GetAgentRegistrations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) RemoveAgentRegistration(ctx context.Context, in *RemoveAgentRegistrationRequest, opts ...grpc.CallOption) (*RemoveAgentRegistrationResponse, error) {
+	out := new(RemoveAgentRegistrationResponse)
+	err := c.cc.Invoke(ctx, "/Admin/RemoveAgentRegistration", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) RejectInappropriateContentReport(ctx context.Context, in *RejectInappropriateContentReportRequest, opts ...grpc.CallOption) (*RejectInappropriateContentReportResponse, error) {
+	out := new(RejectInappropriateContentReportResponse)
+	err := c.cc.Invoke(ctx, "/Admin/RejectInappropriateContentReport", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) AcceptInappropriateContentReport(ctx context.Context, in *AcceptInappropriateContentReportRequest, opts ...grpc.CallOption) (*AcceptInappropriateContentReportResponse, error) {
+	out := new(AcceptInappropriateContentReportResponse)
+	err := c.cc.Invoke(ctx, "/Admin/AcceptInappropriateContentReport", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) RemoveContent(ctx context.Context, in *RemoveContentRequest, opts ...grpc.CallOption) (*RemoveContentResponse, error) {
+	out := new(RemoveContentResponse)
+	err := c.cc.Invoke(ctx, "/Admin/RemoveContent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 // All implementations must embed UnimplementedAdminServer
 // for forward compatibility
@@ -87,6 +147,12 @@ type AdminServer interface {
 	ReviewVerificationReq(context.Context, *ReviewVerificatonRequest) (*ReviewVerificatonResponse, error)
 	SendInappropriateContentReport(context.Context, *InappropriateContentReportRequest) (*InappropriateContentReportResponse, error)
 	GetPendingInappropriateContentReport(context.Context, *GetInappropriateContentReportRequest) (*GetInappropriateContentReportResponse, error)
+	AddAgentRegistration(context.Context, *AddAgentRegistrationRequest) (*AddAgentRegistrationResponse, error)
+	GetAgentRegistrations(context.Context, *GetAgentRegistrationsRequest) (*GetAgentRegistrationsResponse, error)
+	RemoveAgentRegistration(context.Context, *RemoveAgentRegistrationRequest) (*RemoveAgentRegistrationResponse, error)
+	RejectInappropriateContentReport(context.Context, *RejectInappropriateContentReportRequest) (*RejectInappropriateContentReportResponse, error)
+	AcceptInappropriateContentReport(context.Context, *AcceptInappropriateContentReportRequest) (*AcceptInappropriateContentReportResponse, error)
+	RemoveContent(context.Context, *RemoveContentRequest) (*RemoveContentResponse, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -108,6 +174,24 @@ func (UnimplementedAdminServer) SendInappropriateContentReport(context.Context, 
 }
 func (UnimplementedAdminServer) GetPendingInappropriateContentReport(context.Context, *GetInappropriateContentReportRequest) (*GetInappropriateContentReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPendingInappropriateContentReport not implemented")
+}
+func (UnimplementedAdminServer) AddAgentRegistration(context.Context, *AddAgentRegistrationRequest) (*AddAgentRegistrationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddAgentRegistration not implemented")
+}
+func (UnimplementedAdminServer) GetAgentRegistrations(context.Context, *GetAgentRegistrationsRequest) (*GetAgentRegistrationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAgentRegistrations not implemented")
+}
+func (UnimplementedAdminServer) RemoveAgentRegistration(context.Context, *RemoveAgentRegistrationRequest) (*RemoveAgentRegistrationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveAgentRegistration not implemented")
+}
+func (UnimplementedAdminServer) RejectInappropriateContentReport(context.Context, *RejectInappropriateContentReportRequest) (*RejectInappropriateContentReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RejectInappropriateContentReport not implemented")
+}
+func (UnimplementedAdminServer) AcceptInappropriateContentReport(context.Context, *AcceptInappropriateContentReportRequest) (*AcceptInappropriateContentReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AcceptInappropriateContentReport not implemented")
+}
+func (UnimplementedAdminServer) RemoveContent(context.Context, *RemoveContentRequest) (*RemoveContentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveContent not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
 
@@ -212,6 +296,114 @@ func _Admin_GetPendingInappropriateContentReport_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Admin_AddAgentRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddAgentRegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).AddAgentRegistration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/AddAgentRegistration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).AddAgentRegistration(ctx, req.(*AddAgentRegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_GetAgentRegistrations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentRegistrationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).GetAgentRegistrations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/GetAgentRegistrations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).GetAgentRegistrations(ctx, req.(*GetAgentRegistrationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_RemoveAgentRegistration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveAgentRegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).RemoveAgentRegistration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/RemoveAgentRegistration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).RemoveAgentRegistration(ctx, req.(*RemoveAgentRegistrationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_RejectInappropriateContentReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RejectInappropriateContentReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).RejectInappropriateContentReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/RejectInappropriateContentReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).RejectInappropriateContentReport(ctx, req.(*RejectInappropriateContentReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_AcceptInappropriateContentReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AcceptInappropriateContentReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).AcceptInappropriateContentReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/AcceptInappropriateContentReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).AcceptInappropriateContentReport(ctx, req.(*AcceptInappropriateContentReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_RemoveContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveContentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).RemoveContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Admin/RemoveContent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).RemoveContent(ctx, req.(*RemoveContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Admin_ServiceDesc is the grpc.ServiceDesc for Admin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +430,30 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPendingInappropriateContentReport",
 			Handler:    _Admin_GetPendingInappropriateContentReport_Handler,
+		},
+		{
+			MethodName: "AddAgentRegistration",
+			Handler:    _Admin_AddAgentRegistration_Handler,
+		},
+		{
+			MethodName: "GetAgentRegistrations",
+			Handler:    _Admin_GetAgentRegistrations_Handler,
+		},
+		{
+			MethodName: "RemoveAgentRegistration",
+			Handler:    _Admin_RemoveAgentRegistration_Handler,
+		},
+		{
+			MethodName: "RejectInappropriateContentReport",
+			Handler:    _Admin_RejectInappropriateContentReport_Handler,
+		},
+		{
+			MethodName: "AcceptInappropriateContentReport",
+			Handler:    _Admin_AcceptInappropriateContentReport_Handler,
+		},
+		{
+			MethodName: "RemoveContent",
+			Handler:    _Admin_RemoveContent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -40,10 +40,13 @@ export default {
     selectedReport(repData) {
       // console.log(repData)
       this.repData = repData;
-      this.repData.typeMedia = 'image'; // TODO --- THIS INFORMATION ISN'T SENT FROM BACK
-      // this.$refs.reportDetails.$data.reportData.username = repData.username;
-      // this.$refs.reportDetails.$data.reportData.reportedMedia = repData.url;
-      // this.$refs.reportDetails.$data.reportData.profilePictureAddress = repData.profilePicture;
+     // this.repData.typeMedia = 'image'; // TODO --- THIS INFORMATION ISN'T SENT FROM BACK
+      this.$refs.reportDetails.$data.reportData.username = repData.username;
+      this.$refs.reportDetails.$data.reportData.reportedMedia = repData.url;
+      this.$refs.reportDetails.$data.reportData.profilePictureAddress = repData.profilePicture;
+      this.$refs.reportDetails.$data.reportData.id = repData.id;
+      this.$refs.reportDetails.$data.reportData.sharedMediaId = repData.sharedMediaId;
+
     },
     getPendingReports() {
       this.axios.get("admin/inappropriatecontent")

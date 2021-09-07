@@ -18,6 +18,9 @@
           <v-btn class="primary my-2"
                  @click="option = 1"
                  v-bind:class="option === 1 ? 'primary' : 'accent'">Profesional Account Aplications</v-btn>
+          <v-btn class="primary my-2"
+                 @click="option = 2"
+                 v-bind:class="option === 2 ? 'primary' : 'accent'">Agent requests</v-btn>
         </div>
         <v-divider/>
         <div style="height: 10%;" class="sub-menu-div">
@@ -31,6 +34,16 @@
         <ReportsSection v-if="option === 0"/>
 
         <ProfessionalAccountSection v-if="option === 1" />
+
+        <div v-if="option == 2">
+          <div id="agentreqs">
+            <div v-for="r in agentRequests" :key="r" class="agentreq">
+              <b>{{r}}</b>
+              <v-spacer></v-spacer>
+              <v-btn @click="acceptAgent(r)">Accept</v-btn>
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>
@@ -47,14 +60,35 @@ export default {
   data: function () {
     return {
       option: 0,
+      agentRequests: [],
     }
   },
   methods: {
+    acceptAgent: function(email) {
+      this.refreshToken(this.getAHeader())
+      .then(rr => {
+        this.$store.state.jws = rr.data;
+        this.axios.post('admin/agent', email, {headers: this.getAHeader()})
+          .then(() => this.getAgentRequests());
+      })
+    },
+
+    getAgentRequests: function() {
+      this.refreshToken(this.getAHeader())
+      .then(rr => {
+        this.$store.state.jws = rr.data;
+        this.axios.get('admin/agent', {headers: this.getAHeader()})
+          .then(r => this.agentRequests = r.data);
+      })
+    },
     logout: function() {
       this.$store.state.jws = "";
       this.$router.push('/');
     },
-  }
+  },
+  mounted() {
+    this.getAgentRequests();
+  },
 }
 </script>
 
@@ -108,6 +142,19 @@ export default {
   font-size: 30px;
   font-family: "Lucida Handwriting", cursive;
   text-transform: capitalize;
+}
+
+#agentreqs {
+  display: flex;
+  padding: 10px;
+  flex-direction: column;
+}
+
+.agentreq {
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  align-items: center;
 }
 
 </style>

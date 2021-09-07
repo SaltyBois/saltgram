@@ -7,7 +7,50 @@ service Admin {
     rpc ReviewVerificationReq(ReviewVerificatonRequest) returns (ReviewVerificatonResponse);
     rpc SendInappropriateContentReport(InappropriateContentReportRequest) returns (InappropriateContentReportResponse);
     rpc GetPendingInappropriateContentReport(GetInappropriateContentReportRequest) returns (GetInappropriateContentReportResponse);
+    rpc AddAgentRegistration(AddAgentRegistrationRequest) returns (AddAgentRegistrationResponse);
+    rpc GetAgentRegistrations(GetAgentRegistrationsRequest) returns (GetAgentRegistrationsResponse);
+    rpc RemoveAgentRegistration(RemoveAgentRegistrationRequest) returns (RemoveAgentRegistrationResponse);
+    rpc RejectInappropriateContentReport(RejectInappropriateContentReportRequest) returns (RejectInappropriateContentReportResponse);
+    rpc AcceptInappropriateContentReport(AcceptInappropriateContentReportRequest) returns (AcceptInappropriateContentReportResponse);
+    rpc RemoveContent(RemoveContentRequest) returns (RemoveContentResponse);
 }
+
+message RemoveAgentRegistrationRequest {
+    string email = 1;
+}
+
+message RemoveAgentRegistrationResponse {}
+
+message GetAgentRegistrationsRequest {}
+
+message GetAgentRegistrationsResponse {
+    repeated string emails = 1;
+}
+
+message AddAgentRegistrationRequest {
+    string agentEmail = 1;
+}
+
+message AddAgentRegistrationResponse {}
+
+message AcceptInappropriateContentReportRequest {
+    string id = 1;
+}
+
+message AcceptInappropriateContentReportResponse {}
+
+message RemoveContentRequest {
+    string id = 1;
+    string sharedMediaId = 2;
+}
+
+message RemoveContentResponse {}
+
+message RejectInappropriateContentReportRequest {
+    string id = 1;
+}
+
+message RejectInappropriateContentReportResponse {}
 
 message AddVerificationRequest {
     string fullName = 1;
@@ -51,9 +94,9 @@ message InappropriateContentReportResponse {}
 message GetInappropriateContentReportRequest {}
 
 message InappropriateContentReport {
-    uint64 id = 1;
+    string id = 1;
     uint64 userId = 2;
-    uint64 postId = 3;
+    string postId = 3;
     string username = 4;
     string profilePicture = 5;
     string url = 6;

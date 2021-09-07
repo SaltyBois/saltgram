@@ -33,6 +33,8 @@ service Users {
 
     rpc VerifyProfile(VerifyProfileRequest) returns (VerifyProfileResponse);
 
+    rpc DeleteProfile(Profile) returns (DeleteProfileResponse);
+    
     rpc GetMutedProfiles(Profile) returns (stream ProfileMBCF);
     rpc MuteProfile(MuteProfileRequest) returns (MuteProfileResponse);
     rpc UnmuteProfile(UnmuteProfileRequest) returns (UnmuteProfileResponse);
@@ -47,9 +49,45 @@ service Users {
     rpc GetProfilesForCloseFriends(Profile) returns (stream ProfileMBCF);
     rpc AddCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
     rpc RemoveCloseFriend(CloseFriendRequest) returns (CloseFriendResposne);
+    rpc InfluencerRequest(InfluencerRequestRequest) returns (InfluencerRequestResponse);
+    rpc GetInfluencerRequests(GetInfluencerRequestsRequest) returns (GetInfluencerRequestsResponse);
+    rpc AcceptInfluencer(AcceptInfluencerRequest) returns (AcceptInfluencerResponse);
 
-    
+    rpc CheckActive(Profile) returns (BoolResponse);
+
+    rpc GetFollowingMain(Profile) returns (stream ProfileMBCF);
+
+    rpc GetProfileByUserId(GetByIdRequest) returns (ProfileMBCF);
 }
+
+message AcceptInfluencerRequest {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+}
+
+message AcceptInfluencerResponse {}
+
+message GetInfluencerRequestsRequest {
+    uint64 influencerId = 1;
+}
+
+message GetInfluencerRequestsResponse {
+    repeated Request requests = 1;
+}
+
+message Request {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+    string website = 3;
+}
+
+message InfluencerRequestRequest {
+    uint64 influencerId = 1;
+    uint64 campaignId = 2;
+    string website = 3;
+}
+
+message InfluencerRequestResponse{}
 
 message VerifyProfileRequest {
     uint64 userId = 1;
@@ -163,6 +201,7 @@ message RegisterRequest {
     int64 dateOfBirth = 9;
     string webSite = 10;
     bool privateProfile = 11;
+    bool agent = 12;
 }
 
 message CheckPasswordRequest {
@@ -327,6 +366,8 @@ message CloseFriendRequest {
     string profile = 2;
 }
 message CloseFriendResposne {}
+
+message DeleteProfileResponse {}
 
 message ProfileMBCF {
     string username = 1;

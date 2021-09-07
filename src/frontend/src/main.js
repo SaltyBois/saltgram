@@ -18,6 +18,14 @@ Vue.use(VueAxios, axios);
 Vue.use(Vuex);
 Vue.use(PortalVue);
 
+Vue.use(require('vue-pusher'), {
+  api_key: '2c3e3d192fa386ba691c',
+  options: {
+      cluster: 'eu',
+      encrypted: true,
+  }
+});
+
 Vue.component("vue-recaptcha", VueRecaptcha);
 Vue.component("sg-login", Login);
 Vue.component("sg-register", Register);

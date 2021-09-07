@@ -25,19 +25,34 @@
                small>
           Follow request
         </v-btn>
+        <v-btn v-if="influencer"
+        :class="NotificationCategory === 2 ? 'primary' : 'accent'"
+        @click="NotificationCategory = 2"
+        class="mx-2 my-1"
+        small>
+          Campaign requests
+        </v-btn>
       </div>
 
       <div class="notifications-body-div" v-if="NotificationCategory === 0">
 
-        <CommentTagNotification/>
+        <FollowNotification v-for="(item, index) in this.FollowNotification" 
+          :key="index"
+          :username-prop="item.referredUsername"
+          :picture-prop="item.profilePictureURL"
+          />
 
-        <FollowNotification/>
+        <PostCommentNotification v-for="(item, index) in this.commentNotifications" 
+          :key="index"
+          :username-prop="item.referredUsername"
+          :picture-prop="item.profilePictureURL"
+          />
 
-        <PostCommentNotification/>
-
-        <PostLikeNotification/>
-
-        <PostTagNotification v-for="index in 5" :key="index"/>
+        <PostLikeNotification v-for="(item, index) in this.likeNotifications" 
+          :key="index"
+          :username-prop="item.referredUsername"
+          :picture-prop="item.profilePictureURL"
+          />
 
       </div>
 
@@ -45,6 +60,16 @@
 
         <RequestProfile v-for="(item, index) in this.followingRequests" :key="index" :username-prop="item.username" :picture-prop="item.profilePicture" v-on:reload-requests="getFollowRequests()"/>
 
+      </div>
+
+      <div class="notifications-body-div" v-else-if="NotificationCategory === 2">
+        <div id="requests">
+          <div class="request" v-for="request in campaignRequests" :key="request.campaignId">
+            <b>{{request.website}}</b>
+            <v-spacer></v-spacer>
+            <v-btn class="accept-btn" @click="acceptCampaign(request)">Accept</v-btn>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -65,23 +90,86 @@ export default {
                PostTagNotification, RequestProfile},
   data: function () {
     return {
+      campaignRequests: [],
+      influencer: false,
       privateProfile: false,
       NotificationCategory: 0,
       followingRequests: [],
+      notifications: [],
+      likeNotifications: [],
+      commentNotifications: [],
+      FollowNotification: [],
     }
   },
   methods: {
+    acceptCampaign: function(campaign) {
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          let config = {
+            headers: {
+              'Authorization': 'Bearer ' + this.$store.state.jws,
+              'Content-Type': 'text/html',
+            },
+          };
+          this.axios.post("users/campaign", campaign.campaignId, config)
+            .then(() => this.getCampaignRequests());
+        })
+    },
+
+    getCampaignRequests: function() {
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          this.axios.get("users/get/campaign", {headers: this.getAHeader()})
+            .then(r => this.campaignRequests = r.data);
+        })
+    },
+    isInfluencer: function() {
+      if(!this.$store.state.jws) {
+        return;
+      }
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          this.axios.get('users/get/isinfluencer', {headers: this.getAHeader()})
+            .then(() => {
+              this.influencer = true;
+              this.getCampaignRequests();
+            })
+            .catch(() => this.influencer = false);
+        })
+    },
     getFollowRequests: function() {
       this.axios.get("users/follow/requests/", {headers: this.getAHeader()})
       .then(r => {
         this.followingRequests = r.data;
         console.log(r.data);
+        this.getNotifications();
       }).catch(err => {
         console.log(err);
       })
     },
+    getNotifications: function() {
+      this.axios.get("notification/", {headers: this.getAHeader()})
+      .then(r => {
+          console.log(r)
+          this.notifications = r.data
+          this.notifications.forEach(element => {
+            if(element.type == "LIKE") {
+              this.likeNotifications.push(element);
+            } else if(element.type == "COMMENT") {
+              this.commentNotifications.push(element)
+            } else if(element.type == "FOLLOW") {
+              this.FollowNotification.push(element);
+            }
+          })
+          console.log(this.likeNotifications);
+      });
+    }
   },
   mounted() {
+    this.isInfluencer();
     this.getFollowRequests();
   }
 }
@@ -150,6 +238,30 @@ export default {
   border-start-start-radius: 10px 10px;
   border-end-start-radius: 10px 10px;
 
+}
+
+.accept-btn {
+  color: #26a900;
+  border-color: #26a900;
+}
+
+.request {
+  height: 70px;
+  width: 100%;
+
+  display: flex;
+  flex-direction: row;
+  flex-flow: wrap;
+  transition: 0.3s;
+  cursor: pointer;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.request:hover {
+  background-color: #e0e0e0;
+  transition: 0.3s;
 }
 
 </style>

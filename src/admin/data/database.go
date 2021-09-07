@@ -48,4 +48,5 @@ func (db *DBConn) ConnectToDb() error {
 func (db *DBConn) MigradeData() {
 	db.DB.AutoMigrate(&VerificationRequest{})
 	db.DB.AutoMigrate(&InappropriateContentReport{})
+	db.DB.AutoMigrate(&AgentRegistrationRequest{})
 }

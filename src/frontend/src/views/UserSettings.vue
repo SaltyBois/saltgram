@@ -21,6 +21,10 @@
         <v-btn class="my-2"
                @click="option = 5"
                v-bind:color="option === 5 ? 'error-btn' : 'error'">Blocked users</v-btn>
+        <v-btn class="my-2" v-if="role =='agent'"
+               @click="option = 6"
+               :color="option == 6 ? 'primary' : 'accent'">Campaigns</v-btn>
+        
 
       </div>
       <div class="components-div">
@@ -36,6 +40,8 @@
         <MutedUsers v-if="option === 4" />
 
         <BlockedUsers v-if="option === 5"/>
+
+        <Campaign v-if="option == 6" />
 
       </div>
     </div>
@@ -57,8 +63,24 @@ export default {
   data: function() {
     return {
       option: 0,
+      role: 'user',
     }
-}
+},
+  methods: {
+    getRole: function() {
+      this.refreshToken(this.getAHeader())
+        .then(rr => {
+          this.$store.state.jws = rr.data;
+          this.axios.get('users/get/role', {headers: this.getAHeader()})
+            .then(r => this.role = r.data)
+            .catch(r => console.log(r));
+        }).catch(() => this.$router.push('/'));
+    },
+  },
+
+  mounted() {
+    this.getRole();
+  },
 
 }
 </script>

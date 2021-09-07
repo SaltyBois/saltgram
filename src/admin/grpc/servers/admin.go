@@ -6,6 +6,7 @@ import (
 	"saltgram/protos/admin/pradmin"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/users/prusers"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -27,6 +28,32 @@ func NewAdmin(l *logrus.Logger, db *data.DBConn, cc prcontent.ContentClient, uc 
 		cc: cc,
 		uc: uc,
 	}
+}
+
+func (a *Admin) RemoveAgentRegistration(ctx context.Context, r *pradmin.RemoveAgentRegistrationRequest) (*pradmin.RemoveAgentRegistrationResponse, error) {
+	err := a.db.RemoveAgentRegistrationRequest(r.Email)
+	return &pradmin.RemoveAgentRegistrationResponse{}, err
+}
+
+func (a *Admin) GetAgentRegistrations(ctx context.Context, r *pradmin.GetAgentRegistrationsRequest) (*pradmin.GetAgentRegistrationsResponse, error) {
+	reqs, err := a.db.GetAgentRegistrations()
+	if err != nil {
+		return &pradmin.GetAgentRegistrationsResponse{}, status.Error(codes.InvalidArgument, "Invalid argument")
+	}
+
+	resp := &pradmin.GetAgentRegistrationsResponse{Emails: []string{}}
+	for _, re := range *reqs {
+		resp.Emails = append(resp.Emails, re.AgentEmail)
+	}
+	return resp, nil
+}
+
+func (a *Admin) AddAgentRegistration(ctx context.Context, r *pradmin.AddAgentRegistrationRequest) (*pradmin.AddAgentRegistrationResponse, error) {
+	err := a.db.AddAgentRegistrationRequest(&data.AgentRegistrationRequest{AgentEmail: r.AgentEmail})
+	if err != nil {
+		return &pradmin.AddAgentRegistrationResponse{}, status.Error(codes.InvalidArgument, "Invalid argument")
+	}
+	return &pradmin.AddAgentRegistrationResponse{}, nil
 }
 
 func (a *Admin) GetPendingVerifications(ctx context.Context, r *pradmin.GetVerificationRequest) (*pradmin.GetVerificationResponse, error) {
@@ -118,11 +145,45 @@ func (a *Admin) GetPendingInappropriateContentReport(ctx context.Context, r *pra
 	reps := []*pradmin.InappropriateContentReport{}
 	for _, vr := range *reports {
 		reps = append(reps, &pradmin.InappropriateContentReport{
-			Id:     vr.ID,
+			Id:     strconv.FormatUint(vr.ID, 10),
 			UserId: vr.UserID,
-			PostId: vr.PostID,
+			PostId: strconv.FormatUint(vr.PostID, 10),
 			Url:    vr.URL,
 		})
 	}
 	return &pradmin.GetInappropriateContentReportResponse{InappropriateContentReport: reps}, nil
+}
+
+func (a *Admin) RejectInappropriateContentReport(ctx context.Context, r *pradmin.RejectInappropriateContentReportRequest) (*pradmin.RejectInappropriateContentReportResponse, error) {
+
+	i, err := strconv.ParseUint(r.Id, 10, 64)
+	if err != nil {
+		a.l.Errorf("failure parsing id: %v\n", err)
+		return &pradmin.RejectInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	err = data.RejectInappropriateContentReport(a.db, i)
+	if err != nil {
+		a.l.Errorf("failure rejecting inappropriate content report: %v\n", err)
+		return &pradmin.RejectInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &pradmin.RejectInappropriateContentReportResponse{}, nil
+}
+
+func (a *Admin) AcceptInappropriateContentReport(ctx context.Context, r *pradmin.AcceptInappropriateContentReportRequest) (*pradmin.AcceptInappropriateContentReportResponse, error) {
+
+	i, err := strconv.ParseUint(r.Id, 10, 64)
+	if err != nil {
+		a.l.Errorf("failure parsing id: %v\n", err)
+		return &pradmin.AcceptInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	err = data.AcceptInappropriateContentReport(a.db, i)
+	if err != nil {
+		a.l.Errorf("failure accepting inappropriate content report: %v\n", err)
+		return &pradmin.AcceptInappropriateContentReportResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	return &pradmin.AcceptInappropriateContentReportResponse{}, nil
 }

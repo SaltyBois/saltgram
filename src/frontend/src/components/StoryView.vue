@@ -18,21 +18,24 @@
         <v-hover v-slot="{ hover }">
           <v-carousel class="post-content-media" :cycle="!hover" :interval="5000" :continuous="false">
             <div v-for="(story, index) in stories" :key="index">
-              <v-carousel-item>
+              <v-carousel-item >
               <v-img v-if="story.mimeType == 'image'" contain
-                     :src="story.url"/>
+                     :src="story.url"
+                     @click="campaignWebsite(story)"/>
               <video v-else
                      autoplay
                      width="100%"
                      height="100%"
                      playsinline
-                     :src="story.url"/>
+                     :src="story.url"
+                     @click="campaignWebsite(story)"/>
               </v-carousel-item>
-              <div class="close-friends-div" v-if="story.closeFriends">
+              <div class="close-friends-div" v-if="closeFriends">
                 <h3>
                   CLOSE FRIENDS
                 </h3>
               </div>
+              
             </div>
           </v-carousel>
         </v-hover>
@@ -61,6 +64,10 @@ export default {
     stories: {
       type: Array,
       required: true
+    },
+    closeFriends: {
+      type: Boolean,
+      required: false,
     }
   },
   methods: {
@@ -69,6 +76,13 @@ export default {
       if (this.visible) {
         // this.timerSeconds = 10
         // this.countDownTimer()
+      }
+    },
+    campaignWebsite: function(story) {
+      console.log("AAA", story);
+      if(story.isCampaign) {
+      console.log("AAAA");
+        window.location = 'https://' + story.campaignWebsite;
       }
     },
     // loadingStory() {
@@ -85,6 +99,7 @@ export default {
     // this.countDownTimer()
   },
   mounted() {
+    // console.log(this.closeFriends)
     // console.log(this.stories)
         // console.log(this.stories);
 

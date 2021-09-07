@@ -14,6 +14,7 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
+	"saltgram/protos/notifications/prnotifications"
 	"saltgram/protos/users/prusers"
 	"time"
 
@@ -56,8 +57,23 @@ func main() {
 		l.L.Fatalf("dialing users connection: %v\n", err)
 	}
 	defer usersConnection.Close()
+
+	contentConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_CONTENT_ADDR", "localhost"), os.Getenv("SALT_CONTENT_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing content connection: %v\n", err)
+	}
+	defer contentConnection.Close()
+	contentClient := prcontent.NewContentClient(contentConnection)
+
+	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing admin connection: %v\n", err)
+	}
+	defer adminConnection.Close()
+	adminClient := pradmin.NewAdminClient(adminConnection)
+
 	usersClient := prusers.NewUsersClient(usersConnection)
-	usersHandler := handlers.NewUsers(l.L, usersClient)
+	usersHandler := handlers.NewUsers(l.L, usersClient, contentClient, adminClient)
 	usersRouter := s.S.PathPrefix("/users").Subrouter()
 	usersRouter.HandleFunc("/register", usersHandler.Register).Methods(http.MethodPost)
 	usersRouter.HandleFunc("", usersHandler.GetByJWS).Methods(http.MethodGet)
@@ -91,6 +107,13 @@ func main() {
 	usersRouter.HandleFunc("/get/closefriend", usersHandler.GetCloseFriends).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/get/closefriend/following", usersHandler.GetProfilesForCloseFriends).Methods(http.MethodGet)
 	usersRouter.HandleFunc("/taggableprofiles/get", usersHandler.GetTaggableProfiles).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/get/role", usersHandler.GetRole).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/influencer", usersHandler.SendInfluencerRequest).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/get/isinfluencer", usersHandler.IsInfluencer).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/get/campaign", usersHandler.GetCampaignRequests).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/campaign", usersHandler.AcceptCampaign).Methods(http.MethodPost)
+	usersRouter.HandleFunc("/check/{username}", usersHandler.CheckActive).Methods(http.MethodGet)
+	usersRouter.HandleFunc("/following/main/", usersHandler.GetFollowingMain).Methods(http.MethodGet)
 
 	emailConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_EMAIL_ADDR", "localhost"), os.Getenv("SALT_EMAIL_PORT")))
 	if err != nil {
@@ -104,12 +127,6 @@ func main() {
 	emailRouter.HandleFunc("/forgot", emailHandler.ForgotPassword).Methods(http.MethodPost)
 	emailRouter.HandleFunc("/reset/{token}", emailHandler.ConfirmReset).Methods(http.MethodPut)
 
-	contentConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_CONTENT_ADDR", "localhost"), os.Getenv("SALT_CONTENT_PORT")))
-	if err != nil {
-		l.L.Fatalf("dialing content connection: %v\n", err)
-	}
-	defer contentConnection.Close()
-	contentClient := prcontent.NewContentClient(contentConnection)
 	contentHandler := handlers.NewContent(l.L, contentClient, usersClient)
 	contentRouter := s.S.PathPrefix("/content").Subrouter()
 	contentRouter.HandleFunc("/user", contentHandler.GetSharedMedia).Methods(http.MethodGet)
@@ -137,13 +154,8 @@ func main() {
 	contentRouter.HandleFunc("/save", contentHandler.SavePost).Methods(http.MethodPost)
 	contentRouter.HandleFunc("/savedposts", contentHandler.GetSavedPosts).Methods(http.MethodGet)
 	contentRouter.HandleFunc("/taggedposts", contentHandler.GetTaggedPosts).Methods(http.MethodGet)
+	contentRouter.HandleFunc("/campaigns", contentHandler.GetCampaignsByUser).Methods(http.MethodGet)
 
-	adminConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_ADMIN_ADDR", "localhost"), os.Getenv("SALT_ADMIN_PORT")))
-	if err != nil {
-		l.L.Fatalf("dialing admin connection: %v\n", err)
-	}
-	defer adminConnection.Close()
-	adminClient := pradmin.NewAdminClient(adminConnection)
 	adminHandler := handlers.NewAdmin(l.L, adminClient, usersClient, contentClient)
 	adminRouter := s.S.PathPrefix("/admin").Subrouter()
 	adminRouter.HandleFunc("/verificationrequest", adminHandler.GetPendingVerifications).Methods(http.MethodGet)
@@ -153,6 +165,23 @@ func main() {
 	// Better suited for user router?
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.SendInappropriateContentReport).Methods(http.MethodPost)
 	adminRouter.HandleFunc("/inappropriatecontent", adminHandler.GetPendingReports).Methods(http.MethodGet)
+	adminRouter.HandleFunc("/agent", adminHandler.GetAgentRequests).Methods(http.MethodGet)
+	adminRouter.HandleFunc("/agent", adminHandler.AcceptAgent).Methods(http.MethodPost)
+	adminRouter.HandleFunc("/rejectinappropriatecontent", adminHandler.RejectInappropriateContentReport).Methods(http.MethodPut)
+	adminRouter.HandleFunc("/removeinappropriatecontent", adminHandler.RemoveInappropriateContent).Methods(http.MethodPut)
+	adminRouter.HandleFunc("/removeprofile", adminHandler.RemoveProfile).Methods(http.MethodPut)
+
+	notificationConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_NOTIF_ADDR", "localhost"), os.Getenv("SALT_NOTIF_PORT")))
+	if err != nil {
+		l.L.Fatalf("dialing notification connection: %v\n", err)
+	}
+	defer notificationConnection.Close()
+	notificationClient := prnotifications.NewNotificationsClient(notificationConnection)
+	notificationHandler := handlers.NewNotification(l.L, notificationClient, usersClient)
+	notificationRouter := s.S.PathPrefix("/notification").Subrouter()
+	notificationRouter.HandleFunc("/get/unseen/count", notificationHandler.GetUnseenNotification).Methods(http.MethodGet)
+	notificationRouter.HandleFunc("/", notificationHandler.GetNotifications).Methods(http.MethodGet)
+	notificationRouter.HandleFunc("/seen", notificationHandler.NotificationSeen).Methods(http.MethodPost)
 
 	// TODO REPAIR THIS AFTER FINISHING FRONTEND
 	c := cors.New(cors.Options{

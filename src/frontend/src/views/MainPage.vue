@@ -27,9 +27,9 @@
 
 <!--              <MySeenStory/>-->
               <div v-for="(item, index) in pageStories" :key="index">
-                <Story v-if="!item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" />
+                <Story v-if="!item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" :close-friends="item.closeFriends"/>
 
-                <StoryCloseFriends v-else-if="item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement"/>
+                <StoryCloseFriends v-else-if="item.closeFriends && item.storyElement.length !== 0" :user="item.user" :stories="item.storyElement" :close-friends="item.closeFriends"/>
 
 <!--                <StorySeen/>-->
 
@@ -126,7 +126,6 @@ export default {
       this.axios.get('users', {headers: this.getAHeader()})
           .then(r => {
             this.loggedUser = r.data;
-            // console.log(this.loggedUser)
             this.getFollowingUsers();
           })
           .catch(err => {
@@ -134,7 +133,7 @@ export default {
           })
     },
     getFollowingUsers: function() {
-      this.axios.get("users/following/detailed/" + this.loggedUser.username, {headers: this.getAHeader()})
+      this.axios.get("users/following/main/", {headers: this.getAHeader()})
           .then(r => {
             // console.log(r.data);
             this.followingUsers = r.data;
@@ -142,13 +141,10 @@ export default {
             this.myStories = {};
             this.getUserPosts(this.loggedUser, 0)
             this.getUserStories(this.loggedUser, -1)
-            if (this.followingUsers === null || this.followingUsers === 0) return;
             for(let i = 0; i < this.followingUsers.length; ++i) {
               let currentUser = this.followingUsers[i];
-              if (currentUser.following && !currentUser.pending) {
-                this.getUserPosts(currentUser, i);
-                this.getUserStories(currentUser, i);
-              }
+              this.getUserPosts(currentUser, i);
+              this.getUserStories(currentUser, i);
             }
           })
     },
@@ -199,7 +195,7 @@ export default {
         // console.log(currentUser, i)
       this.axios.get("content/story/" + currentUser.id, {headers: this.getAHeader()})
           .then(r => {
-            console.log(r.data)
+            // console.log(r.data)
             let validStories = []
             const oneDay = 60 * 60 * 24 * 1000;
             r.data.forEach(el1 => {
@@ -229,10 +225,13 @@ export default {
               this.myStories = storyElement;
               if (this.myStories.storyElement.length !== 0) this.myStoriesExist = true;
               else this.myStoriesExist = false;
-              console.log('IDE GAS: ', this.myStories)
+              // console.log('IDE GAS: ', this.myStories)
               // console.log(this.myStoriesExist)
             }
-            else this.pageStories.push(storyElement);
+            else {
+              // console.log(storyElement)
+              this.pageStories.push(storyElement);
+            }
 
           }).catch(err => {
             console.log(err)

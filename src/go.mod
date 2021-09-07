@@ -21,6 +21,7 @@ require (
 	github.com/onsi/ginkgo v1.15.0 // indirect
 	github.com/onsi/gomega v1.10.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pusher/pusher-http-go v4.0.1+incompatible
 	github.com/roberthodgen/spa-server v0.0.0-20171007154335-bb87b4ff3253
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.8.1
