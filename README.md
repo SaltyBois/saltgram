@@ -1,4 +1,4 @@
-# SaltGram
+# SaltGram [![Docker compose](https://github.com/SaltyBois/saltgram/actions/workflows/go.yml/badge.svg)](https://github.com/SaltyBois/saltgram/actions/workflows/go.yml)
 Image and video sharing social network platform for  
 XML and WEB Services course
 
