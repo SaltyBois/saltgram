@@ -3,17 +3,16 @@ package servers
 import (
 	"context"
 	"fmt"
-	"os"
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
 	"saltgram/protos/notifications/prnotifications"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
+	"saltgram/users/saga"
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,16 +25,18 @@ type Users struct {
 	ac prauth.AuthClient
 	ec premail.EmailClient
 	cc prcontent.ContentClient
+	rc *saga.RedisClient
 	nc prnotifications.NotificationsClient
 }
 
-func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient, cc prcontent.ContentClient, nc prnotifications.NotificationsClient) *Users {
+func NewUsers(l *logrus.Logger, db *data.DBConn, ac prauth.AuthClient, ec premail.EmailClient, cc prcontent.ContentClient, nc prnotifications.NotificationsClient, rc *saga.RedisClient) *Users {
 	return &Users{
 		l:  l,
 		db: db,
 		ac: ac,
 		ec: ec,
 		cc: cc,
+		rc: rc,
 		nc: nc,
 	}
 }
@@ -156,6 +157,7 @@ func (u *Users) VerifyEmail(ctx context.Context, r *prusers.VerifyEmailRequest) 
 	return &prusers.VerifyEmailResponse{}, nil
 }
 
+/*
 func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prusers.RegisterResponse, error) {
 	u.l.Infof("registering %v\n", r.Email)
 
@@ -246,6 +248,43 @@ func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prus
 			}
 		}()
 	}
+
+	return &prusers.RegisterResponse{}, nil
+}
+*/
+func (u *Users) Register(ctx context.Context, r *prusers.RegisterRequest) (*prusers.RegisterResponse, error) {
+	u.l.Infof("registering %v\n", r.Email)
+
+	user := data.User{
+		Email:          r.Email,
+		Username:       r.Username,
+		FullName:       r.FullName,
+		HashedPassword: r.Password,
+		Role:           "user", // TODO(Jovan): For now
+	}
+
+	err := u.db.AddUser(&user)
+	if err != nil {
+		u.l.Errorf("failure adding user: %v\n", err)
+		return &prusers.RegisterResponse{}, status.Error(codes.InvalidArgument, "Bad request")
+	}
+
+	m := saga.Message{
+		Service:        saga.AuthService,
+		SenderService:  saga.UserService,
+		Action:         saga.ActionStart,
+		UserId:         user.ID,
+		Username:       r.Username,
+		Description:    r.Description,
+		PhoneNumber:    r.PhoneNumber,
+		Gender:         r.Gender,
+		DateOfBirth:    r.DateOfBirth,
+		WebSite:        r.WebSite,
+		PrivateProfile: r.PrivateProfile,
+		Email:          r.Email,
+	}
+
+	u.rc.Next(saga.AuthChannel, saga.AuthService, m)
 
 	return &prusers.RegisterResponse{}, nil
 }

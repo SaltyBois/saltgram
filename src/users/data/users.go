@@ -236,6 +236,11 @@ func (db *DBConn) GetUserByUsername(username string) (*User, error) {
 	return &user, err
 }
 
+func (db *DBConn) DeleteUser(username string) error {
+	user := User{}
+	return db.DB.Where("username = ?", username).Delete(&user).Error
+}
+
 func (db *DBConn) GetUserById(id uint64) (*User, error) {
 	user := User{}
 	err := db.DB.Where("id = ?", id).First(&user).Error

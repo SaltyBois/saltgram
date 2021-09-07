@@ -6,6 +6,7 @@ import (
 	"os"
 	"saltgram/auth/data"
 	"saltgram/auth/grpc/servers"
+	"saltgram/auth/saga"
 	"saltgram/internal"
 	"saltgram/log"
 	"saltgram/pki"
@@ -39,6 +40,9 @@ func main() {
 		l.L.Errorf("failure creating auth enforcer: %v\n", err)
 	}
 
+	redisclient := saga.NewRedisClient(l.L, db)
+	go redisclient.Connection()
+
 	grpcServer := s.NewServer()
 	usersConnection, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_USERS_ADDR", "localhost"), os.Getenv("SALT_USERS_PORT")))
 	if err != nil {
@@ -47,6 +51,7 @@ func main() {
 	defer usersConnection.Close()
 
 	usersClient := prusers.NewUsersClient(usersConnection)
+
 	gAuthServer := servers.NewAuth(l.L, authEnforcer, db, usersClient)
 	prauth.RegisterAuthServer(grpcServer, gAuthServer)
 	reflection.Register(grpcServer)
