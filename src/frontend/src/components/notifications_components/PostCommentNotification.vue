@@ -1,24 +1,33 @@
 <template>
   <div class="layout-div">
     <div class="post-header-left-side">
-      <v-img  class="post-header-profile"
-              src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
-              @click="$router.push('/user')"
-              alt="Profile picture"/>
-      <b @click="$router.push('/user')" style="cursor: pointer">Username1</b>
+      <v-img  v-if="this.pictureProp"
+                class="post-header-profile"
+                :src="this.pictureProp"
+                @click="$router.push('/user/' + usernameProp)"
+                alt="Profile picture"/>
+         <v-img v-else class="post-header-profile"
+          @click="$router.push('/user/' + usernameProp)"
+          :src="require('@/assets/profile_placeholder.png')"/>
+      <b @click="$router.push('/user/' + usernameProp)" style="cursor: pointer">@{{usernameProp}}</b>
       <p style="margin-left: 5px; margin-right: 5px; margin-top: 15px">has commented on your post </p>
-      <v-img  class="post-header-profile"
-              src="https://i.pinimg.com/736x/4d/8e/cc/4d8ecc6967b4a3d475be5c4d881c4d9c.jpg"
-              @click="$router.push('/user')"
-              alt="Profile picture"/>
-      <p style="color: #858585; margin-top: 15px">1h ago</p>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "PostCommentNotification"
+  name: "PostCommentNotification",
+  props: {
+    usernameProp: {
+      type: String,
+      required: true
+    },
+    pictureProp: {
+      type: String,
+      required: true,
+    }
+  },
 }
 </script>
 

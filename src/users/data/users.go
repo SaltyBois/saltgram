@@ -28,6 +28,13 @@ type User struct {
 	DeletedOn string `json:"-"`
 }
 
+type InfluencerRequest struct {
+	data.Identifiable
+	InfluencerID uint64 `gorm:"type:numeric" json:"influencerId"`
+	CampaignID   uint64 `gorm:"type:numeric" json:"campaignId"`
+	Website      string `json:"website"`
+}
+
 func (u *User) Validate() error {
 	// TODO(Jovan): Extract into a global validator?
 	validate := validator.New()
@@ -46,6 +53,22 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func (db *DBConn) AddInfluencerRequest(ir *InfluencerRequest) error {
+	return db.DB.Create(ir).Error
+}
+
+func (db *DBConn) GetInfluencerRequests(influencerId uint64) (*[]InfluencerRequest, error) {
+	ir := []InfluencerRequest{}
+	err := db.DB.Find(&ir).Where("influencer_id = ?", influencerId).Error
+	return &ir, err
+}
+
+func (db *DBConn) RemoveInfluencerRequest(influencerId, campaignId uint64) error {
+	ir := InfluencerRequest{}
+	db.DB.Find(&ir).Where("influencer_id = ? AND campaign_id = ?", influencerId, campaignId)
+	return db.DB.Delete(&ir).Error
 }
 
 var ErrorNewPasswordSameAsOld = fmt.Errorf("new password same as old")
@@ -115,6 +138,15 @@ func VerifyEmail(db *DBConn, email string) error {
 	user.Activated = true
 	db.UpdateUser(user)
 	return nil
+}
+
+func ActivateUser(db *DBConn, userId uint64) error {
+	user, err := db.GetUserById(userId)
+	if err != nil {
+		return err
+	}
+	user.Activated = true
+	return db.UpdateUser(user)
 }
 
 func ChangePassword(db *DBConn, email, oldPlainPassword, newPlainPassword string) error {
@@ -204,11 +236,17 @@ func (db *DBConn) GetUserByUsername(username string) (*User, error) {
 	return &user, err
 }
 
+func (db *DBConn) DeleteUser(username string) error {
+	user := User{}
+	return db.DB.Where("username = ?", username).Delete(&user).Error
+}
+
 func (db *DBConn) GetUserById(id uint64) (*User, error) {
 	user := User{}
 	err := db.DB.Where("id = ?", id).First(&user).Error
 	return &user, err
 }
+
 //Moved to profile
 /*func (db *DBConn) GetAllUsersByUsernameSubstring(username string) ([]User, error) {
 	var users []User

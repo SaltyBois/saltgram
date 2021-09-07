@@ -28,3 +28,8 @@ type VerificationRequestDTO struct {
 	Username       string `json:"username"`
 	ProfilePicture string `json:"profilePicture"`
 }
+
+type ReviewReportDTO struct {
+	Id            string `json:"id"`
+	SharedMediaId string `json:"sharedMediaId"`
+}

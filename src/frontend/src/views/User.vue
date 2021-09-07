@@ -3,7 +3,8 @@
     <portal-target name="drop-down-profile-menu" />
     <portal-target name="settings-menu"/>
     <TopBar style="position: sticky; z-index: 2"/>
-    <div id="user-header">
+    <UserNotFound v-if="!active" />
+    <div id="user-header" v-if="this.active">
       <div id="user-icon-logout">
         <v-layout align-center
                   justify-center>
@@ -32,14 +33,24 @@
           <NameAndDescription :name="this.profile.fullName"
                               :description="this.profile.description"
                               :web-site="this.profile.webSite"
-                              :account-type="this.profile.accountType"/>
+                              :account-type="this.profile.accountType"
+                              @influencer="influencerRequest"/>
+          <v-dialog v-model="influencerDialog" width="600">
+            <div id="campaigns">
+              <div v-for="campaign in campaigns" :key="campaign.id" class="campaign" @click="requestInfluencer(campaign)">
+                <h3>{{campaign.website}}</h3>
+                <v-spacer></v-spacer>
+                <img v-if="campaign.url" :src="campaign.url" />
+              </div>
+            </div>
+          </v-dialog>
 
         </v-layout>
 
       </div>
     </div>
 
-    <div v-if="!isContentVisible" class="private-account">
+    <div v-if="!isContentVisible && active" class="private-account">
       <i class="fa fa-lock" style="transform: scale(2.5)"/>
       <h3>This user is private</h3>
 
@@ -47,7 +58,7 @@
 
 <!--        TODO: STORY HIGHLIGHTS-->
     <v-layout id="user-stories"
-              v-if="isContentVisible"
+              v-if="isContentVisible && active"
               column>
       <v-layout class="inner-story-layout"
                 style="margin: 10px">
@@ -93,7 +104,7 @@
 
     <!--  TODO: LAYOUT FOR TOGGLING: POSTS, SAVED, TAGGED  -->
     <v-layout id="radio-button-layout"
-              v-if="isContentVisible">
+              v-if="isContentVisible && active">
       <v-radio-group row  v-model="radioButton">
         <v-radio label="Posts"  value="posts"/>
         <v-radio label="Saved"  value="saved"/>
@@ -104,7 +115,7 @@
 <!--        TODO: POSTS -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'posts' && isContentVisible"
+                v-if="radioButton === 'posts' && isContentVisible && active"
                 column>
                 <div v-for="(object, index) in usersPosts" :key="index">
                   <PostOnUserPage :post="object"
@@ -117,7 +128,7 @@
     <!--        TODO: SAVED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'saved' && isContentVisible"
+                v-if="radioButton === 'saved' && isContentVisible && active"
                 column>
                 <div v-for="(object, index) in savedPosts" :key="index">
                   <PostOnUserPage :post="object"
@@ -129,7 +140,7 @@
     <!--        TODO: TAGGED -->
     <transition name="fade">
       <v-layout class="user-media"
-                v-if="radioButton === 'tagged' && isContentVisible"
+                v-if="radioButton === 'tagged' && isContentVisible && active"
                 column>
                 <div v-for="(object, index) in taggedPosts" :key="index">
                   <PostOnUserPage :post="object"
@@ -147,13 +158,22 @@ import ProfileHeader from "@/components/user_page_components/ProfileHeader";
 import NameAndDescription from "@/components/user_page_components/NameAndDescription";
 import StoryHighlight from "@/components/user_page_components/StoryHighlight";
 import PostOnUserPage from "@/components/user_page_components/PostOnUserPage";
+import UserNotFound from "@/components/user_page_components/UserNotFound";
 
 export default {
     components: {
-      TopBar, ProfileImage, ProfileHeader, NameAndDescription, StoryHighlight, PostOnUserPage
+      TopBar, ProfileImage, ProfileHeader, NameAndDescription, StoryHighlight, PostOnUserPage, UserNotFound
     },
     data: function() {
       return {
+        campaigns: [
+          {
+            id: 1,
+            website: 'web.com',
+            url: 'https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png',
+          },
+        ],
+        influencerDialog: false,
         highlightSuccess: false,
         noempty: v => !!v || 'Required',
         highlightName: '',
@@ -186,6 +206,7 @@ export default {
         loggedUser: { username: '' },
         taggedPosts: [],
         savedPosts: [],
+        active: true,
       }
     },
     computed: {
@@ -195,6 +216,40 @@ export default {
       }
     },
     methods: {
+
+      getCampaigns: function() {
+        if(!this.$store.state.jws) {
+          return;
+        }
+        this.refreshToken(this.getAHeader())
+          .then(rr => {
+            this.$store.state.jws = rr.data;
+            this.axios.get("content/campaigns", {headers: this.getAHeader()})
+              .then(r => this.campaigns = r.data)
+          })
+      },
+
+      influencerRequest: function() {
+        if(!this.followingUser && this.profile.privateUser) {
+          return;
+        }
+
+        this.influencerDialog = true;
+      },
+
+      requestInfluencer: function(campaign) {
+        this.refreshToken(this.getAHeader())
+          .then(rr => {
+            this.$store.state.jws = rr.data;
+            let request = {
+              influencerId: this.user.id,
+              campaignId: campaign.id,
+              website: campaign.website,
+            };
+            this.axios.post('users/influencer', request, {headers: this.getAHeader()})
+              .then(() => this.influencerDialog = false)
+          })
+      },
 
         getHighlights: function() {
           this.refreshToken(this.getAHeader())
@@ -406,15 +461,17 @@ export default {
               this.userStories = r.data;
               console.log("stories:", r.data);
              const oneDay = 60 * 60 * 24 * 1000;
-              if (this.userStories !== null)  {
-                let newStories = []
+              let newStories = []
+              if (this.userStories)  {
                 this.userStories.forEach(s => {
                   s.stories.forEach(ss => {
                     let newSS = ss;
                     newSS.closeFriends = s.closeFriends;
-                    let index = newSS.addedOn.indexOf('CEST') + 4
-                    let storyDate = new Date(newSS.addedOn.substring(0, index).replace('CEST', '(CEST)'))
-                    if ((Date.now() - storyDate) < oneDay) newStories.push(newSS);
+                    newSS.isCampaign = s.isCampaign;
+                    newSS.campaignWebsite = s.campaignWebsite;
+                    let storyDate = new Date(Date.parse(newSS.addedOn.substring(0, 10)));
+                    if ((Date.now() - storyDate) < oneDay && !s.isCampaign) newStories.push(newSS);
+                    if(s.isCampaign) newStories.push(newSS);
                   });
                 });
                this.$refs.profileImage.$data.userStories = newStories;//this.userStories;
@@ -467,10 +524,20 @@ export default {
         },
     },
     mounted() {
+      this.getCampaigns();
+        this.axios.get("users/check/" + this.$route.params.username)
+        .then(r => {
+          this.active = r.data
+        })
+        .catch(r => {
+          this.active = false
+          console.log(r)
+        })
         this.axios.get("users/check/block/" + this.$route.params.username, {headers: this.getAHeader()})
           .then(r => {
             if (r.data) {
-              this.$router.push('/main/')
+              //this.$router.push('/main/')
+              this.active = false
             }
           })
        this.getUserInfo(); // TODO UNCOMMENT THIS
@@ -597,6 +664,30 @@ export default {
 
     .success-dialog p {
       font-size: 4rem;
+    }
+
+    #campaigns {
+      background: #fff;
+      height: 400px;
+      overflow: auto;
+      padding: 10px;
+    }
+
+    .campaign {
+      cursor: pointer;
+      display: flex;
+      flex-direction: row;
+      padding: 10px;
+      border-bottom: solid 1px #eee;
+    }
+
+    .campaign:hover {
+      background: #eee;
+    }
+
+    .campaign img {
+      height: 128px;
+      width: 128px;
     }
 
 </style>

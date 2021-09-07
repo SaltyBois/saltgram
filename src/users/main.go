@@ -10,9 +10,11 @@ import (
 	"saltgram/protos/auth/prauth"
 	"saltgram/protos/content/prcontent"
 	"saltgram/protos/email/premail"
+	"saltgram/protos/notifications/prnotifications"
 	"saltgram/protos/users/prusers"
 	"saltgram/users/data"
 	"saltgram/users/grpc/servers"
+	"saltgram/users/saga"
 
 	"google.golang.org/grpc/reflection"
 )
@@ -52,7 +54,17 @@ func main() {
 	}
 	cc := prcontent.NewContentClient(cconn)
 
-	gUsersServer := servers.NewUsers(l.L, db, ac, ec, cc)
+	rc := saga.NerRedisClient(l.L, db, ec)
+	go rc.Start()
+	go rc.Connection()
+	nconn, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_NOTIF_ADDR", "localhost"), os.Getenv("SALT_NOTIF_PORT")))
+	if err != nil {
+		l.L.Fatalf("failure dialing notification: %v\n", err)
+	}
+	nc := prnotifications.NewNotificationsClient(nconn)
+
+
+	gUsersServer := servers.NewUsers(l.L, db, ac, ec, cc, nc, rc)
 	grpcServer := s.NewServer()
 	prusers.RegisterUsersServer(grpcServer, gUsersServer)
 	reflection.Register(grpcServer)

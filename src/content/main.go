@@ -6,9 +6,11 @@ import (
 	"os"
 	"saltgram/content/gdrive"
 	"saltgram/content/grpc/servers"
+	"saltgram/content/saga"
 	"saltgram/log"
 	"saltgram/pki"
 	"saltgram/protos/content/prcontent"
+	"saltgram/protos/notifications/prnotifications"
 
 	"saltgram/content/data"
 	"saltgram/internal"
@@ -35,7 +37,15 @@ func main() {
 
 	g := gdrive.NewGDrive(l.L)
 
-	gContentServer := servers.NewContent(l.L, db, g)
+	rs := saga.NerRedisClient(l.L, db, g)
+	go rs.Connection()
+	nconn, err := s.GetConnection(fmt.Sprintf("%s:%s", internal.GetEnvOrDefault("SALT_NOTIF_ADDR", "localhost"), os.Getenv("SALT_NOTIF_PORT")))
+	if err != nil {
+		l.L.Fatalf("failure dialing notification: %v\n", err)
+	}
+	nc := prnotifications.NewNotificationsClient(nconn)
+
+	gContentServer := servers.NewContent(l.L, db, g, nc)
 	grpcServer := s.NewServer()
 	prcontent.RegisterContentServer(grpcServer, gContentServer)
 	reflection.Register(grpcServer)

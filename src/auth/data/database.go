@@ -2,11 +2,12 @@ package data
 
 import (
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"os"
+	"saltgram/data"
 	"saltgram/internal"
-    "saltgram/data"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
